@@ -33,7 +33,7 @@ if (manifest.icon !== undefined) {
   requirePath(manifest.icon.slice(2), false);
 }
 const { version } = JSON.parse(readFileSync(join(repo, "package.json")));
-if (manifest.name !== "mattpocock-skills" || manifest.version !== version) throw new Error("Source plugin identity or version does not match package.json.");
+if (manifest.name !== "real-skills-leashed" || manifest.version !== version) throw new Error("Source plugin identity or version does not match package.json.");
 if (!Array.isArray(manifest.skills) || !manifest.skills.length) throw new Error("Source manifest must list promoted skills.");
 const selected = new Set();
 const names = new Set();
@@ -86,9 +86,9 @@ try {
 const expected = Buffer.from(JSON.stringify({
   ...manifest,
   interface: {
-    displayName: "Skills for Real Engineers",
+    displayName: "Real Skills [Leashed]",
     shortDescription: "Skills by Matt Pocock",
-    developerName: "Matt Pocock",
+    developerName: "Ivan D Vasin",
     category: "Developer Tools",
     capabilities: ["Interactive"],
     ...(manifest.icon ? { logo: manifest.icon, composerIcon: manifest.icon } : {}),

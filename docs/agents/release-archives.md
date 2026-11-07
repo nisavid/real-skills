@@ -68,7 +68,7 @@ with (root / "report.json").open("x", encoding="utf-8", newline="\n") as stream:
 PYTHON
  done
 for format in agent-plugins claude; do
-  name="skills-for-real-engineers-${RELEASE_VERSION}-${format}.zip"
+  name="real-skills-leashed-${RELEASE_VERSION}-${format}.zip"
   cmp -- "$output/first/$name" "$output/second/$name"
 done
 cmp -- "$output/first/report.json" "$output/second/report.json"
@@ -84,8 +84,8 @@ Compare the ZIPs directly with the source commit, independently of the builder's
 
 Require ZIP member bytes and Unix modes to match the Git blobs: Git mode `100644` maps to `0644`, and `100755` maps to `0755`. Both ZIPs contain the source `LICENSE` bytes and mode. If the manifest specifies an icon, require the path to resolve inside each archive and its bytes and mode to match the source commit. Check the derivation using the native package procedure. Every selected `SKILL.md` and `agents/openai.yaml` remains byte-identical, with paired user-invocation controls. Check the following complete layouts:
 
-- `skills-for-real-engineers-<release>-agent-plugins.zip`: root `plugin.json`, `LICENSE`, and `RELEASE.json`, plus the referenced icon when declared; each complete selected tree maps from `skills/<bucket>/<name>/` to `skills/<name>/`.
-- `skills-for-real-engineers-<release>-claude.zip`: `.claude-plugin/plugin.json`, `LICENSE`, and `RELEASE.json`, plus the referenced icon when declared; each complete selected tree retains `skills/<bucket>/<name>/`.
+- `real-skills-leashed-<release>-agent-plugins.zip`: root `plugin.json`, `LICENSE`, and `RELEASE.json`, plus the referenced icon when declared; each complete selected tree maps from `skills/<bucket>/<name>/` to `skills/<name>/`.
+- `real-skills-leashed-<release>-claude.zip`: `.claude-plugin/plugin.json`, `LICENSE`, and `RELEASE.json`, plus the referenced icon when declared; each complete selected tree retains `skills/<bucket>/<name>/`.
 
 For each archive with an icon, perform and record the light- and dark-background appearance check in the native package procedure, identifying the source revision, archive format, and observed surface or preview method. Record provider rendering as unobserved when no authorized provider observation is available; an archive or local preview alone does not establish it.
 
