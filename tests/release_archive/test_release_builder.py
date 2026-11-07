@@ -202,7 +202,7 @@ def test_build_packages_icon_bytes_and_references_for_both_providers():
                         "1.3.1", "1.3.2+from.1.3.1")
     for fmt, manifest_path in (("agent-plugins", "plugin.json"),
                                ("claude", ".claude-plugin/plugin.json")):
-        with zipfile.ZipFile(io.BytesIO(archives[f"skills-for-real-engineers-1.3.2+from.1.3.1-{fmt}.zip"])) as archive:
+        with zipfile.ZipFile(io.BytesIO(archives[f"real-skills-leashed-1.3.2+from.1.3.1-{fmt}.zip"])) as archive:
             assert archive.read("assets/wayfinder.svg") == b'<svg xmlns="http://www.w3.org/2000/svg"/>'
             manifest = json.loads(archive.read(manifest_path))
             if fmt == "claude":
