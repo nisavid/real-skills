@@ -373,7 +373,9 @@ def build(raw, expected_sha256, revision, base, release):
 
         files["LICENSE"] = source["LICENSE"]
         if icon_path is not None:
+            require(asset not in files, "destination collision")
             files[asset] = source[asset]
+            mapping[asset] = asset
         files[manifest_path] = (json_bytes(manifest), 0o644)
         provenance = {
             "source_revision": revision,

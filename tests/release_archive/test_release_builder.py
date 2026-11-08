@@ -198,12 +198,22 @@ def test_build_packages_icon_bytes_and_references_for_both_providers():
     from release_builder import build
 
     source = source_archive(icon=True)
-    archives, _ = build(source, hashlib.sha256(source).hexdigest(), REVISION,
+    archives, report = build(source, hashlib.sha256(source).hexdigest(), REVISION,
                         "1.3.1", "1.3.2+from.1.3.1")
     for fmt, manifest_path in (("agent-plugins", "plugin.json"),
                                ("claude", ".claude-plugin/plugin.json")):
         with zipfile.ZipFile(io.BytesIO(archives[f"real-skills-leashed-1.3.2+from.1.3.1-{fmt}.zip"])) as archive:
             assert archive.read("assets/wayfinder.svg") == b'<svg xmlns="http://www.w3.org/2000/svg"/>'
+            expected = {
+                "source": "assets/wayfinder.svg",
+                "archive": "assets/wayfinder.svg",
+                "sha256": hashlib.sha256(b'<svg xmlns="http://www.w3.org/2000/svg"/>').hexdigest(),
+                "mode": "0o644",
+            }
+            release = json.loads(archive.read("RELEASE.json"))
+            name = f"real-skills-leashed-1.3.2+from.1.3.1-{fmt}.zip"
+            assert expected in release["source_mapping"]
+            assert expected in report["archives"][name]["source_mapping"]
             manifest = json.loads(archive.read(manifest_path))
             if fmt == "claude":
                 assert manifest["icon"] == "./assets/wayfinder.svg"
