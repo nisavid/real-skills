@@ -73,8 +73,15 @@ def test_build_refuses_source_release_version_mismatch(source_version):
         build(source, hashlib.sha256(source).hexdigest(), REVISION, "1.3.2", "1.3.4+from.1.3.2")
 
 
-@pytest.mark.parametrize("case", ["missing", "mismatch", "escape"])
-def test_build_refuses_invalid_icon_inputs(case):
+@pytest.mark.parametrize(
+    "case,diagnostic",
+    [
+        pytest.param("missing", "missing or nonregular icon", id="missing"),
+        pytest.param("mismatch", "native icon references disagree", id="mismatch"),
+        pytest.param("escape", "invalid icon path", id="escape"),
+    ],
+)
+def test_build_refuses_invalid_icon_inputs(case, diagnostic):
     from release_builder import build
 
     output = io.BytesIO()
@@ -100,12 +107,19 @@ def test_build_refuses_invalid_icon_inputs(case):
                 else:
                     replacement.addfile(member)
     source = output.getvalue()
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=diagnostic):
         build(source, hashlib.sha256(source).hexdigest(), REVISION, "1.3.1", "1.3.2+from.1.3.1")
 
 
-@pytest.mark.parametrize("case", ["stale_logo", "stale_composer", "null_icon"])
-def test_build_refuses_missing_or_null_icon_with_stale_native_metadata(case):
+@pytest.mark.parametrize(
+    "case,diagnostic",
+    [
+        pytest.param("stale_logo", "native icon references disagree", id="stale_logo"),
+        pytest.param("stale_composer", "native icon references disagree", id="stale_composer"),
+        pytest.param("null_icon", "invalid icon path", id="null_icon"),
+    ],
+)
+def test_build_refuses_missing_or_null_icon_with_stale_native_metadata(case, diagnostic):
     from release_builder import build
 
     output = io.BytesIO()
@@ -138,5 +152,5 @@ def test_build_refuses_missing_or_null_icon_with_stale_native_metadata(case):
                 else:
                     replacement.addfile(member)
     source = output.getvalue()
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=diagnostic):
         build(source, hashlib.sha256(source).hexdigest(), REVISION, "1.3.1", "1.3.2+from.1.3.1")
