@@ -314,7 +314,10 @@ def build(raw, expected_sha256, revision, base, release):
     }
     require(set(claude) <= allowed, "new manifest fields need projection review")
     icon_path = claude.get("icon")
-    if icon_path is not None:
+    if "icon" not in claude:
+        require("logo" not in native["interface"] and "composerIcon" not in native["interface"],
+                "native icon references disagree")
+    else:
         require(isinstance(icon_path, str) and re.fullmatch(
             r"\./assets/[a-zA-Z0-9_-]+\.(?:svg|png|jpg|jpeg|webp)", icon_path
         ), "invalid icon path")

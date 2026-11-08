@@ -102,3 +102,41 @@ def test_build_refuses_invalid_icon_inputs(case):
     source = output.getvalue()
     with pytest.raises(ValueError):
         build(source, hashlib.sha256(source).hexdigest(), REVISION, "1.3.1", "1.3.2+from.1.3.1")
+
+
+@pytest.mark.parametrize("case", ["stale_logo", "stale_composer", "null_icon"])
+def test_build_refuses_missing_or_null_icon_with_stale_native_metadata(case):
+    from release_builder import build
+
+    output = io.BytesIO()
+    target = "mattpocock-skills-" + REVISION + "/.claude-plugin/plugin.json"
+    with tarfile.open(fileobj=io.BytesIO(source_archive(icon=True)), mode="r:gz") as original:
+        with tarfile.open(fileobj=output, mode="w:gz") as replacement:
+            for member in original:
+                member = copy.copy(member)
+                if member.isfile():
+                    data = original.extractfile(member).read()
+                    if member.name == target:
+                        manifest = json.loads(data)
+                        if case == "null_icon":
+                            manifest["icon"] = None
+                        else:
+                            del manifest["icon"]
+                        data = json.dumps(manifest).encode()
+                    elif member.name == "mattpocock-skills-" + REVISION + "/.codex-plugin/plugin.json":
+                        manifest = json.loads(data)
+                        if case == "stale_logo":
+                            del manifest["interface"]["composerIcon"]
+                        elif case == "stale_composer":
+                            del manifest["interface"]["logo"]
+                        else:
+                            del manifest["interface"]["logo"]
+                            del manifest["interface"]["composerIcon"]
+                        data = json.dumps(manifest).encode()
+                    member.size = len(data)
+                    replacement.addfile(member, io.BytesIO(data))
+                else:
+                    replacement.addfile(member)
+    source = output.getvalue()
+    with pytest.raises(ValueError):
+        build(source, hashlib.sha256(source).hexdigest(), REVISION, "1.3.1", "1.3.2+from.1.3.1")

@@ -304,3 +304,11 @@ test("native manifests identify the fork repository and credit the original auth
     assert.equal(manifest.license, "MIT");
   }
 });
+
+test("native manifests retain the Wayfinder icon", () => {
+  const claude = JSON.parse(readFileSync(join(repo, ".claude-plugin/plugin.json")));
+  const codex = JSON.parse(readFileSync(join(repo, ".codex-plugin/plugin.json")));
+  assert.equal(claude.icon, "./assets/wayfinder.svg");
+  assert.equal(codex.interface.logo, "./assets/wayfinder.svg");
+  assert.equal(codex.interface.composerIcon, "./assets/wayfinder.svg");
+});
