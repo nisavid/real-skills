@@ -315,6 +315,8 @@ def build(raw, expected_sha256, revision, base, release):
         "repository", "license", "keywords", "skills", "icon",
     }
     require(set(claude) <= allowed, "new manifest fields need projection review")
+    require(isinstance(native.get("interface"), dict),
+            "missing or non-object native interface")
     icon_path = claude.get("icon")
     if "icon" not in claude:
         require("logo" not in native["interface"] and "composerIcon" not in native["interface"],
