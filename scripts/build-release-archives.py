@@ -233,7 +233,7 @@ def build(raw, expected_sha256, revision, base, release):
     native = unique_json(source[".codex-plugin/plugin.json"][0])
     package = unique_json(source["package.json"][0])
     require(
-        claude.get("name") == native.get("name") == "mattpocock-skills",
+        claude.get("name") == native.get("name") == "real-skills-leashed",
         "source plugin name mismatch",
     )
     source_version = package["version"]
@@ -310,10 +310,25 @@ def build(raw, expected_sha256, revision, base, release):
 
     allowed = {
         "name", "version", "description", "author", "homepage",
-        "repository", "license", "keywords", "skills",
+        "repository", "license", "keywords", "skills", "icon",
     }
     require(set(claude) <= allowed, "new manifest fields need projection review")
-    portable = {k: copy.deepcopy(v) for k, v in claude.items() if k != "skills"}
+    icon_path = claude.get("icon")
+    if "icon" not in claude:
+        require("logo" not in native["interface"] and "composerIcon" not in native["interface"],
+                "native icon references disagree")
+    else:
+        require(isinstance(icon_path, str) and re.fullmatch(
+            r"\./assets/[a-zA-Z0-9_-]+\.(?:svg|png|jpg|jpeg|webp)", icon_path
+        ), "invalid icon path")
+        asset = icon_path[2:]
+        require(types.get("assets") == tarfile.DIRTYPE, "invalid icon directory")
+        require(types.get(asset) in (tarfile.REGTYPE, tarfile.AREGTYPE) and asset in source,
+                "missing or nonregular icon")
+        require(native["interface"].get("logo") == icon_path
+                and native["interface"].get("composerIcon") == icon_path,
+                "native icon references disagree")
+    portable = {k: copy.deepcopy(v) for k, v in claude.items() if k not in ("skills", "icon")}
     portable["$schema"] = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
     portable["extensions"] = {"com.openai": {"interface": copy.deepcopy(native["interface"])}}
     projected_claude = copy.deepcopy(claude)
@@ -357,6 +372,10 @@ def build(raw, expected_sha256, revision, base, release):
         require(set(mapping) == set(selected), "incomplete selected-file projection")
 
         files["LICENSE"] = source["LICENSE"]
+        if icon_path is not None:
+            require(asset not in files, "destination collision")
+            files[asset] = source[asset]
+            mapping[asset] = asset
         files[manifest_path] = (json_bytes(manifest), 0o644)
         provenance = {
             "source_revision": revision,
@@ -393,6 +412,7 @@ def build(raw, expected_sha256, revision, base, release):
                 for original, destination in sorted(mapping.items())
             ],
             "license_sha256": digest(source["LICENSE"][0]),
+            "icon_sha256": digest(source[asset][0]) if icon_path is not None else None,
         }
         files["RELEASE.json"] = (json_bytes(provenance), 0o644)
 
@@ -400,7 +420,7 @@ def build(raw, expected_sha256, revision, base, release):
         require(archive_bytes == encode_zip(files), "nondeterministic rebuild")
         actual = verify_zip(archive_bytes, files)
         links = verify_links(actual)
-        filename = f"skills-for-real-engineers-{release}-{format_name}.zip"
+        filename = f"real-skills-leashed-{release}-{format_name}.zip"
         outputs[filename] = archive_bytes
         report["archives"][filename] = {
             "sha256": digest(archive_bytes),

@@ -1,14 +1,28 @@
 {
-  "name": "mattpocock",
+  "name": "real-skills",
   "interface": {
-    "displayName": "Skills for Real Engineers"
+    "displayName": "Real Skills"
   },
   "plugins": [
     {
-      "name": "mattpocock-skills",
+      "name": "real-skills-leashed",
       "source": {
-        "source": "local",
-        "path": "./"
+        "source": "url",
+        "url": "https://github.com/nisavid/real-skills",
+        "ref": "stable-vanilla-plus"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "real-skills-unleashed",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/nisavid/real-skills",
+        "ref": "stable"
       },
       "policy": {
         "installation": "AVAILABLE",

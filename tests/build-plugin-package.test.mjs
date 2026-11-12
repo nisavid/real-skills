@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { chmodSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, readlinkSync, lstatSync, rmSync, writeFileSync, copyFileSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -8,7 +9,7 @@ import { test } from "node:test";
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-function fixture(t) {
+function fixture(t, name = "real-skills-leashed") {
   const root = mkdtempSync(join(tmpdir(), "plugin-package-test-"));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const put = (path, bytes) => {
@@ -16,14 +17,14 @@ function fixture(t) {
     writeFileSync(join(root, path), bytes);
   };
   const manifest = {
-    name: "mattpocock-skills", version: "1.3.1", author: { name: "Matt Pocock" },
+    name, version: "1.3.1", author: { name: "Matt Pocock" },
     license: "MIT", skills: ["./skills/engineering/tdd", "./skills/productivity/handoff"],
   };
   put("package.json", JSON.stringify({ version: "1.3.1" }));
   put(".claude-plugin/plugin.json", JSON.stringify(manifest, null, 2) + "\n");
   put("LICENSE", "MIT attribution fixture\n");
-  put(".agents/plugins/marketplace.json", JSON.stringify({plugins:[{name:"mattpocock-skills",source:{source:"local",path:"./"}}]}));
-  put(".claude-plugin/marketplace.json", JSON.stringify({plugins:[{name:"mattpocock-skills",source:"./"}]}));
+  put(".agents/plugins/marketplace.json", JSON.stringify({plugins:[{name,source:{source:"local",path:"./"}}]}));
+  put(".claude-plugin/marketplace.json", JSON.stringify({plugins:[{name,source:"./"}]}));
   put("skills/engineering/tdd/SKILL.md", "---\nname: tdd\n---\n# TDD\n");
   put("skills/engineering/tdd/agents/openai.yaml", "policy:\n  allow_implicit_invocation: false\n");
   put("skills/engineering/tdd/references/binary.bin", Buffer.from([0, 255, 13, 10]));
@@ -46,14 +47,49 @@ test("build selects original promoted directories from the repository root witho
   assert.deepEqual(snapshot(join(f.root, "skills")), sources);
   assert.deepEqual(readFileSync(join(f.root, ".claude-plugin/plugin.json")), claude);
   assert.deepEqual(readFileSync(join(f.root, "LICENSE")), license);
-  assert.throws(() => lstatSync(join(f.root, "plugins/mattpocock-skills")), { code: "ENOENT" });
+  assert.throws(() => lstatSync(join(f.root, "plugins/real-skills-leashed")), { code: "ENOENT" });
   const codex = JSON.parse(readFileSync(join(f.root, ".codex-plugin/plugin.json")));
   assert.deepEqual(codex.skills, f.manifest.skills);
-  assert.equal(codex.name, "mattpocock-skills");
+  assert.equal(codex.name, "real-skills-leashed");
   assert.equal(codex.version, "1.3.1");
-  assert.equal(codex.interface.displayName, "Skills for Real Engineers");
-  assert.equal(codex.interface.developerName, "Matt Pocock");
+  assert.equal(codex.interface.displayName, "Real Skills [Leashed]");
+  assert.equal(codex.interface.developerName, "Ivan D Vasin");
   assert.equal(readFileSync(join(f.root, "skills/misc/secret-draft/SKILL.md"), "utf8"), "Excluded draft\n");
+});
+
+test("build emits a separately named Unleashed package and preserves the selected skill files", (t) => {
+  const f = fixture(t, "real-skills-unleashed");
+  f.put("package.json", JSON.stringify({ name: "real-skills-unleashed", version: "1.3.1" }));
+  f.put("skills/engineering/tdd/agents/openai.yaml", "{}\n");
+  f.put("skills/productivity/handoff/SKILL.md", "---\nname: handoff\n---\n# Handoff\n");
+  f.put("skills/productivity/handoff/agents/openai.yaml", "{}\n");
+  const source = snapshot(join(f.root, "skills"));
+
+  const result = f.run();
+  assert.equal(result.status, 0, result.stderr);
+  const manifest = JSON.parse(readFileSync(join(f.root, ".codex-plugin/plugin.json")));
+  assert.equal(manifest.name, "real-skills-unleashed");
+  assert.equal(manifest.interface.displayName, "Real Skills [Unleashed]");
+  assert.deepEqual(manifest.skills, ["./skills/engineering/tdd", "./skills/productivity/handoff"]);
+  assert.deepEqual(snapshot(join(f.root, "skills")), source);
+  assert.equal(f.run("--check").status, 0);
+});
+
+test("build and check reject a conflicting package identity before writing", (t) => {
+  const f = fixture(t, "real-skills-unleashed");
+  f.put("package.json", JSON.stringify({ name: "real-skills-unleashed", version: "1.3.1" }));
+  assert.equal(f.run().status, 0);
+  f.manifest.description = "changed manifest content";
+  f.put(".claude-plugin/plugin.json", JSON.stringify(f.manifest));
+  f.put("package.json", JSON.stringify({ name: "real-skills-leashed", version: "1.3.1" }));
+  const before = snapshot(f.root);
+
+  for (const args of [[], ["--check"]]) {
+    const result = f.run(...args);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /Source plugin identity or version does not match package.json/);
+    assert.deepEqual(snapshot(f.root), before);
+  }
 });
 
 function snapshot(root) {
@@ -81,6 +117,81 @@ test("check detects native manifest drift without writing and rebuild repairs on
   assert.equal(f.run().status, 0);
   assert.deepEqual(snapshot(join(f.root, "skills")), sources);
   assert.equal(f.run("--check").status, 0);
+});
+
+test("successful regeneration preserves the existing native manifest mode and updates its content", (t) => {
+  const f = fixture(t);
+  assert.equal(f.run().status, 0);
+  const destination = join(f.root, ".codex-plugin/plugin.json");
+  const before = readFileSync(destination);
+  chmodSync(destination, 0o640);
+  f.manifest.description = "updated metadata with preserved permissions";
+  f.put(".claude-plugin/plugin.json", JSON.stringify(f.manifest));
+  const result = f.run();
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(lstatSync(destination).mode & 0o7777, 0o640);
+  const after = readFileSync(destination);
+  assert.notDeepEqual(after, before);
+  assert.equal(JSON.parse(after).description, f.manifest.description);
+});
+
+test("failed output write preserves the existing native manifest", (t) => {
+  if (process.platform !== "linux") return t.skip("requires Linux file-size limit");
+  const f = fixture(t);
+  assert.equal(f.run().status, 0);
+  const destination = join(f.root, ".codex-plugin/plugin.json");
+  const before = readFileSync(destination);
+  f.manifest.description = "x".repeat(8192);
+  f.put(".claude-plugin/plugin.json", JSON.stringify(f.manifest));
+  const result = spawnSync("bash", ["-c", 'trap "" XFSZ; ulimit -f 1; exec "$@"', "limited-build", process.execPath, join(f.root, "scripts/build-plugin-package.mjs")], { encoding: "utf8" });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /EFBIG/);
+  assert.deepEqual(readFileSync(destination), before);
+  assert.deepEqual(readdirSync(join(f.root, ".codex-plugin")), ["plugin.json"]);
+});
+
+test("failed replacement preserves the existing native manifest", (t) => {
+  const f = fixture(t);
+  assert.equal(f.run().status, 0);
+  const destination = join(f.root, ".codex-plugin/plugin.json");
+  const before = readFileSync(destination);
+  f.manifest.description = "updated metadata";
+  f.put(".claude-plugin/plugin.json", JSON.stringify(f.manifest));
+  f.put("fail-rename.cjs", `const fs = require("node:fs");
+fs.renameSync = () => { const error = new Error("injected replacement failure"); error.code = "EIO"; throw error; };
+require("node:module").syncBuiltinESMExports();
+`);
+  const result = spawnSync(process.execPath, ["--require", join(f.root, "fail-rename.cjs"), join(f.root, "scripts/build-plugin-package.mjs")], { encoding: "utf8" });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /injected replacement failure/);
+  assert.deepEqual(readFileSync(destination), before);
+  assert.deepEqual(readdirSync(join(f.root, ".codex-plugin")), ["plugin.json"]);
+});
+
+test("failed generation leaves no partial manifest when the destination is absent", async (t) => {
+  await t.test("replacement fails", (t) => {
+    const f = fixture(t);
+    f.put("fail-rename.cjs", `const fs = require("node:fs");
+fs.renameSync = () => { throw new Error("injected replacement failure"); };
+require("node:module").syncBuiltinESMExports();
+`);
+    const result = spawnSync(process.execPath, ["--require", join(f.root, "fail-rename.cjs"), join(f.root, "scripts/build-plugin-package.mjs")], { encoding: "utf8" });
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /injected replacement failure/);
+    assert.throws(() => lstatSync(join(f.root, ".codex-plugin/plugin.json")), { code: "ENOENT" });
+    assert.deepEqual(readdirSync(join(f.root, ".codex-plugin")), []);
+  });
+  await t.test("write fails", (t) => {
+    if (process.platform !== "linux") return t.skip("requires Linux file-size limit");
+    const f = fixture(t);
+    f.manifest.description = "x".repeat(8192);
+    f.put(".claude-plugin/plugin.json", JSON.stringify(f.manifest));
+    const result = spawnSync("bash", ["-c", 'trap "" XFSZ; ulimit -f 1; exec "$@"', "limited-build", process.execPath, join(f.root, "scripts/build-plugin-package.mjs")], { encoding: "utf8" });
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /EFBIG/);
+    assert.throws(() => lstatSync(join(f.root, ".codex-plugin/plugin.json")), { code: "ENOENT" });
+    assert.deepEqual(readdirSync(join(f.root, ".codex-plugin")), []);
+  });
 });
 
 test("invalid promoted inventory is rejected before changing the native manifest", async (t) => {
@@ -131,10 +242,10 @@ test("build preserves executable source bits and unrelated repository contents",
 
 test("catalogs must resolve the native repository root and retain the plugin identity", async (t) => {
   const cases = {
-    "Claude copied-tree routing": (f) => f.put(".claude-plugin/marketplace.json", JSON.stringify({plugins:[{name:"mattpocock-skills",source:"./plugins/mattpocock-skills"}]})),
-    "Codex copied-tree routing": (f) => f.put(".agents/plugins/marketplace.json", JSON.stringify({plugins:[{name:"mattpocock-skills",source:{source:"local",path:"./plugins/mattpocock-skills"}}]})),
+    "Claude copied-tree routing": (f) => f.put(".claude-plugin/marketplace.json", JSON.stringify({plugins:[{name:"real-skills-leashed",source:"./plugins/real-skills-leashed"}]})),
+    "Codex copied-tree routing": (f) => f.put(".agents/plugins/marketplace.json", JSON.stringify({plugins:[{name:"real-skills-leashed",source:{source:"local",path:"./plugins/real-skills-leashed"}}]})),
     "changed plugin identity": (f) => f.put(".agents/plugins/marketplace.json", JSON.stringify({plugins:[{name:"renamed",source:{source:"local",path:"./"}}]})),
-    "portable discovery override": (f) => f.put("plugin.json", JSON.stringify({name:"mattpocock-skills"})),
+    "portable discovery override": (f) => f.put("plugin.json", JSON.stringify({name:"real-skills-leashed"})),
   };
   for (const [name, change] of Object.entries(cases)) await t.test(name, (t) => {
     const f = fixture(t);
@@ -143,6 +254,67 @@ test("catalogs must resolve the native repository root and retain the plugin ide
     const before = snapshot(f.root);
     assert.notEqual(f.run("--check").status, 0);
     assert.deepEqual(snapshot(f.root), before);
+  });
+});
+
+const sharedCatalogPaths = [".claude-plugin/marketplace.json", ".agents/plugins/marketplace.json"];
+
+function sharedCatalog() {
+  const url = "https://github.com/nisavid/real-skills";
+  return {
+    name: "real-skills",
+    plugins: [
+      { name: "real-skills-leashed", source: { source: "url", url, ref: "stable-vanilla-plus" } },
+      { name: "real-skills-unleashed", source: { source: "url", url, ref: "stable" } },
+    ],
+  };
+}
+
+test("the shared marketplace retains distinct refs and builds each local variant", async (t) => {
+  for (const name of ["real-skills-leashed", "real-skills-unleashed"]) {
+    await t.test(name, (t) => {
+      const f = fixture(t, name);
+      f.put("package.json", JSON.stringify({ name, version: "1.3.1" }));
+      for (const path of sharedCatalogPaths) f.put(path, JSON.stringify(sharedCatalog()));
+      const sources = snapshot(join(f.root, "skills"));
+
+      const result = f.run();
+      assert.equal(result.status, 0, result.stderr);
+      const manifest = JSON.parse(readFileSync(join(f.root, ".codex-plugin/plugin.json")));
+      assert.equal(manifest.name, name);
+      assert.deepEqual(snapshot(join(f.root, "skills")), sources);
+      assert.equal(f.run("--check").status, 0);
+    });
+  }
+});
+
+test("build and check reject invalid or disagreeing shared catalog sources before writing", async (t) => {
+  const cases = {
+    "catalogs mix local and shared routing": (catalog) => {
+      catalog.plugins = [{ name: "real-skills-leashed", source: { source: "local", path: "./" } }];
+    },
+    "different marketplace name": (catalog) => { catalog.name = "other-marketplace"; },
+    "missing variant": (catalog) => { catalog.plugins.pop(); },
+    "duplicate variant": (catalog) => { catalog.plugins[1] = catalog.plugins[0]; },
+    "same ref for both variants": (catalog) => { catalog.plugins[1].source.ref = "stable-vanilla-plus"; },
+    "wrong source repository": (catalog) => { catalog.plugins[1].source.url = "https://example.invalid/real-skills"; },
+    "additional source selector": (catalog) => { catalog.plugins[1].source.path = "./other-plugin"; },
+  };
+  for (const [name, change] of Object.entries(cases)) await t.test(name, (t) => {
+    const f = fixture(t);
+    for (const path of sharedCatalogPaths) f.put(path, JSON.stringify(sharedCatalog()));
+    assert.equal(f.run().status, 0);
+    const catalog = sharedCatalog();
+    change(catalog);
+    f.put(".agents/plugins/marketplace.json", JSON.stringify(catalog));
+    const before = snapshot(f.root);
+
+    for (const args of [[], ["--check"]]) {
+      const result = f.run(...args);
+      assert.notEqual(result.status, 0);
+      assert.match(result.stderr, /Marketplace must select|Marketplace catalogs disagree/);
+      assert.deepEqual(snapshot(f.root), before);
+    }
   });
 });
 
@@ -163,4 +335,82 @@ test("recursive native roots reject hidden extra skills and symlinked source or 
       assert.deepEqual(snapshot(f.root), before);
     }
   });
+});
+
+test("build projects a packaged icon into Codex interface metadata", (t) => {
+  const f = fixture(t);
+  f.manifest.icon = "./assets/wayfinder.svg";
+  f.put(".claude-plugin/plugin.json", JSON.stringify(f.manifest));
+  f.put("assets/wayfinder.svg", '<svg xmlns="http://www.w3.org/2000/svg"/>');
+  const result = f.run();
+  assert.equal(result.status, 0, result.stderr);
+  const native = JSON.parse(readFileSync(join(f.root, ".codex-plugin/plugin.json")));
+  assert.equal(native.interface.logo, "./assets/wayfinder.svg");
+  assert.equal(native.interface.composerIcon, "./assets/wayfinder.svg");
+  assert.equal(f.run("--check").status, 0);
+});
+
+test("build retains the reviewed icon derivative bytes", (t) => {
+  const f = fixture(t);
+  f.manifest.icon = "./assets/wayfinder.svg";
+  f.put(".claude-plugin/plugin.json", JSON.stringify(f.manifest));
+  const icon = readFileSync(join(repo, "assets/wayfinder.svg"));
+  f.put("assets/wayfinder.svg", icon);
+  assert.equal(f.run().status, 0);
+  const result = readFileSync(join(f.root, "assets/wayfinder.svg"));
+  assert.equal(createHash("sha256").update(result).digest("hex"), "7ca7b400fe3297f0ae20f04d897d967154160d867eca9b6d225ced9d33f54fe7");
+});
+
+test("build rejects a missing packaged icon before changing the native manifest", (t) => {
+  const f = fixture(t);
+  assert.equal(f.run().status, 0);
+  f.manifest.icon = "./assets/missing.svg";
+  f.put(".claude-plugin/plugin.json", JSON.stringify(f.manifest));
+  const before = snapshot(f.root);
+  assert.notEqual(f.run().status, 0);
+  assert.deepEqual(snapshot(f.root), before);
+});
+
+test("build refuses unsafe or symlinked icon paths without writing", async (t) => {
+  const cases = {
+    "path escape": (f) => { f.manifest.icon = "./assets/../LICENSE"; },
+    "symbolic link": (f) => {
+      f.manifest.icon = "./assets/link.svg";
+      mkdirSync(join(f.root, "assets"));
+      symlinkSync(join(f.root, "LICENSE"), join(f.root, "assets/link.svg"));
+    },
+  };
+  for (const [name, change] of Object.entries(cases)) await t.test(name, (t) => {
+    const f = fixture(t);
+    assert.equal(f.run().status, 0);
+    change(f);
+    f.put(".claude-plugin/plugin.json", JSON.stringify(f.manifest));
+    const before = snapshot(f.root);
+    assert.notEqual(f.run().status, 0);
+    assert.deepEqual(snapshot(f.root), before);
+  });
+});
+
+
+test("native manifests identify the fork repository and credit the original author", () => {
+  for (const path of [".claude-plugin/plugin.json", ".codex-plugin/plugin.json"]) {
+    const manifest = JSON.parse(readFileSync(join(repo, path), "utf8"));
+    assert.equal(manifest.repository, "https://github.com/nisavid/real-skills");
+    assert.equal(manifest.author.name, "Matt Pocock");
+    assert.equal(manifest.license, "MIT");
+  }
+});
+
+test("native manifests retain the icon for the selected variant", () => {
+  const claude = JSON.parse(readFileSync(join(repo, ".claude-plugin/plugin.json")));
+  const codex = JSON.parse(readFileSync(join(repo, ".codex-plugin/plugin.json")));
+  assert.equal(codex.name, claude.name);
+  if (claude.name === "real-skills-leashed") {
+    assert.equal(claude.icon, "./assets/wayfinder.svg");
+  } else {
+    assert.notEqual(claude.icon, "./assets/wayfinder.svg");
+  }
+  assert.equal(codex.icon, claude.icon);
+  assert.equal(codex.interface.logo, claude.icon);
+  assert.equal(codex.interface.composerIcon, claude.icon);
 });

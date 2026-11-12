@@ -30,12 +30,13 @@ BETA_DATA = b"\x00\xffliteral support bytes\r\n"
 LICENSE = b"MIT fixture license\nCopyright (c) 2026 Fixture Author\n"
 
 
-def source_archive(source_version="1.3.2+from.1.3.1", native_version=None):
+def source_archive(source_version="1.3.2+from.1.3.1", native_version=None, icon=False):
     roots = ["./skills/engineering/alpha", "./skills/productivity/beta"]
     manifest = {
-        "name": "mattpocock-skills",
+        "name": "real-skills-leashed",
         "version": source_version,
         "description": "Synthetic release fixture",
+        "repository": "https://github.com/nisavid/real-skills",
         "author": {"name": "Fixture Author"},
         "license": "MIT",
         "skills": roots,
@@ -48,6 +49,9 @@ def source_archive(source_version="1.3.2+from.1.3.1", native_version=None):
     })
     if native_version is not None:
         native["version"] = native_version
+    if icon:
+        manifest["icon"] = "./assets/wayfinder.svg"
+        native["interface"].update({"logo": manifest["icon"], "composerIcon": manifest["icon"]})
     files = {
         ".claude-plugin/plugin.json": (json.dumps(manifest).encode(), 0o644),
         ".codex-plugin/plugin.json": (json.dumps(native).encode(), 0o644),
@@ -60,6 +64,8 @@ def source_archive(source_version="1.3.2+from.1.3.1", native_version=None):
         "skills/productivity/beta/agents/openai.yaml": (BETA_AGENT, 0o644),
         "skills/productivity/beta/assets/data.bin": (BETA_DATA, 0o644),
     }
+    if icon:
+        files["assets/wayfinder.svg"] = (b'<svg xmlns="http://www.w3.org/2000/svg"/>', 0o644)
     root = "mattpocock-skills-" + REVISION
     directories = {root}
     for path in files:
@@ -91,7 +97,7 @@ def test_build_separates_source_version_from_upstream_base():
         ("agent-plugins", "plugin.json"),
         ("claude", ".claude-plugin/plugin.json"),
     ):
-        with zipfile.ZipFile(io.BytesIO(archives[f"skills-for-real-engineers-1.3.3+from.1.3.1-{fmt}.zip"])) as archive:
+        with zipfile.ZipFile(io.BytesIO(archives[f"real-skills-leashed-1.3.3+from.1.3.1-{fmt}.zip"])) as archive:
             assert json.loads(archive.read(manifest_path))["version"] == "1.3.3+from.1.3.1"
             provenance = json.loads(archive.read("RELEASE.json"))
             assert provenance["base_version"] == "1.3.1"
@@ -109,7 +115,7 @@ def test_build_release_versions_in_both_manifests():
         ("agent-plugins", "plugin.json"),
         ("claude", ".claude-plugin/plugin.json"),
     ):
-        with zipfile.ZipFile(io.BytesIO(archives[f"skills-for-real-engineers-1.3.2+from.1.3.1-{fmt}.zip"])) as archive:
+        with zipfile.ZipFile(io.BytesIO(archives[f"real-skills-leashed-1.3.2+from.1.3.1-{fmt}.zip"])) as archive:
             assert json.loads(archive.read(manifest_path))["version"] == "1.3.2+from.1.3.1"
 
 
@@ -121,7 +127,7 @@ def test_build_preserves_selected_files_in_both_release_layouts():
         source, hashlib.sha256(source).hexdigest(), REVISION, "1.3.1", "1.3.2+from.1.3.1"
     )
     expected_archives = {
-        "skills-for-real-engineers-1.3.2+from.1.3.1-agent-plugins.zip": (
+        "real-skills-leashed-1.3.2+from.1.3.1-agent-plugins.zip": (
             "plugin.json",
             {
                 "skills/alpha/SKILL.md": (ALPHA_SKILL, 0o644),
@@ -132,7 +138,7 @@ def test_build_preserves_selected_files_in_both_release_layouts():
                 "skills/beta/assets/data.bin": (BETA_DATA, 0o644),
             },
         ),
-        "skills-for-real-engineers-1.3.2+from.1.3.1-claude.zip": (
+        "real-skills-leashed-1.3.2+from.1.3.1-claude.zip": (
             ".claude-plugin/plugin.json",
             {
                 "skills/engineering/alpha/SKILL.md": (ALPHA_SKILL, 0o644),
@@ -179,8 +185,38 @@ def test_build_keeps_release_identity_across_source_and_archives():
         ("agent-plugins", "plugin.json"),
         ("claude", ".claude-plugin/plugin.json"),
     ):
-        with zipfile.ZipFile(io.BytesIO(archives[f"skills-for-real-engineers-{version}-{fmt}.zip"])) as archive:
+        with zipfile.ZipFile(io.BytesIO(archives[f"real-skills-leashed-{version}-{fmt}.zip"])) as archive:
             manifest = json.loads(archive.read(manifest_path))
             assert manifest["version"] == version
             assert manifest["repository"] == "https://github.com/nisavid/real-skills"
+            assert manifest["author"] == {"name": "Fixture Author"}
+            assert manifest["license"] == "MIT"
             assert json.loads(archive.read("RELEASE.json"))["source_version"] == version
+
+
+def test_build_packages_icon_bytes_and_references_for_both_providers():
+    from release_builder import build
+
+    source = source_archive(icon=True)
+    archives, report = build(source, hashlib.sha256(source).hexdigest(), REVISION,
+                        "1.3.1", "1.3.2+from.1.3.1")
+    for fmt, manifest_path in (("agent-plugins", "plugin.json"),
+                               ("claude", ".claude-plugin/plugin.json")):
+        with zipfile.ZipFile(io.BytesIO(archives[f"real-skills-leashed-1.3.2+from.1.3.1-{fmt}.zip"])) as archive:
+            assert archive.read("assets/wayfinder.svg") == b'<svg xmlns="http://www.w3.org/2000/svg"/>'
+            expected = {
+                "source": "assets/wayfinder.svg",
+                "archive": "assets/wayfinder.svg",
+                "sha256": hashlib.sha256(b'<svg xmlns="http://www.w3.org/2000/svg"/>').hexdigest(),
+                "mode": "0o644",
+            }
+            release = json.loads(archive.read("RELEASE.json"))
+            name = f"real-skills-leashed-1.3.2+from.1.3.1-{fmt}.zip"
+            assert expected in release["source_mapping"]
+            assert expected in report["archives"][name]["source_mapping"]
+            manifest = json.loads(archive.read(manifest_path))
+            if fmt == "claude":
+                assert manifest["icon"] == "./assets/wayfinder.svg"
+            else:
+                interface = manifest["extensions"]["com.openai"]["interface"]
+                assert interface["logo"] == interface["composerIcon"] == "./assets/wayfinder.svg"

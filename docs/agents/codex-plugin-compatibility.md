@@ -22,10 +22,10 @@ These sources resolve intent; the real Codex regression remains required.
 
 The check must exercise Codex's actual discovery route, not a local imitation of its parser:
 
-- The repository-root package returns exactly the promoted inventory from `.claude-plugin/plugin.json`, with original bucket paths and no non-promoted skills. A fixture with declared roots and an undeclared default-root skill verifies that arrays control selection, rather than being ignored in favor of a fallback scan.
+- The Unleashed package returns exactly the promoted inventory from `.claude-plugin/plugin.json`, under the `real-skills-unleashed` namespace, with original bucket paths and no non-promoted skills. The regression copies the native manifest and skill trees into a temporary root and supplies a synthetic local catalog. A separate Leashed fixture with declared roots and an undeclared default-root skill verifies that arrays control selection.
 - A native fixture discovers a skill nested beneath a declared bucket root. A portable fixture discovers its direct child and excludes a deeper skill. A bucket name in an explicit per-skill path alone does not prove recursive descent.
 - A native manifest containing other interface metadata but omitting `longDescription` loads successfully and returns a null long description.
 
 Retain the reviewed package revision, actual Codex version, command result, and observed inventory with the completion evidence. A changed package or relevant dependency requires a fresh affected check. An unavailable executable or failing contract check leaves Codex compatibility unverified and blocks the dependent publication or use.
 
-Discovery verifies manifest parsing and inventory for the tested executable. Installation, skill invocation policy enforcement, and execution of skill instructions each require separate observations. Preserve those claim boundaries when recording acceptance or handing the package to another consumer.
+Discovery verifies manifest parsing and inventory for the tested executable. Shared marketplace ref resolution, installation, skill invocation policy enforcement, and execution of skill instructions each require separate observations. Preserve those claim boundaries when recording acceptance or handing the package to another consumer.
