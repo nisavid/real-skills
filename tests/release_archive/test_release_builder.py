@@ -55,7 +55,7 @@ def source_archive(source_version="1.3.2+from.1.3.1", native_version=None, icon=
     files = {
         ".claude-plugin/plugin.json": (json.dumps(manifest).encode(), 0o644),
         ".codex-plugin/plugin.json": (json.dumps(native).encode(), 0o644),
-        "package.json": (json.dumps({"version": source_version}).encode(), 0o644),
+        "package.json": (json.dumps({"name": "real-skills-leashed", "version": source_version}).encode(), 0o644),
         "LICENSE": (LICENSE, 0o644),
         "skills/engineering/alpha/SKILL.md": (ALPHA_SKILL, 0o644),
         "skills/engineering/alpha/agents/openai.yaml": (ALPHA_AGENT, 0o644),
