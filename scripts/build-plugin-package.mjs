@@ -89,7 +89,8 @@ for (const [path, source] of [
     [...variants.keys()].every((name) => {
       const route = plugins.find((plugin) => plugin?.name === name)?.source;
       return route?.source === "url" && route.url === "https://github.com/nisavid/real-skills" &&
-        typeof route.ref === "string" && route.ref.length === 40 && /^[0-9a-f]+$/.test(route.ref) &&
+        typeof route.ref === "string" &&
+        (/^[0-9a-f]{40}$/.test(route.ref) || /^refs\/tags\/v(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\+from\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)$/.test(route.ref)) &&
         Object.keys(route).length === 3;
     });
   if (!local && !shared) {

@@ -281,6 +281,52 @@ test("build accepts shared catalogs pinned to distinct full commit IDs", (t) => 
   assert.equal(result.status, 0, result.stderr);
 });
 
+test("build accepts shared catalogs pinned to full release tag refs", (t) => {
+  const f = fixture(t);
+  const catalog = sharedCatalog();
+  catalog.plugins[0].source.ref = "refs/tags/v1.3.4+from.1.3.2";
+  catalog.plugins[1].source.ref = "refs/tags/v1.3.5+from.1.3.2";
+  for (const path of sharedCatalogPaths) f.put(path, JSON.stringify(catalog));
+
+  const result = f.run();
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(f.run("--check").status, 0);
+});
+
+test("shared pin agreement is independent of entry order", (t) => {
+  const f = fixture(t);
+  for (const path of sharedCatalogPaths) f.put(path, JSON.stringify(sharedCatalog()));
+  const reordered = sharedCatalog();
+  reordered.plugins.reverse();
+  f.put(".agents/plugins/marketplace.json", JSON.stringify(reordered));
+  assert.equal(f.run().status, 0);
+  assert.equal(f.run("--check").status, 0);
+});
+
+test("build and check reject abbreviated commits and malformed release tag refs without writes", async (t) => {
+  const invalid = [
+    "1234abc", "A".repeat(40), null, 7,
+    "v1.3.4+from.1.3.2", "refs/heads/v1.3.4+from.1.3.2",
+    "refs/tags/stable", "refs/tags/v1.3.4", "refs/tags/v01.3.4+from.1.3.2",
+    "refs/tags/v1.3.4+from.1.3.2/extra", "refs/tags/v1.3.4+from.1.3.2\n",
+  ];
+  for (const ref of invalid) await t.test(JSON.stringify(ref), (t) => {
+    const f = fixture(t);
+    for (const path of sharedCatalogPaths) f.put(path, JSON.stringify(sharedCatalog()));
+    assert.equal(f.run().status, 0);
+    const catalog = sharedCatalog();
+    catalog.plugins[0].source.ref = ref;
+    f.put(".agents/plugins/marketplace.json", JSON.stringify(catalog));
+    const before = snapshot(f.root);
+    for (const args of [[], ["--check"]]) {
+      const result = f.run(...args);
+      assert.notEqual(result.status, 0);
+      assert.match(result.stderr, /Marketplace must select/);
+      assert.deepEqual(snapshot(f.root), before);
+    }
+  });
+});
+
 test("the shared marketplace retains distinct refs and builds each local variant", async (t) => {
   for (const name of ["real-skills-leashed", "real-skills-unleashed"]) {
     await t.test(name, (t) => {
