@@ -270,6 +270,17 @@ function sharedCatalog() {
   };
 }
 
+test("build accepts shared catalogs pinned to distinct full commit IDs", (t) => {
+  const f = fixture(t);
+  const catalog = sharedCatalog();
+  catalog.plugins[0].source.ref = "1111111111111111111111111111111111111111";
+  catalog.plugins[1].source.ref = "2222222222222222222222222222222222222222";
+  for (const path of sharedCatalogPaths) f.put(path, JSON.stringify(catalog));
+
+  const result = f.run();
+  assert.equal(result.status, 0, result.stderr);
+});
+
 test("the shared marketplace retains distinct refs and builds each local variant", async (t) => {
   for (const name of ["real-skills-leashed", "real-skills-unleashed"]) {
     await t.test(name, (t) => {

@@ -85,10 +85,12 @@ for (const [path, source] of [
   const local = plugins.length === 1 && plugins[0]?.name === manifest.name &&
     (source === "claude" ? route === "./" : route?.source === "local" && route.path === "./");
   const shared = catalog.name === "real-skills" && plugins.length === variants.size &&
+    new Set(plugins.map((plugin) => plugin?.source?.ref)).size === variants.size &&
     [...variants].every(([name, { ref }]) => {
       const route = plugins.find((plugin) => plugin?.name === name)?.source;
       return route?.source === "url" && route.url === "https://github.com/nisavid/real-skills" &&
-        route.ref === ref && Object.keys(route).length === 3;
+        (route.ref === ref || typeof route.ref === "string" && route.ref.length === 40 && /^[0-9a-f]+$/.test(route.ref)) &&
+        Object.keys(route).length === 3;
     });
   if (!local && !shared) {
     throw new Error(`Marketplace must select the native root or the two shared variant sources: ${path}`);
