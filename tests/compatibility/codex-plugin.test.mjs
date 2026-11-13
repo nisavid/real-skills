@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { createInterface } from "node:readline";
@@ -9,8 +9,9 @@ import { test } from "node:test";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const codex = process.env.CODEX_BIN || "codex";
+const unleashed = "real-skills-unleashed";
 
-async function readPlugin(root) {
+async function readPlugin(root, pluginName = "real-skills-leashed") {
   const home = mkdtempSync(join(tmpdir(), "codex-plugin-home-"));
   const env = { PATH: process.env.PATH, HOME: home, CODEX_HOME: join(home, ".codex"), XDG_CONFIG_HOME: join(home, "config"), XDG_CACHE_HOME: join(home, "cache"), XDG_STATE_HOME: join(home, "state"), TMPDIR: join(home, "tmp") };
   for (const key of ["HOME", "CODEX_HOME", "XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_STATE_HOME", "TMPDIR"]) mkdirSync(env[key], { recursive: true });
@@ -49,7 +50,7 @@ async function readPlugin(root) {
   try {
     const initialized = await request(1, "initialize", { clientInfo: { name: "plugin-compatibility-test", version: "1.0.0" }, capabilities: { experimentalApi: true } });
     child.stdin.write(JSON.stringify({ method: "initialized", params: {} }) + "\n");
-    const result = await request(2, "plugin/read", { marketplacePath: join(root, ".agents/plugins/marketplace.json"), pluginName: "real-skills-leashed" });
+    const result = await request(2, "plugin/read", { marketplacePath: join(root, ".agents/plugins/marketplace.json"), pluginName });
     return { plugin: result.plugin, userAgent: initialized.userAgent };
   } finally {
     lines.close();
@@ -63,17 +64,30 @@ async function readPlugin(root) {
 }
 
 function assertPromotedSkills(plugin, root) {
-  const source = JSON.parse(readFileSync(join(root, ".claude-plugin/plugin.json"), "utf8"));
-  const expected = source.skills.map((path) => ({ name: `${source.name}:${path.split("/").at(-1)}`, path: resolve(root, path, "SKILL.md") }));
+  const source = JSON.parse(readFileSync(join(repo, ".claude-plugin/plugin.json"), "utf8"));
+  assert.equal(source.name, unleashed);
+  const expected = source.skills.map((path) => ({ name: `${unleashed}:${path.split("/").at(-1)}`, path: resolve(root, path, "SKILL.md") }));
   const order = (a, b) => a.name.localeCompare(b.name);
   assert.deepEqual(plugin.skills.map(({ name, path }) => ({ name, path })).sort(order), expected.sort(order));
   assert.equal(plugin.summary.interface.longDescription, null);
 }
 
-test("Codex discovers exactly the promoted original bucketed skills with no long description", { timeout: 65_000 }, async (t) => {
-  const { plugin, userAgent } = await readPlugin(repo);
+test("Codex discovers exactly the Unleashed promoted skills with no long description", { timeout: 65_000 }, async (t) => {
+  const root = mkdtempSync(join(tmpdir(), "codex-unleashed-fixture-"));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  for (const path of [".codex-plugin", "skills"]) {
+    cpSync(join(repo, path), join(root, path), { recursive: true, verbatimSymlinks: true });
+  }
+  const catalog = join(root, ".agents/plugins");
+  mkdirSync(catalog, { recursive: true });
+  writeFileSync(join(catalog, "marketplace.json"), JSON.stringify({
+    name: "fixture",
+    plugins: [{ name: unleashed, source: { source: "local", path: "./" } }],
+  }));
+
+  const { plugin, userAgent } = await readPlugin(root, unleashed);
   t.diagnostic(`Native loader: ${userAgent}`);
-  assertPromotedSkills(plugin, repo);
+  assertPromotedSkills(plugin, root);
 });
 
 function fixture(t) {

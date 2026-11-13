@@ -32,8 +32,15 @@ if (manifest.icon !== undefined) {
   if (typeof manifest.icon !== "string" || !/^\.\/assets\/[a-zA-Z0-9_-]+\.(?:svg|png|jpg|jpeg|webp)$/.test(manifest.icon)) throw new Error("Invalid plugin icon path.");
   requirePath(manifest.icon.slice(2), false);
 }
-const { version } = JSON.parse(readFileSync(join(repo, "package.json")));
-if (manifest.name !== "real-skills-leashed" || manifest.version !== version) throw new Error("Source plugin identity or version does not match package.json.");
+const { name: packageName = "real-skills-leashed", version } = JSON.parse(readFileSync(join(repo, "package.json")));
+const variants = new Map([
+  ["real-skills-leashed", { displayName: "Real Skills [Leashed]", ref: "stable-vanilla-plus" }],
+  ["real-skills-unleashed", { displayName: "Real Skills [Unleashed]", ref: "stable" }],
+]);
+const variant = variants.get(manifest.name);
+if (variant === undefined || manifest.name !== packageName || manifest.version !== version) {
+  throw new Error("Source plugin identity or version does not match package.json.");
+}
 if (!Array.isArray(manifest.skills) || !manifest.skills.length) throw new Error("Source manifest must list promoted skills.");
 const selected = new Set();
 const names = new Set();
@@ -66,17 +73,29 @@ for (const path of selected) {
   requirePath(`${root}/agents/openai.yaml`, false);
   validateSkillTree(root, root);
 }
+const catalogModes = new Set();
 for (const [path, source] of [
   [".claude-plugin/marketplace.json", "claude"],
   [".agents/plugins/marketplace.json", "codex"],
 ]) {
   const catalog = JSON.parse(readFileSync(join(repo, path)));
-  const plugins = catalog.plugins?.filter((plugin) => plugin.name === manifest.name);
-  const route = plugins?.[0]?.source;
-  if (plugins?.length !== 1 || (source === "claude" ? route !== "./" : route?.source !== "local" || route?.path !== "./")) {
-    throw new Error(`Marketplace must select the native repository root for ${manifest.name}: ${path}`);
+  const plugins = catalog?.plugins;
+  if (!Array.isArray(plugins)) throw new Error(`Invalid marketplace plugins: ${path}`);
+  const route = plugins[0]?.source;
+  const local = plugins.length === 1 && plugins[0]?.name === manifest.name &&
+    (source === "claude" ? route === "./" : route?.source === "local" && route.path === "./");
+  const shared = catalog.name === "real-skills" && plugins.length === variants.size &&
+    [...variants].every(([name, { ref }]) => {
+      const route = plugins.find((plugin) => plugin?.name === name)?.source;
+      return route?.source === "url" && route.url === "https://github.com/nisavid/real-skills" &&
+        route.ref === ref && Object.keys(route).length === 3;
+    });
+  if (!local && !shared) {
+    throw new Error(`Marketplace must select the native root or the two shared variant sources: ${path}`);
   }
+  catalogModes.add(local ? "local" : "shared");
 }
+if (catalogModes.size !== 1) throw new Error("Marketplace catalogs disagree on local or shared routing.");
 try {
   lstatSync(join(repo, "plugin.json"));
   throw new Error("Root plugin.json would override native discovery. Use the native manifests.");
@@ -86,7 +105,7 @@ try {
 const expected = Buffer.from(JSON.stringify({
   ...manifest,
   interface: {
-    displayName: "Real Skills [Leashed]",
+    displayName: variant.displayName,
     shortDescription: "Skills by Matt Pocock",
     developerName: "Ivan D Vasin",
     category: "Developer Tools",

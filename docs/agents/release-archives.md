@@ -1,8 +1,12 @@
-# Build and verify release archives
+# Build and verify Leashed release archives
 
 Use this procedure when preparing the portable agent-plugins and Claude release ZIPs. For native repository packaging, use [the native package procedure](plugin-packaging.md). Ordinary skill use does not invoke either release build.
 
 ## Inputs
+
+This procedure produces Leashed release ZIPs. Use a reviewed Leashed source checkout for the preparation steps. Pin its source revision independently of the reviewed procedure and builder revision. The checkout containing the procedure and builder can be Unleashed.
+
+Before editing the source version, read `package.json`, `.claude-plugin/plugin.json`, and `.codex-plugin/plugin.json` in the selected source checkout. Require all three names to be `real-skills-leashed`. Verify that the Claude and Codex manifest icon fields and the Codex interface `logo` and `composerIcon` point to `./assets/wayfinder.svg` in that source checkout. Stop if any identity or reference differs.
 
 Load this procedure and `scripts/build-release-archives.py` from their reviewed procedure revision. Record that revision separately from the pinned source commit: the source commit supplies package data, while the procedure revision supplies the builder and instructions. Preserve the reviewed builder bytes. Its `build(raw, expected_sha256, revision, base, release)` boundary requires Python 3 and PyYAML; record the actual Python, PyYAML, Git, and gzip versions used.
 
@@ -10,7 +14,7 @@ Select a full, lowercase, 40-character Git source commit, its expected source-ta
 
 Allocate one release version for both archives and all supported surfaces: `M.m.P+from.M.m.U`. For the same major/minor line, set `P` to one more than the greater of the highest previously exposed fork patch in that line and `U`. For a new higher major/minor line with no exposed fork release, use `U + 1`. Check the release and account records for previously exposed versions, retain the evidence, and stop if that inventory or the upstream baseline is uncertain. The builder checks the supplied base and release relationship; it cannot establish the highest previously exposed fork patch. Reuse the allocated version across formats and surfaces; a consumer-specific exception requires evidence that the uniform version cannot work. The release version must already be present in the reviewed source commit and is retained in generated artifacts; it does not assert an independent downstream major/minor compatibility policy.
 
-Before freezing the release source, write the allocated full release version to `package.json`, run `node scripts/sync-plugin-version.mjs` to synchronize the Claude manifest, and run `npm run build-plugin-package` to regenerate the Codex manifest. Verify that all three versions equal the allocation, retain the promoted skill bytes and invocation settings, and run the native package procedure. Commit and independently review the resulting release candidate before using it as the source commit. Do not advance `stable-vanilla-plus` to the candidate until the GitHub release and archive checks are complete; then point it at that same reviewed commit and qualify repository-marketplace installation and updates separately for each selected harness.
+In the selected Leashed source checkout, before freezing the release source, write the allocated full release version to `package.json`, run `node scripts/sync-plugin-version.mjs` to synchronize the Claude manifest, and run `npm run build-plugin-package` to regenerate the Codex manifest. Verify that all three versions equal the allocation, retain the promoted skill bytes and invocation settings, and run the native package procedure. Commit and independently review the resulting release candidate before using it as the source commit. Do not advance `stable-vanilla-plus` to the candidate until the GitHub release and archive checks are complete; then point it at that same reviewed commit and qualify repository-marketplace installation and updates separately for each selected harness.
 
 Use a gzip-compressed Git tar with root `mattpocock-skills-<full SHA>/` and `tar.umask=0022`. Bind the expected hash to those exact input bytes; a hash alone does not prove their Git origin.
 
