@@ -2,7 +2,7 @@
 
 The triage vocabulary has two category roles and five state roles. This file maps those canonical roles to the label strings used in this repo's issue tracker.
 
-Every triaged implementation issue carries exactly one category role and one state role. Wayfinder issues carry no triage labels; their relationships and labels are governed by [Wayfinding operations](issue-tracker.md#wayfinding-operations).
+Every triaged implementation issue carries exactly one category role and one state role. Those roles may coexist with applicable Wayfinder classifications; map membership does not exempt implementation work from triage. A planning-only issue need not carry irrelevant category or triage roles. Wayfinder relationships and labels follow [Wayfinding operations](issue-tracker.md#wayfinding-operations).
 
 ## Category roles
 

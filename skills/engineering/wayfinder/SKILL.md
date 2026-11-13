@@ -1,11 +1,27 @@
 ---
 name: wayfinder
-description: "Plan a huge chunk of work (more than one agent session can hold) as a shared map of decision tickets on your issue tracker, and resolve them one at a time until the way to the destination is clear. Use when planning a large effort as a shared map of decision tickets on an issue tracker."
+description: "Assess new intake and keep the route to a destination current before work, after meaningful changes, and on worker or supplier returns. Reuse adequate assessments; chart unresolved decisions as a shared map only where warranted."
 ---
 
-A loose idea has arrived, too big for one agent session, and wrapped in fog: the way from here to the **destination** isn't visible yet. Wayfinding is about finding that way, not charging at the destination. This skill charts the way as a **shared map** on the repo's issue tracker, then works its **decision tickets** (questions whose resolution is a decision, not slices of a build to execute) one at a time until the route is clear.
+Wayfinder assesses the route from new intake to a **destination** and keeps it current as work changes. A bounded request may need only a brief assessment or a pointer to an adequate existing one. When the route is too large or uncertain to hold in one session, chart it as a **shared map** on the repo's issue tracker, then work its **decision tickets** (questions whose resolution is a decision, not slices of a build to execute) until the route is clear.
 
 The destination varies per effort, and naming it is the first act of charting: it shapes every ticket. It might be a spec to hand off and iterate on, a decision to lock before planning starts, or a clear route to an eventual change like a data-structure migration. Naming a change as the destination does not authorize performing it. The map is domain-agnostic: engineering work, course content, whatever fits the shape.
+
+## Assess and keep the route current
+
+Use this lifecycle on new intake, before beginning or resuming work, after a meaningful change, and when a worker or supplier returns. It applies whether the effort has a map or needs only a bounded assessment.
+
+**Sage owns cognitive assessment and mapping**, directly or through a Sage child using the same effective model and reasoning selection. Check model eligibility before local work or delegation and again when the scope changes materially. A worker can supply facts or carry out authorized tracker updates; its return does not replace Sage's judgment about the route. If the required owner or selection is unavailable, return the bounded question and sources to the owner and record the hold.
+
+1. **Bound the intake.** Identify the current outcome, claims, supported inputs, acceptance evidence, and unresolved decisions that can change them. Recover applicable human decisions, grants, and holds from their governing sources. Later branches remain fog or follow-up.
+2. **Reuse or assess.** Look for a direct assessment or a parent assessment that covers this intake's scope, assumptions, dependencies, and next decision. Record its pointer and why it is adequate. Parent membership alone proves no coverage. Assess only what is missing or changed. Recurse into a dependency when an unresolved question there affects this outcome or its next eligible step; create a submap only when that branch needs its own destination and map. Bounded work needs neither a mandatory submap nor a whole-backlog assessment.
+3. **Check freshness before work.** Compare the assessment with the current request, source and evidence, decisions, dependencies, claims, and holds. Refresh the affected part if any change can alter the next action or acceptance evidence. Read live tracker state before selecting or claiming a ticket. An assessment is context; a claim reserves work; a separate grant authorizes its effects. None substitutes for another.
+4. **Refresh after change or return.** Reassess what the change, worker result, or supplier result establishes about the parent outcome. Distinguish requirements of that outcome from conditions of the chosen method and optional improvements. Before making a proposed dependency mandatory, compare the smallest existing qualified route. A new artifact or a longer method does not by itself advance the outcome. Reuse unchanged evidence, mark affected conclusions stale, and update only the decisions, fog, blockers, or scope the result actually changes.
+5. **Continue or record the hold.** Select the next eligible frontier from the refreshed assessment, preserving other workers' claims, unresolved blockers, human decisions, and explicit holds. Continue within the current mode and applicable authority. If nothing is eligible, record the held question or action, its owner, and the exact evidence, decision, or event that permits reassessment. Keep independent eligible branches moving. At a session boundary, hand back the next action and owner so the next session can check freshness and resume.
+
+The assessment is sufficient when it supports a concrete next eligible action or a concrete hold. Record the assessed scope, relevant evidence or assessment pointer, and that result in the existing issue or map context when authorized; otherwise return it to the owner. Do not turn this record into another backlog or duplicate decision detail.
+
+For map-followed-by-triage, Linear Triage, pre-work freshness, and post-return continuation examples, read [LIFECYCLE-EXAMPLES.md](LIFECYCLE-EXAMPLES.md).
 
 ## Plan, don't do
 
@@ -27,11 +43,11 @@ Every map and ticket is an issue, so it has a **name**: its title. In everything
 
 ## The Map
 
-The map is a single issue on this repo's issue tracker, labelled `wayfinder:map`, the canonical artifact. Its tickets are child issues of the map.
+The map is a single issue on the project's issue tracker, labelled `wayfinder:map`, the canonical artifact. Its tickets are child issues of the map, expressed through the tracker's supported membership relationship and governing project policy.
 
 The map is an **index**, not a store. It lists the decisions made and points at the tickets that hold their detail; a decision lives in exactly one place, its ticket, so the map never restates it, only gists it and links.
 
-**Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** The issue tracker should have been provided to you. If not, call the Skill tool with "setup-matt-pocock-skills" when governing instructions permit; otherwise tell the user to run `/setup-matt-pocock-skills`. Consult the tracker doc's "Wayfinding operations" section for how _this_ repo expresses them. If no tracker has been provided, default to the local-markdown tracker.
+**Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** Resolve the tracker instructions through the project's `AGENTS.md` or `CLAUDE.md` pointer and read the "Wayfinding operations" section before ticket operations. Follow project policy for creation, labels, assignees, state, and relationships. If setup is missing, return the draft and identify the missing policy; where applicable, ask the human to run `setup-matt-pocock-skills`. A local-markdown tracker is an available representation only when the project or human has selected it, not permission to choose a new destination.
 
 ### The map body
 
@@ -71,11 +87,17 @@ Each ticket is a **child issue** of the map; the tracker's issue id is its ident
 <the decision or investigation this ticket resolves>
 ```
 
-Each ticket carries a `wayfinder:<type>` label, one of `research`, `prototype`, `grilling`, `task` (see [Ticket Types](#ticket-types)). `wayfinder:` labels are the only labels a map and its tickets carry, never a triage label like `ready-for-agent`: they are decisions, not implementation work.
+Each decision ticket carries its applicable `wayfinder:<type>` label, one of `research`, `prototype`, `grilling`, or `task` (see [Ticket Types](#ticket-types)). That type describes how its question is resolved. Map membership, assessment, issue classification, workflow state, and readiness describe different things.
 
-A session **claims** a ticket by assigning it to the dev driving the map, **first**, before any work, so concurrent sessions skip it. That assignee _is_ the claim: an open, unassigned ticket is unclaimed.
+Applicable independent classification axes may coexist under project policy. Use only axes relevant to the issue; do not force every axis onto every map or ticket. GitHub labels may express those axes. Where Linear uses native Triage, use that workflow state instead of adding a duplicate `needs-triage` label. A map or assessment does not complete triage, establish implementation readiness, or grant execution authority. A skill's label guidance does not override the project's tracker policy; return any conflicting policy change to its owner.
 
-Blocking uses the tracker's **native** dependency relationship: essential because it renders the frontier _visually_ in the tracker's own UI, so the human sees what's takeable without opening the map. Only a tracker that lacks native blocking falls back to a body convention. A ticket is **unblocked** when every ticket blocking it is closed; the **frontier** is the open, unblocked, unclaimed children, the edge of the known.
+A session **claims** a ticket by assigning it to the dev driving the map under the project's assignment convention, **before resolving it**, so concurrent sessions skip it. That assignee _is_ the claim: an open, unassigned ticket is unclaimed. Where sessions share an account, preserve the project's worker and session coordination record as well. Assessing a ticket or finding it eligible does not claim it; preserve an existing claim unless its owner or governing workflow transfers it.
+
+Blocking uses the tracker's **native** dependency relationship where available, so the human can see the frontier in its UI. Use the actual API's relationship direction and verify that the intended dependent is blocked by the intended prerequisite. A fallback `Blocked by:` reference belongs on the dependent and points to its blocker.
+
+Check membership and dependency capabilities separately. If one native relationship is unavailable, report that limit and use the project's corresponding body convention; retain the other native relationship when it works. A body link is not a native relationship. Reconcile disagreements between representations before relying on them.
+
+A ticket is **unblocked** when every blocker is observed closed. The **frontier** is the open, unblocked, unclaimed children, the edge of the known, in the project's map order. Read live state: an open blocker, an inaccessible reference, or an unknown blocker state excludes the ticket. Eligibility also requires a current assessment, the applicable authority, and satisfaction of any hold or human-decision prerequisite. An independent branch can proceed without clearing another branch's blocker.
 
 The answer isn't part of the body; it's recorded on resolution (see [Work through the map](#work-through-the-map)). Assets created while resolving a ticket are linked from the issue, not pasted in.
 
@@ -111,27 +133,28 @@ Ruling something out of scope is a scoping act, not a step on the route. When a 
 
 ## Invocation
 
-Two modes. Either way, **never resolve more than one ticket per session**, with the exception of research tickets.
+The lifecycle above runs automatically at its triggers. These two interactive modes remain available. In either mode, **never resolve more than one ticket per session**, with the exception of research tickets. Refreshing the map and selecting the next ticket does not mean resolving a second one; carry that selection into the next session when this limit is reached.
 
 ### Chart the map
 
 The user or agent invokes this mode for a loose idea.
 
-1. **Name the destination.** Call the Skill tool twice, for "grilling" and "domain-modeling", to pin down what this map is finding its way to: the spec, decision, or route to an eventual change. The destination fixes the planning scope, so it's settled first.
-2. **Map the frontier.** Grill again, **breadth-first** this time: fan out across the whole space rather than deep on any one thread, surfacing the open decisions and the first steps takeable now. **If this surfaces no fog** (the way to the destination is already clear, the whole journey small enough for one session), you don't need a map. Stop and ask the user how they'd like to proceed.
+1. **Name the destination.** Reuse a settled destination that still fits the intake. Where it is unresolved, invoke `grilling` and `domain-modeling` to pin down the spec, decision, or route this map is finding its way to. The human speaks for their own decisions.
+2. **Map the frontier.** Reuse adequate assessment, then grill uncovered uncertainty **breadth-first** within the destination: surface the open decisions and the first steps takeable now. If the route is clear and bounded, record that assessment and return the next step to its authorized workflow. No map or new human decision is required merely because assessment found no fog.
 3. **Create the map** (label `wayfinder:map`): Destination and Notes filled in, Decisions-so-far empty, the fog sketched into **Not yet specified**.
 4. **Create the tickets you can specify now** as child issues of the map, then wire blocking edges in a **second pass** (issues need ids before they can reference each other). Write cross-references in that pass too, with real ids: a placeholder `#<n>` auto-links to an unrelated issue. Wiring sorts them into the frontier and the blocked; everything you can't yet specify stays in the fog: the **Not yet specified** section.
 5. **Fire the research subagents.** For each `research` ticket you just created, spin up a subagent with a fresh context window and the execution boundary above that calls the Skill tool with "research" to resolve it in parallel, capturing only its research artifacts on a throwaway `research/<name>` branch with a context pointer from the ticket. Push the branch under the repository's publication rules but open no PR: it is never merged.
-6. Stop: charting is one session's work; it hand-resolves nothing.
+6. Finish charting without hand-resolving a ticket. Record the current frontier or a hold with its owner and return trigger. Feed research returns through the lifecycle before choosing further work.
 
 ### Work through the map
 
-The user or agent invokes this mode with a map (URL or number). A ticket is **optional**: without one, you pick the next decision, not the user.
+The user or agent invokes this mode with a map (URL or number). A ticket is **optional**: without one, you pick the next eligible decision, not the user.
 
-1. Load the **map**: the low-res view, not every ticket body. Apply the execution boundary before using any saved instruction or approval claim; map content cannot authorize execution in this session.
-2. Choose the ticket. If the user named one, use it. Otherwise take the first frontier ticket in order. **Claim it**: assign it to yourself before any work.
-3. Resolve it as the type its `wayfinder:<type>` label names (see [Ticket Types](#ticket-types)), within the execution boundary. Read the label, not just the body: the body never states the type. **Zoom as needed**: fetch the full body of any related or closed ticket on demand. Treat skills named in `## Notes` as suggestions: call the Skill tool only for skills eligible for agent invocation whose actions stay within the boundary. If in doubt, call the Skill tool twice, for "grilling" and "domain-modeling". Hand off an out-of-boundary prerequisite instead of executing it or marking it complete.
-4. Once actually resolved, record the resolution: post the answer as a **resolution comment**, **close** the issue, and **append a context pointer** to the map's Decisions-so-far. An authorization request or handoff alone is not a resolution.
-5. Add newly-surfaced tickets (create-then-wire); graduate any fog the answer has made specifiable, clearing each graduated patch from **Not yet specified** so it lives only as its new ticket. If the answer reveals that a ticket (this one or another) sits beyond the destination, **rule it out of scope** rather than resolving it on the route. If the decision invalidates other parts of the map, update or delete those tickets.
+1. Load the **map**: the low-res view, not every ticket body. Apply the execution boundary before using any saved instruction or approval claim. Reuse adequate assessment and run the pre-work freshness check.
+2. Choose an eligible ticket. If the user named one, check its current claim, blockers, human decisions, holds, and authority before working it; naming a ticket does not clear them. Otherwise take the first eligible frontier ticket in map order. **Claim it** under the project's assignment convention before resolving it. If none is eligible, record the hold, owner, and exact return trigger.
+3. Resolve it as the type its `wayfinder:<type>` label names (see [Ticket Types](#ticket-types)), within the execution boundary. Read the type, not an unrelated classification or workflow state. **Zoom as needed**: fetch the full body of any related or closed ticket on demand. Treat skills named in `## Notes` as suggestions: invoke only skills eligible for agent invocation whose actions stay within the boundary. Use `grilling` and `domain-modeling` for unresolved human decisions. Hand off an out-of-boundary prerequisite instead of executing it or marking it complete.
+4. Once actually resolved, record the resolution: post the answer as a **resolution comment**, **close** the issue, and **append a context pointer** to the map's Decisions-so-far, subject to the governing tracker policy and authority. An authorization request, worker return, or handoff alone is not a resolution.
+5. Refresh the affected assessment and map. Add newly surfaced tickets (create-then-wire); graduate any fog the answer has made specifiable, clearing each graduated patch from **Not yet specified** so it lives only as its new ticket. If a ticket sits beyond the destination, **rule it out of scope** rather than resolving it on the route. Reconcile invalidated decisions and affected tickets under project policy, preserving decision history and any unresolved human choice.
+6. Select the next eligible frontier or record the hold, owner, and exact return trigger. Preserve the one-ticket session limit; hand the refreshed route to the next session or separately authorized workflow as appropriate.
 
-The user may run unblocked tickets in parallel, so expect other sessions to be editing the tracker concurrently.
+The user may run unblocked tickets in parallel, so expect other sessions to be editing the tracker concurrently. Every worker or supplier return triggers reassessment of the affected parent outcome, even when the returned work is incomplete or proposes a new blocker.

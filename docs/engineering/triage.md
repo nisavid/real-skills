@@ -28,7 +28,7 @@ Executing a PR or a reporter's reproduction requires a disposable sandbox with n
 
 ## The state machine
 
-Every triaged item ends with exactly one category role and one state role. There are two categories: `bug` (something is broken) and `enhancement` (new feature or improvement). There are five states:
+Every triaged item ends with exactly one category role and one state role. Those axes can coexist with applicable Wayfinder classifications under project policy. A bug can also be a map, and triage changes do not remove its map classification. A planning-only issue need not carry irrelevant triage roles; a map does not make implementation work agent-ready. Where Linear uses native Triage, that workflow state replaces a duplicate `needs-triage` label. There are two categories: `bug` (something is broken) and `enhancement` (new feature or improvement). There are five states:
 
 | State | Means |
 | --- | --- |

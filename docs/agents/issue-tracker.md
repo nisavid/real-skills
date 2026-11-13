@@ -12,7 +12,7 @@ Use the canonical triage vocabulary in `docs/agents/triage-labels.md` for implem
 
 ## Wayfinding operations
 
-A map is a GitHub issue labelled `wayfinder:map`. Decision tickets are native sub-issues labelled with exactly their applicable `wayfinder:research`, `wayfinder:prototype`, `wayfinder:grilling`, or `wayfinder:task` type. Create missing labels with those exact names. Wayfinder issues carry no triage labels.
+A map is a GitHub issue labelled `wayfinder:map`. Decision tickets are native sub-issues labelled with exactly their applicable `wayfinder:research`, `wayfinder:prototype`, `wayfinder:grilling`, or `wayfinder:task` type. Create missing labels with those exact names. Wayfinder classification, work kind, and workflow state are independent axes. Apply only the axes relevant to the issue, preserving the canonical triage vocabulary when triage applies. A bug may also be a map. An assessment or map does not establish triage completion, readiness, a claim, or execution authority. Each workflow changes only the axes it owns; preserve unrelated classifications and relationships.
 
 Claim a decision ticket before working it by assigning it to `nisavid`. Record the active worker and owning chat in its coordination note so concurrent sessions can distinguish claims made through the shared account.
 

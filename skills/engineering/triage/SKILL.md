@@ -42,7 +42,7 @@ Five **state** roles:
 
 For a PR, the same states read against the attached code: `ready-for-agent` means a brief is attached and an agent should take the next step on the diff; `ready-for-human` means it's ready for a human to merge.
 
-Every triaged issue should carry exactly one category role and one state role. If state roles conflict, flag it and ask the maintainer before doing anything else.
+Every triaged issue should carry exactly one category role and one state role. These describe work kind and workflow state, independently of map structure or the operation needed next. Preserve applicable `wayfinder:<type>` classifications and other axes under project policy; a bug can also be a map. Use only meaningful, applicable axes. Where the tracker uses a native Triage state, use it instead of a duplicate `needs-triage` label. Triage changes only its own axes; a map, assessment, or claim does not establish readiness or grant execution authority. If state roles conflict, flag it and ask the maintainer before doing anything else.
 
 These are canonical role names. The actual label strings used in the issue tracker may differ. The mapping should have been provided to you. If not, call the Skill tool with "setup-matt-pocock-skills" when governing instructions permit; otherwise tell the user to run `/setup-matt-pocock-skills`.
 

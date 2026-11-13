@@ -1,6 +1,6 @@
 ---
 name: improve-codebase-architecture
-description: "Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick. Use when identifying and discussing opportunities to deepen a codebase architecture."
+description: "Find deepening opportunities in a codebase. Use interactive mode for a visual survey and discussion, or automatic mode after a clean code review to implement in-scope Strong recommendations and obtain independent review."
 ---
 
 # Improve Codebase Architecture
@@ -12,7 +12,62 @@ This command is _informed_ by the project's domain model and built on a shared d
 - Call the Skill tool with "codebase-design" for the architecture vocabulary (**module**, **interface**, **depth**, **seam**, **adapter**, **leverage**, **locality**) and its principles (the deletion test, "the interface is the test surface", "one adapter = hypothetical seam, two = real"). Use these terms exactly in every suggestion, and don't drift into "component," "service," "API," or "boundary."
 - The domain language in `GLOSSARY.md` gives names to good seams; ADRs in `docs/adr/` record decisions this command should not re-litigate.
 
-## Process
+## Modes and recommendation strength
+
+Apply the governing model eligibility rules before local work or delegation, and reassess them when the scope changes materially.
+
+- **Interactive** is the default for a survey or discussion. Follow the interactive process below: show the HTML report, let the user choose, and use `grilling` for the decision.
+- **Automatic** runs when explicitly requested or invoked by the owning implementation coordinator after a completed clean code review. Follow the automatic process below. Use textual evidence and a handoff, with no HTML, browser, routine selection questions, or dependency on interactive `grilling`.
+
+Use the same strength labels in either mode:
+
+| Strength | Required basis |
+| --- | --- |
+| **Strong** | A demonstrated present design problem and a concrete improvement in the `codebase-design` terms: less caller knowledge or duplicated invariants, or better seam placement, locality, or leverage. Show how consumer behavior is preserved and compare the smallest adequate alternative, including deletion or inlining. |
+| **Worth exploring** | A plausible improvement still depends on unresolved facts or a consequential tradeoff. Name what needs resolving. |
+| **Speculative** | The benefit depends on a hypothetical future need. |
+
+Strength supplies no authority. An out-of-scope Strong idea remains a proposal for its actual owner. Keep substantive human choices and external-action gates with their existing owners in both modes.
+
+## Automatic process
+
+### 1. Bind the clean candidate and scope
+
+The owning implementation coordinator runs this process outside the review that produced the clean result. Reviewers return their reports to that owner; they do not start this workflow from inside a review.
+
+Record the assigned behavioral surface, consumer behavior and invariants, candidate identity, relevant evidence inputs, and the completed clean review that triggered the run. A changed file is not permission to refactor adjacent code. Inspect outside the slice only as needed to understand its consumers and invariants; return wider changes for their actual authority.
+
+After every completed clean code review, run this mode unless a verified completed baseline covers the scope and no nontrivial code has changed since it. Missing or uncertain baseline evidence means assess the candidate, not skip. Every new nontrivial implementation or fix invalidates a skip based on the old baseline. Changed assessment inputs or relevant dependencies invalidate affected evidence even when code is unchanged.
+
+A completed baseline records the covered scope, final candidate identity, assessment, verification evidence and its inputs, and the independent clean review of that candidate together with its assessment. Use the owning workflow's existing task state or evidence record; do not create a new ledger merely for this mode. A prior interrupted run, failed review, unreviewed implementation, or author-declared no-op establishes no baseline.
+
+### 2. Assess the assigned work
+
+Read the domain glossary and relevant ADRs, and invoke `codebase-design` for the shared vocabulary. Explore the assigned surface and its callers for demonstrated friction. If delegating exploration, start the worker with a fresh context window and the bounded candidate, scope, and evidence inputs.
+
+Return a textual assessment of each grounded candidate: the present problem and source evidence, proposed improvement, smallest adequate alternative, preserved consumer behavior and invariants, and recommendation strength. State explicitly when there is no eligible Strong recommendation. Do not invent findings to fill a report.
+
+Keep unresolved facts and consequential tradeoffs as Worth exploring. Return reserved choices, unavailable evidence, and out-of-scope proposals to their actual owner without opening an interview or making the choice on their behalf.
+
+### 3. Implement and verify
+
+Implement every eligible in-scope Strong recommendation. Preserve the assigned behavior and invariants, and compare deletion or inlining before adding another abstraction. If implementation reveals a consequential unresolved choice or requires wider authority, stop that branch and return the concrete need to its owner. Continue independent authorized work without claiming the blocked branch is complete.
+
+Use `tdd` for any implementation or correction that needs a RED/GREEN slice, including its quick refactor after each stage. A behavior-preserving refactor starts from affected passing consumer assertions and reruns them; do not manufacture a RED by weakening existing behavior. Keep semantic expectations stable while changing a driver or adapter, and use the consumer-evidence method in `tdd` with its stated qualification limits.
+
+Verify the affected behavior and owning checks on the resulting candidate. Keep evidence tied to its actual source, fixtures, driver, assertions, and relevant dependencies. If these inputs change, refresh the affected evidence. Report implemented recommendations separately from recommendations still awaiting independent review.
+
+### 4. Review, record, and reconcile
+
+Return the final candidate **and its assessment** for independent review through the governing workflow. Review must cover the recommendation strengths, scope, behavior preservation, and final changes. Follow the standing review and adjudication policy; the author cannot declare its own assessment clean. A no-op assessment also requires independent clean review.
+
+If review requires a fix, return to implementation and verification, then independently review the changed candidate and affected assessment. A stalled loop reports its actual cause; a round count does not establish completion.
+
+Only after independent clean review, record the completed baseline **before processing the clean-review event from that review**. The event then finds no nontrivial change since that completed baseline and meets the existing exception. Reconcile overlapping events against candidate identity and covered scope; an event for wider or changed work needs its own assessment. Do not recursively invoke this mode inside a review.
+
+Return a textual handoff containing the assessment, implemented Strong recommendations, verification results and limits, independent review result, completed baseline or reason none exists, and proposals or choices for other owners. Publication, installation, release, and other external actions retain their existing gates.
+
+## Interactive process
 
 ### 1. Explore
 
