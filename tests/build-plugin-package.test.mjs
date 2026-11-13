@@ -264,8 +264,8 @@ function sharedCatalog() {
   return {
     name: "real-skills",
     plugins: [
-      { name: "real-skills-leashed", source: { source: "url", url, ref: "stable-vanilla-plus" } },
-      { name: "real-skills-unleashed", source: { source: "url", url, ref: "stable" } },
+      { name: "real-skills-leashed", source: { source: "url", url, ref: "1111111111111111111111111111111111111111" } },
+      { name: "real-skills-unleashed", source: { source: "url", url, ref: "2222222222222222222222222222222222222222" } },
     ],
   };
 }
@@ -299,6 +299,24 @@ test("the shared marketplace retains distinct refs and builds each local variant
   }
 });
 
+test("build and check reject moving shared catalog refs without changing files", async (t) => {
+  for (const args of [[], ["--check"]]) await t.test(args[0] ?? "build", (t) => {
+    const f = fixture(t);
+    for (const path of sharedCatalogPaths) f.put(path, JSON.stringify(sharedCatalog()));
+    assert.equal(f.run().status, 0);
+    const catalog = sharedCatalog();
+    catalog.plugins[0].source.ref = "stable-vanilla-plus";
+    catalog.plugins[1].source.ref = "stable";
+    for (const path of sharedCatalogPaths) f.put(path, JSON.stringify(catalog));
+    const before = snapshot(f.root);
+
+    const result = f.run(...args);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /Marketplace must select/);
+    assert.deepEqual(snapshot(f.root), before);
+  });
+});
+
 test("build and check reject invalid or disagreeing shared catalog sources before writing", async (t) => {
   const cases = {
     "catalogs mix local and shared routing": (catalog) => {
@@ -307,7 +325,7 @@ test("build and check reject invalid or disagreeing shared catalog sources befor
     "different marketplace name": (catalog) => { catalog.name = "other-marketplace"; },
     "missing variant": (catalog) => { catalog.plugins.pop(); },
     "duplicate variant": (catalog) => { catalog.plugins[1] = catalog.plugins[0]; },
-    "same ref for both variants": (catalog) => { catalog.plugins[1].source.ref = "stable-vanilla-plus"; },
+    "same ref for both variants": (catalog) => { catalog.plugins[1].source.ref = catalog.plugins[0].source.ref; },
     "wrong source repository": (catalog) => { catalog.plugins[1].source.url = "https://example.invalid/real-skills"; },
     "additional source selector": (catalog) => { catalog.plugins[1].source.path = "./other-plugin"; },
   };
