@@ -4,6 +4,8 @@
 
 It reads the tickets as a **task graph**, not a list. Blocking edges decide what can start, so at any moment there is a **frontier** of tickets whose blockers have all landed, and every ticket on the frontier runs at once. That is the difference from working the tickets one by one. The graph's shape sets the pace, not the tickets' order on the tracker.
 
+The integration coordinator ensures HEAD contains the joined implementation before the HEAD-based review. Every later correction or refactor is checkpointed before re-review, and the completed refactor baseline names the independently reviewed final revision and assessment. Local checkpoints do not authorize publication.
+
 ## When to reach for it
 
 Type `/implement-spec`, or the agent can invoke it when the task fits.

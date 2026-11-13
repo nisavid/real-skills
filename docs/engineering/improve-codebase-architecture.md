@@ -69,7 +69,7 @@ Automatic mode assesses the clean candidate and implements every eligible Strong
 
 The refactor preserves affected passing consumer assertions and invariants. Any implementation or correction that needs RED and GREEN uses [tdd](https://aihero.dev/skills-tdd), including quick cleanup after each stage. Changed code or relevant evidence inputs require fresh verification and review.
 
-An implemented recommendation is not yet a completed refactor. The final candidate and the assessment receive independent review together. Even an assessment that finds no eligible Strong work needs a clean independent review before it establishes a completed baseline.
+An implemented recommendation is not yet a completed refactor. The final candidate and the assessment receive independent review together. If the selected reviewer reads Git HEAD, the owning implementation coordinator checkpoints the task-owned refactor first and does the same for later corrections. A clean result must cover that final checkpoint; local committing grants no publication authority. Even an assessment that finds no eligible Strong work needs a clean independent review before it establishes a completed baseline.
 
 That baseline records the covered scope, final candidate, assessment, verification inputs and results, and independent review. The owner records it before handling the refactor's own clean-review event, so that event finds an unchanged, already assessed scope and skips another run. Missing or uncertain evidence cannot justify a skip. A new nontrivial implementation or fix invalidates a skip based on the old baseline.
 

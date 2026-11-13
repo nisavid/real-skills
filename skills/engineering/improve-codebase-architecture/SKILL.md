@@ -59,7 +59,7 @@ Verify the affected behavior and owning checks on the resulting candidate. Keep 
 
 ### 4. Review, record, and reconcile
 
-Return the final candidate **and its assessment** for independent review through the governing workflow. Review must cover the recommendation strengths, scope, behavior preservation, and final changes. Follow the standing review and adjudication policy; the author cannot declare its own assessment clean. A no-op assessment also requires independent clean review.
+Return the final candidate **and its assessment** for independent review through the governing workflow. When that review reads Git HEAD, checkpoint the task-owned refactor changes first and verify HEAD contains the candidate being judged. Checkpoint subsequent corrections before re-review as well; a checkpoint grants no publication authority, and review remains before push. Review must cover the recommendation strengths, scope, behavior preservation, and final changes. Follow the standing review and adjudication policy; the author cannot declare its own assessment clean. A no-op assessment also requires independent clean review.
 
 If review requires a fix, return to implementation and verification, then independently review the changed candidate and affected assessment. A stalled loop reports its actual cause; a round count does not establish completion.
 

@@ -11,6 +11,6 @@ Call the Skill tool with "tdd" where possible, at pre-agreed seams.
 
 Run typechecking regularly, single test files regularly, and the full test suite once at the end.
 
-Once done, call the Skill tool with "code-review" to review the work. Resolve findings under the governing review policy. After each completed clean code review, the owning implementation coordinator calls the Skill tool with "improve-codebase-architecture" in automatic mode, subject only to its verified completed-baseline exception. Return the final candidate and assessment for independent review before completion; leaf reviewers do not run this follow-up.
+Once the implementation is ready, create a task-owned local checkpoint through the governing Git workflow so HEAD contains the work being judged. Call the Skill tool with "code-review" against the fixed point for this slice. For every subsequent correction or refactor, checkpoint its task-owned changes before the next HEAD-based review; uncommitted changes cannot be credited as reviewed. Resolve findings under the governing review policy. After each completed clean code review, the owning implementation coordinator calls the Skill tool with "improve-codebase-architecture" in automatic mode, subject only to its verified completed-baseline exception. Return the final candidate and assessment for independent review before completion; leaf reviewers do not run this follow-up.
 
-Commit your work to the current branch.
+Finish at the independently reviewed final checkpoint on the current branch. Any later change needs its own checkpoint and fresh affected review. Keep review before push and follow the governing publication authority; a local checkpoint grants no push authority.
