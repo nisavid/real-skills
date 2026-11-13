@@ -34,8 +34,8 @@ if (manifest.icon !== undefined) {
 }
 const { name: packageName = "real-skills-leashed", version } = JSON.parse(readFileSync(join(repo, "package.json")));
 const variants = new Map([
-  ["real-skills-leashed", { displayName: "Real Skills [Leashed]", ref: "stable-vanilla-plus" }],
-  ["real-skills-unleashed", { displayName: "Real Skills [Unleashed]", ref: "stable" }],
+  ["real-skills-leashed", { displayName: "Real Skills [Leashed]" }],
+  ["real-skills-unleashed", { displayName: "Real Skills [Unleashed]" }],
 ]);
 const variant = variants.get(manifest.name);
 if (variant === undefined || manifest.name !== packageName || manifest.version !== version) {
@@ -73,7 +73,7 @@ for (const path of selected) {
   requirePath(`${root}/agents/openai.yaml`, false);
   validateSkillTree(root, root);
 }
-const catalogModes = new Set();
+const catalogSelections = new Set();
 for (const [path, source] of [
   [".claude-plugin/marketplace.json", "claude"],
   [".agents/plugins/marketplace.json", "codex"],
@@ -85,17 +85,22 @@ for (const [path, source] of [
   const local = plugins.length === 1 && plugins[0]?.name === manifest.name &&
     (source === "claude" ? route === "./" : route?.source === "local" && route.path === "./");
   const shared = catalog.name === "real-skills" && plugins.length === variants.size &&
-    [...variants].every(([name, { ref }]) => {
+    new Set(plugins.map((plugin) => plugin?.source?.ref)).size === variants.size &&
+    [...variants.keys()].every((name) => {
       const route = plugins.find((plugin) => plugin?.name === name)?.source;
       return route?.source === "url" && route.url === "https://github.com/nisavid/real-skills" &&
-        route.ref === ref && Object.keys(route).length === 3;
+        typeof route.ref === "string" &&
+        (/^[0-9a-f]{40}$/.test(route.ref) || /^refs\/tags\/v(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\+from\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)$/.test(route.ref)) &&
+        Object.keys(route).length === 3;
     });
   if (!local && !shared) {
     throw new Error(`Marketplace must select the native root or the two shared variant sources: ${path}`);
   }
-  catalogModes.add(local ? "local" : "shared");
+  const selection = local ? "local" : JSON.stringify([...variants.keys()].map((name) =>
+    plugins.find((plugin) => plugin.name === name).source.ref));
+  catalogSelections.add(selection);
 }
-if (catalogModes.size !== 1) throw new Error("Marketplace catalogs disagree on local or shared routing.");
+if (catalogSelections.size !== 1) throw new Error("Marketplace catalogs disagree on local routing or shared variant refs.");
 try {
   lstatSync(join(repo, "plugin.json"));
   throw new Error("Root plugin.json would override native discovery. Use the native manifests.");
