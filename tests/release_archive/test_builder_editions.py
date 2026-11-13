@@ -133,3 +133,75 @@ def test_build_refuses_package_name_that_disagrees_with_plugin_manifests():
             source, hashlib.sha256(source).hexdigest(), REVISION,
             "1.3.1", "1.3.2+from.1.3.1"
         )
+
+
+def test_build_refuses_missing_package_identity():
+    from release_builder import build
+
+    output = io.BytesIO()
+    target = "mattpocock-skills-" + REVISION + "/package.json"
+    with tarfile.open(fileobj=io.BytesIO(source_archive()), mode="r:gz") as original:
+        with tarfile.open(fileobj=output, mode="w:gz") as replacement:
+            for member in original:
+                member = copy.copy(member)
+                if member.isfile():
+                    data = original.extractfile(member).read()
+                    if member.name == target:
+                        package = json.loads(data)
+                        del package["name"]
+                        data = json.dumps(package).encode()
+                    member.size = len(data)
+                    replacement.addfile(member, io.BytesIO(data))
+                else:
+                    replacement.addfile(member)
+    source = output.getvalue()
+
+    with pytest.raises(ValueError, match="source plugin name mismatch"):
+        build(
+            source, hashlib.sha256(source).hexdigest(), REVISION,
+            "1.3.1", "1.3.2+from.1.3.1"
+        )
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        pytest.param("other-skills", id="unknown"),
+        pytest.param(None, id="null"),
+        pytest.param(True, id="boolean"),
+        pytest.param(7, id="number"),
+        pytest.param(["real-skills-leashed"], id="list"),
+        pytest.param({"name": "real-skills-leashed"}, id="object"),
+    ],
+)
+def test_build_refuses_matching_unknown_or_mistyped_identity_fields(name):
+    from release_builder import build
+
+    output = io.BytesIO()
+    root = "mattpocock-skills-" + REVISION + "/"
+    manifests = {
+        root + "package.json",
+        root + ".claude-plugin/plugin.json",
+        root + ".codex-plugin/plugin.json",
+    }
+    with tarfile.open(fileobj=io.BytesIO(source_archive()), mode="r:gz") as original:
+        with tarfile.open(fileobj=output, mode="w:gz") as replacement:
+            for member in original:
+                member = copy.copy(member)
+                if member.isfile():
+                    data = original.extractfile(member).read()
+                    if member.name in manifests:
+                        manifest = json.loads(data)
+                        manifest["name"] = name
+                        data = json.dumps(manifest).encode()
+                    member.size = len(data)
+                    replacement.addfile(member, io.BytesIO(data))
+                else:
+                    replacement.addfile(member)
+    source = output.getvalue()
+
+    with pytest.raises(ValueError, match="source plugin name mismatch"):
+        build(
+            source, hashlib.sha256(source).hexdigest(), REVISION,
+            "1.3.1", "1.3.2+from.1.3.1"
+        )
