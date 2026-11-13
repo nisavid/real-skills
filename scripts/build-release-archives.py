@@ -232,8 +232,10 @@ def build(raw, expected_sha256, revision, base, release):
     claude = unique_json(source[".claude-plugin/plugin.json"][0])
     native = unique_json(source[".codex-plugin/plugin.json"][0])
     package = unique_json(source["package.json"][0])
+    plugin_name = claude.get("name")
     require(
-        claude.get("name") == native.get("name") == "real-skills-leashed",
+        plugin_name == native.get("name")
+        and plugin_name in ("real-skills-leashed", "real-skills-unleashed"),
         "source plugin name mismatch",
     )
     source_version = package["version"]
@@ -420,7 +422,7 @@ def build(raw, expected_sha256, revision, base, release):
         require(archive_bytes == encode_zip(files), "nondeterministic rebuild")
         actual = verify_zip(archive_bytes, files)
         links = verify_links(actual)
-        filename = f"real-skills-leashed-{release}-{format_name}.zip"
+        filename = f"{plugin_name}-{release}-{format_name}.zip"
         outputs[filename] = archive_bytes
         report["archives"][filename] = {
             "sha256": digest(archive_bytes),
