@@ -1,6 +1,6 @@
 ## What it does
 
-`tdd` builds a feature or fixes a bug test-first: one failing test, then just enough code to pass it, then the next behaviour. It carries the standards that make that loop produce tests worth keeping: what a good test is, where tests go, what mocks are for, and the three anti-patterns that make a suite worthless.
+`tdd` builds a feature or fixes a bug test-first: one failing test, a quick refactor, just enough code to pass the test, and another quick refactor before the next behaviour. It carries the standards that make that loop produce tests worth keeping: what a good test is, where tests go, what mocks are for, and the three anti-patterns that make a suite worthless.
 
 It writes no test at a seam you have not agreed to first. Before any test exists, it names the public boundaries it intends to test at and stops for your confirmation. Testing effort is finite, and this step spends it on the critical paths instead of on every edge case. `tdd` is also a **reference**, not a driver. It contains the rules of the loop, and something else (you, or [implement](https://aihero.dev/skills-implement)) runs the [session](https://www.aihero.dev/ai-coding-dictionary/session) that applies them.
 
@@ -28,7 +28,7 @@ That last row is a real gap. The skill decides *where* the seams go, but nothing
 
 The skill rests on three terms.
 
-**Red-green.** Write the failing test, then only enough code to pass it. Do not write code for the test after next. There is no refactor phase. The skill dropped it in June 2026 because agents almost never performed it, and because review and implementation work better as separate sessions. Refactoring belongs to [code-review](https://aihero.dev/skills-code-review).
+**Red-green.** Write one test and witness it fail for the intended unmet requirement, then write only enough code to pass it. A quick refactor follows each RED and each GREEN. After RED, cleanup preserves the missing behaviour and the tests that already passed; if cleanup changes relevant inputs, the agent witnesses RED again. After GREEN, it preserves passing behaviour and reruns the affected assertions. When nothing warrants cleanup, the agent says so for that stage.
 
 **Vertical slice.** Write one test at one seam, then the minimal implementation, then repeat. The first cycle is a **tracer bullet** that proves a single path end to end. The opposite is horizontal slicing: all the tests first, then all the code. Tests written in bulk verify *imagined* behaviour. They check the shape of things rather than what a user does, and they commit you to a test structure before you understand the implementation.
 
@@ -44,11 +44,15 @@ The three anti-patterns it is written to prevent:
 
 Mocks are for system boundaries only: external APIs, time, randomness, sometimes the filesystem or the database. Never mock your own modules.
 
+The evidence belongs to the consumer's contract. The agent states what real behaviour ran, which effects were replaced, and what the result cannot establish. A test that receives a mocked successful process result has not shown that the real command is accepted. Original RED evidence stays available when GREEN arrives, and changed inputs require the affected observation again.
+
 ## Common questions
 
-**Why doesn't it refactor? The description says "red-green-refactor".**
+**When does it refactor?**
 
-Because the refactor step was removed and the description was not. The removal was deliberate. Agents almost never did the step, and keeping implementation and review in separate sessions works better. Whether the result still counts as TDD by the book matters less than whether the loop produces better code. The mismatch between the trigger phrase and the body is filed as [issue #589](https://github.com/mattpocock/skills/issues/589) and is still open, so "red-green-refactor" continues to work as a phrase that fires the skill. What you get is red-green, with refactoring in [code-review](https://aihero.dev/skills-code-review).
+After every RED and every GREEN, including review corrections. These are quick cleanups within the behaviour being built, such as removing duplication or clarifying a name. They preserve what that stage proves; the assertion never gets weaker to make cleanup pass.
+
+Deeper work follows every completed clean code review. The owning implementation coordinator invokes [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) in automatic mode, implements eligible Strong recommendations, and gets the final candidate and assessment independently reviewed. It skips only when a verified completed baseline covers the same scope and no nontrivial code has changed since it. A new nontrivial implementation or fix makes that old skip unavailable.
 
 **It asked me to choose a test seam and I had no idea which to pick.**
 
@@ -56,7 +60,7 @@ This is the most-reported friction with the skill ([issue #607](https://github.c
 
 **It wrote the implementation before the test, even though the skill says red first.**
 
-It happens. One user pushed the [model](https://www.aihero.dev/ai-coding-dictionary/model) on it and got an unusually honest answer: "I knew the skill said 'one test at a time, watch it fail for the right reason'. I read it. I just defaulted to my normal habit." The skill accepts this. No instruction makes an agent comply 100% of the time, and stricter wording restricts the agent's creativity for little gain. The loop is worth running even when the agent does not follow it strictly, because the results are still better overall. If strict adherence matters for a particular slice, watch the run rather than trusting the skill to enforce it.
+The sequence has not established RED. The agent must show that the assertion detects the intended missing behaviour, preserve that result, and then show GREEN on the implementation. An import error or an unavailable environment does not count as the intended failure. Instruction text alone cannot guarantee compliance, so the run's evidence matters.
 
 **Should it write browser or end-to-end tests first?**
 
@@ -68,7 +72,7 @@ No. `/tdd` documents the methodology; `/implement` is a simple work→feedback�
 
 **Where did the deep-modules and interface-design guidance go?**
 
-Into [codebase-design](https://aihero.dev/skills-codebase-design) in v1.0, generalised so several skills share one vocabulary. `refactoring.md` left at the same time; refactoring is now [code-review](https://aihero.dev/skills-code-review)'s job, and that skill carries the Fowler smell baseline.
+[codebase-design](https://aihero.dev/skills-codebase-design) supplies the shared vocabulary. `tdd` owns the quick cleanup at each RED and GREEN stage. [code-review](https://aihero.dev/skills-code-review) checks the resulting diff and carries the Fowler smell baseline; a clean review triggers the automatic deeper assessment.
 
 **Does it know about my other tickets?**
 
@@ -77,7 +81,9 @@ No. Run against one ticket, it can propose work that belongs to a sibling ticket
 ## It's working if
 
 - It stops and names the seams it intends to test at, and waits, before any test file exists.
-- One test appears, goes red, gets just enough code to pass, and only then does the next test appear, not a batch of tests followed by a batch of code.
+- One test appears and fails for the intended reason. Quick cleanup preserves that failure, the smallest implementation makes it pass, and another quick cleanup preserves GREEN before the next test appears.
+- Each RED and GREEN has a cleanup result, including an explicit statement when nothing warrants refactoring.
+- The original failure and later passing result identify the source and inputs they actually exercised.
 - Test names read as capabilities ("user can checkout with valid cart"), not as internals ("checkout calls paymentService.process").
 - Expected values in assertions are literals you can trace to the spec, not values recomputed the way the code computes them.
 - Renaming an internal function breaks nothing in the suite.
@@ -91,4 +97,4 @@ No. Run against one ticket, it can propose work that belongs to a sibling ticket
 grill-with-docs → to-spec → to-tickets → implement → code-review → retro
 ```
 
-[to-spec](https://aihero.dev/skills-to-spec) agrees the test seams up front, [implement](https://aihero.dev/skills-implement) drives `tdd` per ticket, and [code-review](https://aihero.dev/skills-code-review) checks afterwards that only the agreed seams were used, and owns the refactoring `tdd` no longer does. Its other neighbour is [codebase-design](https://aihero.dev/skills-codebase-design), the shared source of the seam and deep-module vocabulary that `tdd` uses. You can also reach for it on its own, whenever there is a concrete behaviour to build and no full spec in play. When you are unsure which skill fits your situation, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.
+[to-spec](https://aihero.dev/skills-to-spec) agrees the test seams up front, [implement](https://aihero.dev/skills-implement) drives `tdd` per ticket, and [code-review](https://aihero.dev/skills-code-review) checks the resulting diff. Every clean review sends the owning implementation coordinator to [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) for automatic deep refactoring, subject to its verified completed-baseline exception. Its other neighbour is [codebase-design](https://aihero.dev/skills-codebase-design), the shared source of the seam and deep-module vocabulary that `tdd` uses. You can also reach for it on its own, whenever there is a concrete behaviour to build and no full spec in play. When you are unsure which skill fits your situation, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.

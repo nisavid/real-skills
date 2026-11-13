@@ -42,11 +42,11 @@ Five **state** roles:
 
 For a PR, the same states read against the attached code: `ready-for-agent` means a brief is attached and an agent should take the next step on the diff; `ready-for-human` means it's ready for a human to merge.
 
-Every triaged issue should carry exactly one category role and one state role. If state roles conflict, flag it and ask the maintainer before doing anything else.
+Every triaged issue should carry exactly one category role and one state role. These describe work kind and workflow state, independently of map structure or the operation needed next. Preserve applicable `wayfinder:<type>` classifications and other axes under project policy; a bug can also be a map. Use only meaningful, applicable axes. Where the tracker uses a native Triage state, use it instead of a duplicate `needs-triage` label. Triage changes only its own axes; a map, assessment, or claim does not establish readiness or grant execution authority. If state roles conflict, flag it and ask the maintainer before doing anything else.
 
 These are canonical role names. The actual label strings used in the issue tracker may differ. The mapping should have been provided to you. If not, call the Skill tool with "setup-matt-pocock-skills" when governing instructions permit; otherwise tell the user to run `/setup-matt-pocock-skills`.
 
-State transitions: an unlabeled issue normally goes to `needs-triage` first; from there it moves to `needs-info`, `ready-for-agent`, `ready-for-human`, or `wontfix`. `needs-info` returns to `needs-triage` once the reporter replies. The maintainer can override at any time; flag transitions that look unusual and ask before proceeding.
+State transitions: an incoming issue for which triage applies and which has no mapped triage state normally goes to `needs-triage` first, regardless of other classifications; from there it moves to `needs-info`, `ready-for-agent`, `ready-for-human`, or `wontfix`. `needs-info` returns to `needs-triage` once the reporter replies. The maintainer can override at any time; flag transitions that look unusual and ask before proceeding.
 
 ## Invocation
 
@@ -61,9 +61,11 @@ The maintainer may invoke `/triage` and describe what they want in natural langu
 
 Query the issue tracker and present three buckets, oldest first:
 
-1. **Unlabeled**: never triaged.
-2. **`needs-triage`**: evaluation in progress.
+1. **No triage state**: incoming requests for which triage applies that have no mapped triage state yet. Ignore unrelated labels when selecting this bucket: an entirely unlabeled request and one carrying only a Wayfinder or other independent classification both belong here. Do not force planning-only maps through triage when that axis does not apply.
+2. **`needs-triage`**: evaluation in progress, using the project's mapped state, including native Linear Triage instead of a duplicate label.
 3. **`needs-info` with reporter activity since the last triage notes**: needs re-evaluation.
+
+Query the applicable state axis through the project's tracker mapping. A recorded later triage state stays in that state; do not reset it merely because an unrelated label is added. Surface conflicting state roles through the maintainer decision above rather than treating the conflict as an absent state.
 
 When PRs are in scope, include external PRs in these buckets and tag each line `[PR]` or `[issue]`. Discovery surfaces only *external* PRs (the tracker config defines who counts as external), so a collaborator's in-flight PR is not triage work. This filter is discovery-only; an explicitly named PR is always triaged regardless of author.
 
