@@ -317,6 +317,23 @@ test("build and check reject moving shared catalog refs without changing files",
   });
 });
 
+test("build and check reject differing pins for the same edition across shared catalogs without changing files", async (t) => {
+  for (const args of [[], ["--check"]]) await t.test(args[0] ?? "build", (t) => {
+    const f = fixture(t);
+    for (const path of sharedCatalogPaths) f.put(path, JSON.stringify(sharedCatalog()));
+    assert.equal(f.run().status, 0);
+    const catalog = sharedCatalog();
+    catalog.plugins[0].source.ref = "3333333333333333333333333333333333333333";
+    f.put(".agents/plugins/marketplace.json", JSON.stringify(catalog));
+    const before = snapshot(f.root);
+
+    const result = f.run(...args);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /Marketplace catalogs disagree/);
+    assert.deepEqual(snapshot(f.root), before);
+  });
+});
+
 test("build and check reject invalid or disagreeing shared catalog sources before writing", async (t) => {
   const cases = {
     "catalogs mix local and shared routing": (catalog) => {

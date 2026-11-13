@@ -73,7 +73,7 @@ for (const path of selected) {
   requirePath(`${root}/agents/openai.yaml`, false);
   validateSkillTree(root, root);
 }
-const catalogModes = new Set();
+const catalogSelections = new Set();
 for (const [path, source] of [
   [".claude-plugin/marketplace.json", "claude"],
   [".agents/plugins/marketplace.json", "codex"],
@@ -95,9 +95,11 @@ for (const [path, source] of [
   if (!local && !shared) {
     throw new Error(`Marketplace must select the native root or the two shared variant sources: ${path}`);
   }
-  catalogModes.add(local ? "local" : "shared");
+  const selection = local ? "local" : JSON.stringify([...variants.keys()].map((name) =>
+    plugins.find((plugin) => plugin.name === name).source.ref));
+  catalogSelections.add(selection);
 }
-if (catalogModes.size !== 1) throw new Error("Marketplace catalogs disagree on local or shared routing.");
+if (catalogSelections.size !== 1) throw new Error("Marketplace catalogs disagree on local routing or shared variant refs.");
 try {
   lstatSync(join(repo, "plugin.json"));
   throw new Error("Root plugin.json would override native discovery. Use the native manifests.");
