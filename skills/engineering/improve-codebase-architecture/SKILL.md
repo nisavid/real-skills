@@ -43,7 +43,7 @@ A completed baseline records the covered scope, final candidate identity, assess
 
 ### 2. Assess the assigned work
 
-Read the domain glossary and relevant ADRs, and invoke `codebase-design` for the shared vocabulary. Explore the assigned surface and its callers for demonstrated friction. If delegating exploration, start the worker with a fresh context window and the bounded candidate, scope, and evidence inputs.
+Read the domain glossary and relevant ADRs, and call the Skill tool with "codebase-design" for the shared vocabulary. Explore the assigned surface and its callers for demonstrated friction. If delegating exploration, start the worker with a fresh context window and the bounded candidate, scope, and evidence inputs.
 
 Return a textual assessment of each grounded candidate: the present problem and source evidence, proposed improvement, smallest adequate alternative, preserved consumer behavior and invariants, and recommendation strength. State explicitly when there is no eligible Strong recommendation. Do not invent findings to fill a report.
 
@@ -53,7 +53,7 @@ Keep unresolved facts and consequential tradeoffs as Worth exploring. Return res
 
 Implement every eligible in-scope Strong recommendation. Preserve the assigned behavior and invariants, and compare deletion or inlining before adding another abstraction. If implementation reveals a consequential unresolved choice or requires wider authority, stop that branch and return the concrete need to its owner. Continue independent authorized work without claiming the blocked branch is complete.
 
-Use `tdd` for any implementation or correction that needs a RED/GREEN slice, including its quick refactor after each stage. A behavior-preserving refactor starts from affected passing consumer assertions and reruns them; do not manufacture a RED by weakening existing behavior. Keep semantic expectations stable while changing a driver or adapter, and use the consumer-evidence method in `tdd` with its stated qualification limits.
+Call the Skill tool with "tdd" for any implementation or correction that needs a RED/GREEN slice, including its quick refactor after each stage. A behavior-preserving refactor starts from affected passing consumer assertions and reruns them; do not manufacture a RED by weakening existing behavior. Keep semantic expectations stable while changing a driver or adapter, and use the consumer-evidence method in `tdd` with its stated qualification limits.
 
 Verify the affected behavior and owning checks on the resulting candidate. Keep evidence tied to its actual source, fixtures, driver, assertions, and relevant dependencies. If these inputs change, refresh the affected evidence. Report implemented recommendations separately from recommendations still awaiting independent review.
 

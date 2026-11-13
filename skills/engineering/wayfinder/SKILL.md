@@ -139,7 +139,7 @@ The lifecycle above runs automatically at its triggers. These two interactive mo
 
 The user or agent invokes this mode for a loose idea.
 
-1. **Name the destination.** Reuse a settled destination that still fits the intake. Where it is unresolved, invoke `grilling` and `domain-modeling` to pin down the spec, decision, or route this map is finding its way to. The human speaks for their own decisions.
+1. **Name the destination.** Reuse a settled destination that still fits the intake. Where it is unresolved, call the Skill tool twice, for "grilling" and "domain-modeling", to pin down the spec, decision, or route this map is finding its way to. The human speaks for their own decisions.
 2. **Map the frontier.** Reuse adequate assessment, then grill uncovered uncertainty **breadth-first** within the destination: surface the open decisions and the first steps takeable now. If the route is clear and bounded, record that assessment and return the next step to its authorized workflow. No map or new human decision is required merely because assessment found no fog.
 3. **Create the map** (label `wayfinder:map`): Destination and Notes filled in, Decisions-so-far empty, the fog sketched into **Not yet specified**.
 4. **Create the tickets you can specify now** as child issues of the map, then wire blocking edges in a **second pass** (issues need ids before they can reference each other). Write cross-references in that pass too, with real ids: a placeholder `#<n>` auto-links to an unrelated issue. Wiring sorts them into the frontier and the blocked; everything you can't yet specify stays in the fog: the **Not yet specified** section.

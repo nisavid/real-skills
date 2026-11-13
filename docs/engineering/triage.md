@@ -28,11 +28,13 @@ Executing a PR or a reporter's reproduction requires a disposable sandbox with n
 
 ## The state machine
 
+The attention query finds incoming work with no applicable triage state independently of its other labels. A Wayfinder-labelled incoming request remains discoverable; a planning-only map is not automatically triage work. Native Linear Triage is discovered through the mapped workflow state, and adding another classification never resets a later triage state.
+
 Every triaged item ends with exactly one category role and one state role. Those axes can coexist with applicable Wayfinder classifications under project policy. A bug can also be a map, and triage changes do not remove its map classification. A planning-only issue need not carry irrelevant triage roles; a map does not make implementation work agent-ready. Where Linear uses native Triage, that workflow state replaces a duplicate `needs-triage` label. There are two categories: `bug` (something is broken) and `enhancement` (new feature or improvement). There are five states:
 
 | State | Means |
 | --- | --- |
-| `needs-triage` | You need to evaluate it. An unlabelled issue normally lands here first. |
+| `needs-triage` | You need to evaluate it. An incoming issue with no applicable triage state normally lands here first, even if another axis already has labels. |
 | `needs-info` | Waiting on the reporter. Returns to `needs-triage` when they reply. |
 | `ready-for-agent` | Fully specified, with an agent brief attached. An [AFK](https://www.aihero.dev/ai-coding-dictionary/afk) agent can take it. |
 | `ready-for-human` | The same brief, plus why an agent can't do it: judgment, external access, manual testing. |
