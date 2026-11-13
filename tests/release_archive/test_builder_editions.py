@@ -6,6 +6,8 @@ import stat
 import tarfile
 import zipfile
 
+import pytest
+
 from test_release_builder import (
     ALPHA_AGENT,
     ALPHA_SCRIPT,
@@ -103,3 +105,31 @@ def test_build_packages_unleashed_source_in_both_release_layouts():
             transform = provenance["manifest_transform"]
             assert transform["before"]["name"] == "real-skills-unleashed"
             assert transform["after"] == manifest
+
+
+def test_build_refuses_package_name_that_disagrees_with_plugin_manifests():
+    from release_builder import build
+
+    output = io.BytesIO()
+    target = "mattpocock-skills-" + REVISION + "/package.json"
+    with tarfile.open(fileobj=io.BytesIO(source_archive()), mode="r:gz") as original:
+        with tarfile.open(fileobj=output, mode="w:gz") as replacement:
+            for member in original:
+                member = copy.copy(member)
+                if member.isfile():
+                    data = original.extractfile(member).read()
+                    if member.name == target:
+                        package = json.loads(data)
+                        package["name"] = "real-skills-unleashed"
+                        data = json.dumps(package).encode()
+                    member.size = len(data)
+                    replacement.addfile(member, io.BytesIO(data))
+                else:
+                    replacement.addfile(member)
+    source = output.getvalue()
+
+    with pytest.raises(ValueError, match="source plugin name mismatch"):
+        build(
+            source, hashlib.sha256(source).hexdigest(), REVISION,
+            "1.3.1", "1.3.2+from.1.3.1"
+        )

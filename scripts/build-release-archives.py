@@ -234,7 +234,7 @@ def build(raw, expected_sha256, revision, base, release):
     package = unique_json(source["package.json"][0])
     plugin_name = claude.get("name")
     require(
-        plugin_name == native.get("name")
+        plugin_name == native.get("name") == package.get("name")
         and plugin_name in ("real-skills-leashed", "real-skills-unleashed"),
         "source plugin name mismatch",
     )
