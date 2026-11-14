@@ -103,7 +103,7 @@ Follow the standing Git publication workflow for authorized repository changes. 
 
 Run **Release archive provenance** manually on the default branch for one reviewed, repository-reachable release source. Supply its full commit ID, independently retained source-tar SHA-256, the verified upstream release commit and base version, and the already allocated release version. Verify upstream tag resolution and account for the fork changes before dispatch. The job checks ancestry and version consistency using those inputs. The job has read-only repository access and requires no provider credentials. It runs one candidate at a time on Linux with a ten-minute timeout.
 
-For a local run from a reviewed checkout, use the same inputs:
+For a local run from a reviewed checkout, make the pinned builder commit available in the selected Git object database. Obtain its full commit ID with `python scripts/check-release-archive-provenance.py --builder-revision`. If the object is absent, fetch that exact commit from the fork's trusted GitHub origin. The runner verifies the builder and procedure digests before executing the builder. Then use the same release inputs:
 
 ```sh
 python scripts/check-release-archive-provenance.py build \

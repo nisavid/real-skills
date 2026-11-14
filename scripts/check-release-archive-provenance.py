@@ -93,7 +93,11 @@ def verify_icon(args, temp, icon):
 
 def build(args, name):
     started = time.monotonic()
-    builder = blob(args.repo, BUILDER_REVISION, BUILDER_PATH)
+    try:
+        builder = blob(args.repo, BUILDER_REVISION, BUILDER_PATH)
+    except ValueError:
+        raise ValueError(f"reviewed builder object {BUILDER_REVISION} unavailable; "
+                         "obtain the pinned Git object per the release archive procedure") from None
     require(sha256(builder) == BUILDER_SHA256, "reviewed builder digest differs")
     require(sha256(blob(args.repo, BUILDER_REVISION, PROCEDURE_PATH)) == PROCEDURE_SHA256,
             "reviewed procedure digest differs")
@@ -150,26 +154,42 @@ def build(args, name):
 
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--builder-revision", action="store_true", help="print the reviewed builder commit")
     common = argparse.ArgumentParser(add_help=False)
     for flag in ("repo", "source", "source-sha256", "upstream", "base", "release"):
         common.add_argument("--" + flag, required=True)
-    sub = parser.add_subparsers(dest="action", required=True)
+    sub = parser.add_subparsers(dest="action")
     builder = sub.add_parser("build", parents=[common])
     builder.add_argument("--output", required=True, type=Path)
     verifier = sub.add_parser("verify", parents=[common])
     verifier.add_argument("--format", choices=FORMATS, required=True)
     verifier.add_argument("--archive", type=Path, required=True)
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.builder_revision:
+        if args.action:
+            parser.error("--builder-revision takes no subcommand")
+    elif not args.action:
+        parser.error("choose build or verify")
+    return args
 
 
 def main():
     args = parse_args()
+    if args.builder_revision:
+        print(BUILDER_REVISION)
+        return
     name = bind(args)
     if args.action == "build":
         build(args, name)
     else:
-        print(json.dumps(verify_archive(args.repo, args.source, args.source_sha256, args.base,
-                                        args.release, args.format, args.archive), sort_keys=True))
+        with tempfile.TemporaryDirectory(prefix="release-archive-verify-") as directory:
+            temp = Path(directory)
+            materialize_tar(args, temp / "source.tar.gz")
+            verified = verify_archive(args.repo, args.source, args.source_sha256, args.base,
+                                      args.release, args.format, args.archive)
+            if verified["icon"] == "assets/wayfinder.svg":
+                verified["icon_derivation"] = verify_icon(args, temp, verified["icon"])
+        print(json.dumps(verified, sort_keys=True))
 
 
 if __name__ == "__main__":

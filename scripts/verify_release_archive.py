@@ -77,7 +77,7 @@ def selected_files(repo, source, roots, asset):
             mode, kind, oid = metadata.decode().split()
             tree[path.decode()] = (mode, kind, oid)
     promoted = {path.removesuffix("/SKILL.md") for path in tree
-                if re.fullmatch(ROOT + "/SKILL[.]md", path)}
+                if re.fullmatch(r"skills/(?:engineering|productivity)/[^/]+/SKILL[.]md", path)}
     require(set(roots) == promoted, "manifest differs from promoted Git inventory")
     require(len({path.rsplit("/", 1)[1] for path in roots}) == len(roots),
             "duplicate promoted skill name")
@@ -168,6 +168,7 @@ def verify_archive(repo, source, source_sha256, base, release, fmt, path):
                 "expanded archive exceeds size limit")
         for item in members:
             target = item.filename
+            require(item.orig_filename == target, "archive member name was normalized")
             mode = expected[target][1] if target in expected else 0o644
             attrs = item.external_attr >> 16
             require(item.create_system == 3 and stat.S_ISREG(attrs)

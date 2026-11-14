@@ -80,12 +80,12 @@ def test_unchanged_archive_passes_direct_verification(candidate, completed):
     assert verify(candidate, completed / f"real-skills-leashed-1.3.4+from.1.3.2-claude.zip").returncode == 0
 
 
-def verify(candidate, path):
+def verify(candidate, path, fmt="claude"):
     repo, digest = candidate
     return subprocess.run(
         [sys.executable, RUNNER, "verify", "--repo", repo, "--source", SOURCE,
          "--source-sha256", digest, "--upstream", UPSTREAM, "--base", "1.3.2",
-         "--release", "1.3.4+from.1.3.2", "--format", "claude", "--archive", path],
+         "--release", "1.3.4+from.1.3.2", "--format", fmt, "--archive", path],
         capture_output=True, text=True, timeout=20)
 
 
@@ -121,24 +121,112 @@ def test_direct_git_verification_rejects_corrupt_zip(candidate, completed, tmp_p
     assert "missing or unexpected archive members" in result.stderr or "archive member differs" in result.stderr
 
 
-def test_export_ignore_cannot_hide_a_selected_file(candidate, tmp_path):
+
+def checkout_candidate(candidate, tmp_path):
     repo, _ = candidate
-    checkout = tmp_path / "attributes"
-    subprocess.run(["git", "clone", "--shared", str(repo), str(checkout)], check=True, capture_output=True)
-    subprocess.run(["git", "-C", checkout, "checkout", "--detach", SOURCE], check=True, capture_output=True)
-    omitted = "skills/engineering/ask-matt/unlinked-fixture.txt"
-    (checkout / omitted).write_text("selected supporting bytes\n")
-    (checkout / ".gitattributes").write_text(f"{omitted} export-ignore\n")
-    subprocess.run(["git", "-C", checkout, "add", ".gitattributes", omitted], check=True)
-    subprocess.run(["git", "-C", checkout, "-c", "user.name=Fixture", "-c",
+    checkout = tmp_path / "candidate"
+    git_command = ["git", "-C", checkout]
+    subprocess.run(["git", "clone", "--shared", "--no-checkout", str(repo), str(checkout)],
+                   check=True, capture_output=True)
+    subprocess.run([*git_command, "checkout", "--detach", SOURCE], check=True, capture_output=True)
+    return checkout
+
+
+def commit_candidate(checkout, *paths):
+    git_command = ["git", "-C", checkout]
+    subprocess.run([*git_command, "add", "--", *paths], check=True)
+    subprocess.run([*git_command, "-c", "user.name=Fixture", "-c",
                     "user.email=fixture@example.invalid", "-c", "commit.gpgsign=false",
-                    "commit", "-m", "Omit a selected supporting file"], check=True, capture_output=True)
-    revision = subprocess.check_output(["git", "-C", checkout, "rev-parse", "HEAD"], text=True).strip()
-    raw = subprocess.check_output(["git", "-C", checkout, "-c", "tar.umask=0022", "archive",
+                    "commit", "-m", "Set synthetic archive input"], check=True, capture_output=True)
+    revision = subprocess.check_output([*git_command, "rev-parse", "HEAD"], text=True).strip()
+    raw = subprocess.check_output([*git_command, "-c", "tar.umask=0022", "archive",
                                    "--format=tar", f"--prefix=mattpocock-skills-{revision}/", revision])
-    expected = hashlib.sha256(subprocess.check_output(["gzip", "-n"], input=raw)).hexdigest()
+    digest = hashlib.sha256(subprocess.check_output(["gzip", "-n"], input=raw)).hexdigest()
+    return revision, digest
+
+
+@pytest.mark.parametrize("omitted,message", [
+    ("skills/engineering/ask-matt/unlinked-fixture.txt", "missing or unexpected archive members"),
+    ("skills/engineering/Unlisted/SKILL.md", "manifest differs from promoted Git inventory"),
+])
+def test_export_ignore_cannot_hide_git_inventory(candidate, tmp_path, omitted, message):
+    checkout = checkout_candidate(candidate, tmp_path)
+    target = checkout / omitted
+    target.parent.mkdir(exist_ok=True)
+    target.write_text("selected file bytes\n")
+    (checkout / ".gitattributes").write_text(f"{omitted} export-ignore\n")
+    revision, digest = commit_candidate(checkout, ".gitattributes", omitted)
     output = tmp_path / "result"
-    result = invoke((checkout, expected), output, "--source", revision)
+    result = invoke((checkout, digest), output, "--source", revision)
     assert result.returncode != 0
-    assert "missing or unexpected archive members" in result.stderr
+    assert message in result.stderr
     assert not (output / "receipt.json").exists()
+
+
+def test_synthetic_unleashed_build_has_two_layouts_and_no_icon(candidate, tmp_path):
+    checkout = checkout_candidate(candidate, tmp_path)
+    paths = ("package.json", ".claude-plugin/plugin.json", ".codex-plugin/plugin.json")
+    for path in paths:
+        manifest = checkout / path
+        data = json.loads(manifest.read_bytes())
+        data["name"] = "real-skills-unleashed"
+        manifest.write_text(json.dumps(data) + "\n")
+    revision, digest = commit_candidate(checkout, *paths)
+    output = tmp_path / "result"
+    process = invoke((checkout, digest), output, "--source", revision)
+    assert process.returncode == 0, process.stderr
+    receipt = json.loads((output / "receipt.json").read_bytes())
+    assert all(row["name"] == "real-skills-unleashed" and row["icon"] is None
+               for row in receipt["archives"].values())
+    assert receipt["icon_derivation"] is None
+    for fmt, member in (("agent-plugins", "skills/ask-matt/SKILL.md"),
+                        ("claude", "skills/engineering/ask-matt/SKILL.md")):
+        with ZipFile(output / f"real-skills-unleashed-1.3.4+from.1.3.2-{fmt}.zip") as archive:
+            assert member in archive.namelist()
+
+
+def test_external_zip_cannot_vouch_for_an_incorrect_tar_digest(candidate, completed, tmp_path):
+    modified = tmp_path / "forged.zip"
+    incorrect = "0" * 64
+    with ZipFile(completed / "real-skills-leashed-1.3.4+from.1.3.2-claude.zip") as source:
+        with ZipFile(modified, "w") as output:
+            for item in source.infolist():
+                data = source.read(item)
+                if item.filename == "RELEASE.json":
+                    data = json.dumps(dict(json.loads(data), source_sha256=incorrect)).encode()
+                output.writestr(item, data)
+    result = verify((candidate[0], incorrect), modified)
+    assert result.returncode != 0
+    assert "source tar SHA-256 mismatch" in result.stderr
+
+
+def test_external_zip_rejects_normalized_member_name(candidate, completed, tmp_path):
+    original = completed / "real-skills-leashed-1.3.4+from.1.3.2-claude.zip"
+    regular = tmp_path / "with-sentinel.zip"
+    malformed = tmp_path / "malformed.zip"
+    with ZipFile(original) as source, ZipFile(regular, "w") as output:
+        for item in source.infolist():
+            data = source.read(item)
+            if item.filename == "LICENSE":
+                item.filename = "LICENSE~"
+            output.writestr(item, data)
+    stored = regular.read_bytes()
+    assert stored.count(b"LICENSE~") == 2
+    malformed.write_bytes(stored.replace(b"LICENSE~", b"LICENSE\0"))
+    result = verify(candidate, malformed)
+    assert result.returncode != 0
+    assert "archive member name was normalized" in result.stderr
+
+
+def test_portable_support_file_bytes_are_verified(candidate, completed, tmp_path):
+    mutated = tmp_path / "mutated.zip"
+    original = completed / "real-skills-leashed-1.3.4+from.1.3.2-agent-plugins.zip"
+    member = "skills/ask-matt/PHASE-BOUNDARIES.md"
+    with ZipFile(original) as source, ZipFile(mutated, "w") as output:
+        assert member in source.namelist()
+        for item in source.infolist():
+            data = source.read(item)
+            output.writestr(item, data + b"\n" if item.filename == member else data)
+    result = verify(candidate, mutated, "agent-plugins")
+    assert result.returncode != 0
+    assert "archive member differs from Git projection" in result.stderr
