@@ -16,7 +16,7 @@ Use a gzip-compressed Git tar with root `mattpocock-skills-<full SHA>/` and `tar
 
 Treat manifests, skills, supporting files, and license text as data. Execute only the reviewed builder and verification tools. Preserve upstream skill bytes and invocation settings.
 
-When changing the builder or its tests, install pytest and PyYAML and run `python3 -m pytest -q tests/release_archive`; a failure blocks use.
+Before running the archive test suite, install pytest and PyYAML and make the pinned builder object available using the local preflight in [Check provenance in CI](#check-provenance-in-ci). Then run `python3 -m pytest -q tests/release_archive`; a failure blocks use.
 
 ## Build
 

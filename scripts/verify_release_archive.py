@@ -5,6 +5,7 @@ import json
 import re
 import stat
 import subprocess
+from io import BytesIO
 from zipfile import ZipFile
 
 EDITIONS = {"real-skills-leashed", "real-skills-unleashed"}
@@ -158,8 +159,10 @@ def verify_archive(repo, source, source_sha256, base, release, fmt, path):
     }
     expected = {targets[src]: (data, mode) for src, (data, mode) in files.items()}
     generated = {manifest_path: projected, "RELEASE.json": provenance}
-    require(path.stat().st_size <= MAX_BYTES, "archive exceeds size limit")
-    with ZipFile(path) as archive:
+    with path.open("rb") as stream:
+        snapshot = stream.read(MAX_BYTES + 1)
+    require(len(snapshot) <= MAX_BYTES, "archive exceeds size limit")
+    with ZipFile(BytesIO(snapshot)) as archive:
         members = archive.infolist()
         names = expected.keys() | generated.keys()
         require(len(members) == len(names) and set(archive.namelist()) == names,
@@ -178,4 +181,4 @@ def verify_archive(repo, source, source_sha256, base, release, fmt, path):
             require(ok, "archive member differs from Git projection")
 
     return {"name": name, "skills": len(roots), "members": len(names),
-            "git_files": len(files), "icon": asset, "sha256": sha256(path.read_bytes())}
+            "git_files": len(files), "icon": asset, "sha256": sha256(snapshot)}
