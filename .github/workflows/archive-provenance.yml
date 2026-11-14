@@ -1,0 +1,82 @@
+name: Release archive provenance
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: Full reviewed source commit SHA
+        required: true
+        type: string
+      source_sha256:
+        description: Independently recorded source tar SHA-256
+        required: true
+        type: string
+      upstream:
+        description: Full verified upstream release commit SHA
+        required: true
+        type: string
+      base:
+        description: Incorporated upstream version
+        required: true
+        type: string
+      release:
+        description: Allocated public version
+        required: true
+        type: string
+  push:
+    branches:
+      - nisavid/archive-provenance-replay
+
+permissions:
+  contents: read
+concurrency:
+  group: release-archive-provenance
+  cancel-in-progress: false
+
+jobs:
+  provenance:
+    # The replay branch is a one-time entry before manual dispatch is registered.
+    if: >-
+      github.repository == 'nisavid/real-skills' &&
+      ((github.event_name == 'workflow_dispatch' &&
+        github.ref_name == github.event.repository.default_branch) ||
+       (github.event_name == 'push' && github.event.created))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: "3.12.12"
+      - name: Ensure the reviewed builder object is available
+        run: |
+          builder=d955a868321ec41fef6464576b88073f66fc1208
+          if ! git cat-file -e "$builder^{commit}"; then
+            git fetch --no-tags https://github.com/nisavid/real-skills.git "$builder"
+          fi
+          test "$(git rev-parse "$builder^{commit}")" = "$builder"
+      - name: Install pinned builder dependency
+        run: |
+          printf '%s\n' 'PyYAML==6.0.3 --hash=sha256:ba1cc08a7ccde2d2ec775841541641e4548226580ab850948cbfda66a1befcdc' > "$RUNNER_TEMP/archive-requirements.txt"
+          python -m pip --isolated install --only-binary=:all: --no-deps --require-hashes -r "$RUNNER_TEMP/archive-requirements.txt"
+      - name: Verify archive provenance
+        env:
+          SOURCE: ${{ inputs.source || 'c63cbf7f7ceb578eb3d55950cf6bb18bad7f680b' }}
+          SOURCE_SHA256: ${{ inputs.source_sha256 || '61072a71b102616434e62129b265ceee718377c9dfe67d3b7d421b99aea869c8' }}
+          UPSTREAM: ${{ inputs.upstream || 'd1478fcb140db0b93c0c8df17bcfd311844749d0' }}
+          BASE: ${{ inputs.base || '1.3.2' }}
+          RELEASE: ${{ inputs.release || '1.3.4+from.1.3.2' }}
+        run: |
+          python scripts/check-release-archive-provenance.py build \
+            --repo . --source "$SOURCE" --source-sha256 "$SOURCE_SHA256" \
+            --upstream "$UPSTREAM" --base "$BASE" --release "$RELEASE" \
+            --output "$RUNNER_TEMP/verified-archives"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: archive-provenance-receipt
+          path: ${{ runner.temp }}/verified-archives/receipt.json
+          if-no-files-found: error
+          retention-days: 7
