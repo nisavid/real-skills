@@ -80,10 +80,44 @@ def test_unchanged_archive_passes_direct_verification(candidate, completed):
     assert verify(candidate, completed / f"real-skills-leashed-1.3.4+from.1.3.2-claude.zip").returncode == 0
 
 
-def verify(candidate, path, fmt="claude"):
+def test_verification_digest_identifies_inspected_zip_after_path_replacement(
+        candidate, completed, tmp_path):
+    original = (completed / "real-skills-leashed-1.3.4+from.1.3.2-claude.zip").read_bytes()
+    path = tmp_path / "archive.zip"
+    path.write_bytes(original)
+    replacement = path.with_suffix(".next")
+    replacement.write_bytes(b"replacement")
+    # Replace the file when the ZIP library starts reading a member.
+    control = """
+import runpy
+import sys
+from pathlib import Path
+from zipfile import ZipFile
+
+path = Path(sys.argv[-1])
+replacement = path.with_suffix(".next")
+read = ZipFile.read
+
+def replace_then_read(archive, *args, **kwargs):
+    if replacement.exists():
+        replacement.replace(path)
+    return read(archive, *args, **kwargs)
+
+ZipFile.read = replace_then_read
+sys.argv.pop(0)
+sys.path.insert(0, str(Path(sys.argv[0]).parent))
+runpy.run_path(sys.argv[0], run_name="__main__")
+"""
+    result = verify(candidate, path, python_args=("-c", control))
+    assert result.returncode == 0, result.stderr
+    assert path.read_bytes() == b"replacement"
+    assert json.loads(result.stdout)["sha256"] == hashlib.sha256(original).hexdigest()
+
+
+def verify(candidate, path, fmt="claude", *, python_args=()):
     repo, digest = candidate
     return subprocess.run(
-        [sys.executable, RUNNER, "verify", "--repo", repo, "--source", SOURCE,
+        [sys.executable, *python_args, RUNNER, "verify", "--repo", repo, "--source", SOURCE,
          "--source-sha256", digest, "--upstream", UPSTREAM, "--base", "1.3.2",
          "--release", "1.3.4+from.1.3.2", "--format", fmt, "--archive", path],
         capture_output=True, text=True, timeout=20)
