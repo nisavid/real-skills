@@ -782,3 +782,104 @@ test("finalized current executions update apply health while inspection keeps se
     assert.equal(inspected.state.calls.filter((call) => call.method === "DELETE").length, success || scenario === "unknown-request" ? 2 : 1);
   });
 });
+
+
+test("preadmitted manual refusals retain the identified stopped invocation through later inspection", async (t) => {
+  for (const failure of ["enumeration", "implementation"]) await t.test(failure, (t) => {
+    const interval = attestation();
+    const session = { id: "manual:early-refusal", owner: "owner-a", admission_record: "coordination:early-preadmission", issue_numbers: [2] };
+    interval.manual_sessions = [session];
+    const f = fixture(t, { qualified: true, evidence: interval, issues: [issue(2, ["wayfinder:task", "needs-triage"])], state: { workflowState: "disabled_manually" } });
+    f.update((state) => {
+      if (failure === "enumeration") state.failPath = "/issues?";
+      else state.control.authorized_implementations = [];
+    });
+    const refused = f.run("apply", ["--executor", "manual", "--session", session.id]);
+    assert.equal(refused.status, 3, JSON.stringify(refused.report));
+    assert.equal(refused.state.calls.filter((call) => call.method === "DELETE").length, 0);
+    assert.equal(refused.report.execution?.id, session.id, JSON.stringify(refused.report));
+    assert.equal(refused.report.execution.owner, session.owner);
+    assert.equal(refused.report.execution.admission_record, session.admission_record);
+    assert.equal(refused.report.execution.state, "stopped");
+    assert.deepEqual(refused.report.execution.requests, []);
+    assert.equal(refused.report.execution.scan.complete, false);
+    assert.equal(refused.report.repair.latest_apply_attempt.executor, session.id);
+    assert.equal(refused.report.repair.latest_apply_attempt.complete, false);
+    assert.equal(refused.report.repair.health, "disabled");
+    f.update((state) => {
+      delete state.failPath;
+      state.control.operating_interval.history.executors = [{ ...refused.report.execution, report_record: "coordination:retained-early-refusal" }];
+      // Synthetic current labels permit conflict-free inspection without a DELETE.
+      state.issues[0].labels = [{ name: "wayfinder:task" }];
+    });
+    const inspected = f.run("inspect");
+    assert.equal(inspected.status, 0, JSON.stringify(inspected.report));
+    assert.equal(inspected.report.repair.latest_apply_attempt.executor, session.id);
+    assert.equal(inspected.report.repair.latest_apply_attempt.complete, false);
+    assert.deepEqual(inspected.report.repair.unresolved, []);
+    const drained = f.run("transition-check", ["--session", "owner-a", "--action", "drain"]);
+    assert.equal(drained.status, 0, JSON.stringify(drained.report));
+    assert.equal(drained.report.transition.ready, true);
+    assert.ok(drained.state.calls.every((call) => call.method === "GET"));
+  });
+});
+
+test("an accounted uncertain manual session is not replaced by a fresh empty refusal record", (t) => {
+  const interval = attestation();
+  const session = { id: "manual:already-active", owner: "owner-a", admission_record: "coordination:already-active-admitted", issue_numbers: [2] };
+  interval.manual_sessions = [session];
+  interval.history.executors = [{ ...session, kind: "manual", state: "active", report_record: "coordination:earlier-active-report", requests: [{ id: "earlier-delete", executor: session.id, issue_number: 2, submission: "uncertain", outcome: "unknown" }] }];
+  const f = fixture(t, { qualified: true, evidence: interval, issues: [issue(2, ["wayfinder:task", "needs-triage"])], state: { workflowState: "disabled_manually" } });
+  const refused = f.run("apply", ["--executor", "manual", "--session", session.id]);
+  assert.equal(refused.status, 3, JSON.stringify(refused.report));
+  assert.equal(refused.report.execution, undefined);
+  assert.ok(refused.report.repair.unresolved.some((gap) => gap.includes("potentially-outstanding-request")));
+  assert.ok(refused.state.calls.every((call) => call.method === "GET"));
+});
+
+
+test("equivalent timestamp instants keep tied incomplete apply evidence in either history order", async (t) => {
+  const at = Math.floor((Date.now() - 30_000) / 1000) * 1000;
+  const canonical = new Date(at).toISOString();
+  const timezone = new Date(at + 2 * 60 * 60_000).toISOString().replace("Z", "+02:00");
+  const noFraction = canonical.replace(".000Z", "Z");
+  t.diagnostic("Constructed procedural timestamps, not live workflow observations: " + JSON.stringify({ canonical, timezone, noFraction }));
+  for (const [spelling, alternate] of [["literal", canonical], ["timezone", timezone], ["fractional", noFraction]]) for (const incompleteFirst of [false, true]) await t.test(`${spelling}: ${incompleteFirst ? "incomplete-first" : "complete-first"}`, (t) => {
+    assert.equal(Date.parse(canonical), Date.parse(alternate));
+    const execution = (id, complete, finished_at) => ({ id, kind: "manual", owner: "owner-a", state: "stopped", admission_record: `coordination:${id}:admitted`, report_record: `coordination:${id}:retained-report`, requests: [], scan: { mode: "apply", complete, authority_generation: 1, finished_at, conflicts: 0 } });
+    const good = execution("manual:tied-complete", true, canonical);
+    const failed = execution("manual:tied-incomplete", false, alternate);
+    const interval = steady(); interval.history.executors = incompleteFirst ? [failed, good] : [good, failed];
+    const f = fixture(t, { qualified: true, evidence: interval });
+    const result = f.run("status");
+    assert.deepEqual(result.report.repair.unresolved, []);
+    assert.equal(result.report.repair.health, "failed", JSON.stringify(result.report));
+    assert.equal(result.report.repair.latest_apply_attempt.executor, failed.id);
+    assert.equal(result.report.repair.latest_apply_attempt.complete, false);
+    assert.equal(result.report.repair.latest_complete_apply.executor, good.id);
+    assert.ok(result.state.calls.every((call) => call.method === "GET"));
+  });
+});
+
+
+test("canonical fresh manual identity remains reportable when supplied evidence refuses admission", async (t) => {
+  for (const defect of ["unreadable", "different-interval"]) await t.test(defect, (t) => {
+    const canonical = attestation();
+    const session = { id: "manual:identified-refusal", owner: "owner-a", admission_record: "coordination:identified-preadmission", issue_numbers: [2] };
+    canonical.manual_sessions = [session];
+    const f = fixture(t, { qualified: true, evidence: canonical, issues: [issue(2, ["wayfinder:task", "needs-triage"])], state: { workflowState: "disabled_manually" } });
+    const supplied = structuredClone(canonical); supplied.interval_id = "different-interval";
+    const path = defect === "unreadable" ? join(f.root, "missing-evidence.json") : f.evidence(supplied);
+    const refused = f.run("apply", ["--executor", "manual", "--session", session.id, "--evidence", path]);
+    assert.equal(refused.status, 3, JSON.stringify(refused.report));
+    assert.ok(refused.report.repair.unresolved.length > 0);
+    assert.ok(refused.report.refusals.includes("admission-or-request-history-unresolved"));
+    assert.equal(refused.report.execution?.id, session.id, JSON.stringify(refused.report));
+    assert.equal(refused.report.execution.owner, session.owner);
+    assert.equal(refused.report.execution.admission_record, session.admission_record);
+    assert.deepEqual(refused.report.execution.requests, []);
+    assert.equal(refused.report.execution.scan.complete, false);
+    assert.equal(refused.report.repair.latest_apply_attempt.executor, session.id);
+    assert.ok(refused.state.calls.every((call) => call.method === "GET"));
+  });
+});

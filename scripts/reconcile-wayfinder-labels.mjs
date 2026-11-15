@@ -74,7 +74,7 @@ function observeScan(pass, completed) {
   const repair = report.repair;
   if (!repair.latest_attempt || Date.parse(pass.finished_at) > Date.parse(repair.latest_attempt.finished_at)) repair.latest_attempt = pass;
   const latestApply = repair.latest_apply_attempt;
-  if (pass.mode === "apply" && (!latestApply || Date.parse(pass.finished_at) > Date.parse(latestApply.finished_at) || pass.finished_at === latestApply.finished_at && !pass.complete)) repair.latest_apply_attempt = pass;
+  if (pass.mode === "apply" && (!latestApply || Date.parse(pass.finished_at) > Date.parse(latestApply.finished_at) || Date.parse(pass.finished_at) === Date.parse(latestApply.finished_at) && !pass.complete)) repair.latest_apply_attempt = pass;
   const last = repair.latest_complete_apply;
   if (completed && pass.mode === "apply" && pass.complete && (!last || Date.parse(pass.finished_at) > Date.parse(last.finished_at))) repair.latest_complete_apply = pass;
 }
@@ -257,10 +257,12 @@ async function main() {
     assessment.canonical = interval(control.operating_interval, "canonical");
     assessment.evidence = interval(evidence, "supplied");
     if (evidenceReadError) unresolved.push("unreadable-evidence");
-    if (assessment.canonical && assessment.evidence) {
-      if (assessment.canonical.interval_id !== assessment.evidence.interval_id || assessment.canonical.transition.owner !== assessment.evidence.transition.owner) unresolved.push("operating-interval-mismatch");
+    if (assessment.canonical) {
       try { assessment.sessions = manualSessions(control); }
       catch { unresolved.push("malformed-manual-admission-inventory"); }
+    }
+    if (assessment.canonical && assessment.evidence) {
+      if (assessment.canonical.interval_id !== assessment.evidence.interval_id || assessment.canonical.transition.owner !== assessment.evidence.transition.owner) unresolved.push("operating-interval-mismatch");
       assessment.automaticAdmissionRecord = assessment.canonical.transition.admission?.record ?? null;
     }
     assessment.baseValid = unresolved.length === 0;
@@ -459,6 +461,11 @@ async function main() {
   assessOperatingEvidence();
   reconcileCanonicalHistory();
   await collectAutomaticHistory();
+  if (command === "apply" && args["--executor"] === "manual") {
+    const session = assessment.sessions.find((session) => session.id === args["--session"]);
+    const known = [assessment.canonical, assessment.evidence].some((interval) => interval?.history.executors.some((executor) => executor?.id === args["--session"]));
+    if (session && !known) report.execution = { id: session.id, kind: "manual", owner: session.owner, authority_generation: control.generation, state: "stopped", admission_record: session.admission_record, report_record: null, requests: report.attempts };
+  }
   assessHistory();
   assessTransition();
   repairEvidenceAssessed = true;
