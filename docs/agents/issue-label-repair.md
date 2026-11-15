@@ -2,7 +2,17 @@
 
 Use this procedure to inspect Wayfinder label conflicts, run authorized repair or manual fallback, and coordinate changes that can end Wayfinder eligibility or alter repair authority.
 
-This is a disabled qualification candidate. Keep the control in inspect mode, writers unqualified, implementation and fixture authorization empty, and the workflow disabled until the separately authorized qualification steps require otherwise. Source preparation and offline evaluation can proceed in that state. This page grants no live trial, integration change, or production enablement. The candidate's hard-disabled job guard also requires a reviewed, authorized source change before any receiving-workflow trial; enabling the workflow in GitHub alone is insufficient.
+This is an inspect-only receiving candidate, prepared locally for a separately approved trial. The workflow job invokes `inspect` with read-only issue access. Control remains in inspect mode, writers unqualified, and implementation and fixture authorization empty. Missing operating evidence remains an explicit incomplete result, never readiness. Source preparation and offline evaluation grant no publication, live trial, integration change, or activation. Publishing this runnable receiving source and enabling the workflow each require their own authority.
+
+## Trial source stages
+
+Keep the reviewed disabled baseline, inspect-only receiving revision, and guarded apply precursor separately identifiable. Observations belong to the revision and stage that actually ran. The receiving source can report conflicts and stopped, no-request automatic attempts; it cannot establish successful repair, qualified writers, a complete prior history, or positive drain or resume when that evidence is missing. A nonzero inspection exit can describe conflicts or incomplete evidence; retain the JSON artifact and its native attempt even when the job is not green.
+
+The receiving candidate keeps `workflow_id` and `operating_interval` unset until actual records support them. Its initial reports therefore do not claim a complete Actions inventory. After publication is separately approved, observe the workflow ID and native attempts, retain every receiving report, and establish an evidenced first-use boundary and accepted owner before any positive transition or apply assessment. Do not copy the synthetic specimen into live control or invent a prior drain.
+
+The apply precursor is preparation only: its job guard stays false, fixture IDs and implementation authorizations stay empty, and writers remain unqualified. It refuses apply in that state. After fixture creation is separately approved, bind only the three observed fixture IDs, the accepted operating evidence and workflow identity, and the reviewed helper/workflow content. Review the affected final source and coherent control before publication or opening apply admission. A local generation number is proposed source data, not a reservation of future live authority.
+
+Changing to the apply command or changing the actual workflow content makes the affected implementation authorization and review stale. Retain both stage revisions and receiving history through the transition. Installation, native GitHub permissions, trigger delivery, actual writer behavior, and operational coverage require their own live observations.
 
 ## Scope and entry conditions
 

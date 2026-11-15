@@ -1,7 +1,7 @@
 name: Wayfinder label repair
 
-# Qualification candidate. The job stays disabled until a separate reviewed
-# enablement changes this gate and independently authorizes the live control.
+# Inspect-only receiving candidate. Publication and workflow enablement require
+# separate trial approval. This stage supplies no apply authorization.
 on:
   issues:
     types: [opened, labeled, unlabeled, reopened]
@@ -16,12 +16,12 @@ permissions: {}
 
 jobs:
   reconcile:
-    if: ${{ false }}
+    if: ${{ true }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       actions: read
-      issues: write
+      issues: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -30,8 +30,8 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
-      - name: Reconcile current state
-        run: node scripts/reconcile-wayfinder-labels.mjs apply --executor automatic > report.json
+      - name: Inspect current state
+        run: node scripts/reconcile-wayfinder-labels.mjs inspect --executor automatic > report.json
         env:
           GH_TOKEN: ${{ github.token }}
       - name: Retain every attempt report
