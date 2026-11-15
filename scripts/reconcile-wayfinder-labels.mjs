@@ -70,11 +70,16 @@ function requestFinished(request, executor) {
   return request.submission === "not-submitted" && reference(request.completion_record) || request.submission === "submitted" && request.outcome === "completed" && positive(request.response_status) && (request.response_status === 200 && request.terminal_observation === "api-200-label-response" || request.response_status === 404 && request.terminal_observation === "api-404-and-absent-readback") && request.executor === executor && sha(request.authority_commit) && positive(request.authority_generation) && reference(request.completion_record);
 }
 
+function nativeFailed(executor) {
+  const run = nativeAttempts.get(executor);
+  return run?.status === "completed" && run.conclusion && run.conclusion !== "success";
+}
+
 function observeScan(pass, completed) {
   const repair = report.repair;
   if (!repair.latest_attempt || Date.parse(pass.finished_at) > Date.parse(repair.latest_attempt.finished_at)) repair.latest_attempt = pass;
   const latestApply = repair.latest_apply_attempt;
-  if (pass.mode === "apply" && (!latestApply || Date.parse(pass.finished_at) > Date.parse(latestApply.finished_at) || Date.parse(pass.finished_at) === Date.parse(latestApply.finished_at) && !pass.complete)) repair.latest_apply_attempt = pass;
+  if (pass.mode === "apply" && (!latestApply || Date.parse(pass.finished_at) > Date.parse(latestApply.finished_at) || Date.parse(pass.finished_at) === Date.parse(latestApply.finished_at) && (!pass.complete || latestApply.complete && nativeFailed(pass.executor)))) repair.latest_apply_attempt = pass;
   const last = repair.latest_complete_apply;
   if (completed && pass.mode === "apply" && pass.complete && (!last || Date.parse(pass.finished_at) > Date.parse(last.finished_at))) repair.latest_complete_apply = pass;
 }
@@ -85,9 +90,7 @@ function assessRepairHealth() {
   const last = report.repair.latest_complete_apply;
   // Native failure qualifies its own apply, ordered with all retained applies.
   // The latest native observation remains visible even when it is an inspect.
-  const applyRun = nativeAttempts.get(report.repair.latest_apply_attempt?.executor);
-  const failedRun = applyRun?.status === "completed" && applyRun.conclusion && applyRun.conclusion !== "success";
-  if (failedRun || report.repair.latest_apply_attempt?.complete === false) report.repair.health = "failed";
+  if (nativeFailed(report.repair.latest_apply_attempt?.executor) || report.repair.latest_apply_attempt?.complete === false) report.repair.health = "failed";
   else if (!last || last.authority_generation !== report.authority?.generation) report.repair.health = "missing";
   else report.repair.health = Date.now() - Date.parse(last.finished_at) > 90 * 60_000 ? "stale" : "healthy";
 }

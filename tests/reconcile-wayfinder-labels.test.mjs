@@ -883,3 +883,42 @@ test("canonical fresh manual identity remains reportable when supplied evidence 
     assert.ok(refused.state.calls.every((call) => call.method === "GET"));
   });
 });
+
+
+test("native failed complete applies survive equal-time recovery evidence in either inventory order", async (t) => {
+  for (const spelling of ["literal", "timezone"]) for (const manualFirst of [true, false]) for (const scenario of ["tied", "inspection", "later-success", "unknown", "incomplete-tie"]) await t.test(`${spelling}: ${manualFirst ? "manual-first" : "automatic-first"}: ${scenario}`, (t) => {
+    const f = fixture(t, { qualified: true, evidence: steady(), issues: [issue(2, ["wayfinder:task", "needs-triage"])] });
+    const generated = auto(f, "501");
+    assert.equal(generated.status, 0, JSON.stringify(generated.report));
+    assert.equal(generated.report.execution.scan.complete, true);
+    assert.equal(generated.report.attempts[0].outcome, "completed");
+    const automatic = structuredClone(generated.report.execution);
+    const at = Date.parse(automatic.scan.finished_at);
+    const manualTime = spelling === "literal" ? automatic.scan.finished_at : new Date(at + 2 * 60 * 60_000).toISOString().replace("Z", "+02:00");
+    assert.equal(Date.parse(manualTime), at);
+    const manual = { id: "manual:tied-recovery", kind: "manual", owner: "owner-a", state: "stopped", admission_record: "coordination:tied-manual-admitted", report_record: "coordination:tied-manual-report", requests: [], scan: { mode: "apply", complete: scenario !== "incomplete-tie", authority_generation: 1, finished_at: manualTime, conflicts: 0 } };
+    const later = { ...manual, id: "manual:later-recovery", admission_record: "coordination:later-manual-admitted", report_record: "coordination:later-manual-report", scan: { ...manual.scan, complete: true, finished_at: new Date(at + 1).toISOString() } };
+    t.diagnostic("Generated automatic requests are retained unchanged; constructed manual completion inputs: " + JSON.stringify({ automatic: automatic.scan.finished_at, manual: manualTime, later: later.scan.finished_at }));
+    f.update((state) => {
+      Object.assign(state.runs[0], { status: "completed", conclusion: "failure", created_at: generated.report.observed_at, updated_at: automatic.scan.finished_at });
+      state.artifacts = [artifact(901, generated.report)];
+      const records = manualFirst ? [manual, automatic] : [automatic, manual];
+      if (scenario === "later-success" || scenario === "unknown") records.push(later);
+      if (scenario === "unknown") records.push({ id: "manual:earlier-unknown", kind: "manual", owner: "owner-a", state: "stopped", admission_record: "coordination:earlier-unknown-admitted", report_record: "coordination:earlier-unknown-report", requests: [{ id: "unknown-delete", executor: "manual:earlier-unknown", issue_number: 2, submission: "uncertain", outcome: "unknown" }], scan: { mode: "apply", complete: false, authority_generation: 1, finished_at: new Date(at - 1000).toISOString(), conflicts: 0 } });
+      state.control.operating_interval.history.executors = records;
+    });
+    const observed = scenario === "inspection" ? f.run("inspect", ["--executor", "automatic"], { GITHUB_RUN_ID: "502", GITHUB_RUN_ATTEMPT: "1" }) : f.run("status");
+    const health = scenario === "later-success" ? "healthy" : scenario === "unknown" ? "unknown" : "failed";
+    assert.equal(observed.report.repair.health, health, JSON.stringify(observed.report));
+    const expectedApply = scenario === "later-success" || scenario === "unknown" ? later.id : scenario === "incomplete-tie" ? manual.id : automatic.id;
+    assert.equal(observed.report.repair.latest_apply_attempt.executor, expectedApply);
+    if (scenario === "incomplete-tie") assert.equal(observed.report.repair.latest_apply_attempt.complete, false);
+    if (scenario === "inspection") {
+      assert.equal(observed.report.repair.latest_attempt.executor, "automatic:502:1");
+      assert.equal(observed.report.repair.latest_attempt.mode, "inspect");
+    }
+    if (scenario === "unknown") assert.ok(observed.report.repair.unresolved.some((gap) => gap.includes("potentially-outstanding-request")));
+    else assert.deepEqual(observed.report.repair.unresolved, []);
+    assert.equal(observed.state.calls.filter((call) => call.method === "DELETE").length, 1);
+  });
+});
