@@ -450,3 +450,120 @@ test("canceled unaccounted or uncertain attempts stay unresolved after replaceme
     assert.equal(r.state.calls.filter((q) => q.method === "DELETE").length, scenario === "recorded-uncertain-request" ? 1 : 0);
   });
 });
+
+
+test("apply and transitions share canonical applicability and admission-reference refusal", async (t) => {
+  for (const action of ["automatic", "drain", "resume"]) for (const defect of ["missing-reference", "empty-reference", "missing-interval", "different-interval", "different-owner", "canonical-unaccepted", "canonical-generation", "supplied-empty-reference"]) await t.test(`${action}: ${defect}`, (t) => {
+    const canonical = action === "automatic" ? steady() : attestation();
+    if (action === "resume") Object.assign(canonical.transition, { phase: "resume-pending", change_verified: true, authority_readback_commit: "a".repeat(40) });
+    const supplied = structuredClone(canonical);
+    const f = fixture(t, { qualified: true, evidence: canonical, issues: [issue(2, ["wayfinder:task", "needs-triage"])], state: { workflowState: action === "automatic" ? "active" : "disabled_manually" } });
+    f.update((state) => {
+      const interval = state.control.operating_interval;
+      if (defect === "missing-reference") delete interval.transition.admission.record;
+      if (defect === "empty-reference") interval.transition.admission.record = "";
+      if (defect === "missing-interval") state.control.operating_interval = null;
+      if (defect === "different-interval") interval.interval_id = "another-canonical-interval";
+      if (defect === "different-owner") interval.transition.owner = "another-canonical-owner";
+      if (defect === "canonical-unaccepted") interval.transition.accepted = false;
+      if (defect === "canonical-generation") interval.authority_generation = 2;
+    });
+    if (defect === "supplied-empty-reference") supplied.transition.admission.record = "";
+    const args = action === "automatic" ? ["--executor", "automatic"] : ["--session", "owner-a", "--action", action];
+    args.push("--evidence", f.evidence(supplied));
+    const r = f.run(action === "automatic" ? "apply" : "transition-check", args, action === "automatic" ? { GITHUB_RUN_ID: "501", GITHUB_RUN_ATTEMPT: "1" } : {});
+    assert.equal(r.status, 3, JSON.stringify(r.report));
+    assert.equal(r.report.transition.ready, false);
+    assert.equal(r.state.calls.filter((call) => call.method === "DELETE").length, 0);
+    if (action === "automatic") { assert.equal(r.report.execution.state, "stopped"); assert.deepEqual(r.report.execution.requests, []); }
+  });
+});
+
+test("matching newer phase closure and completion records remain usable without forgetting canonical requests", async (t) => {
+  for (const action of ["drain", "resume"]) for (const update of ["completed", "omitted-executor", "omitted-request"]) await t.test(`${action}: ${update}`, (t) => {
+    const canonical = steady();
+    canonical.history.executors = [{ id: "manual:prior", kind: "manual", owner: "owner-a", state: "lost", admission_record: "coordination:prior-admitted", report_record: null, requests: [{ id: "prior-delete", executor: "manual:prior", issue_number: 2, submission: "uncertain", outcome: "unknown" }] }];
+    const supplied = structuredClone(canonical);
+    supplied.transition.phase = action === "resume" ? "resume-pending" : "paused";
+    supplied.transition.admission = { automatic: "closed", manual: "closed", record: "coordination:newer-closure" };
+    supplied.transition.change_verified = true; supplied.transition.authority_readback_commit = "a".repeat(40);
+    const executor = supplied.history.executors[0]; executor.state = "stopped"; executor.report_record = "coordination:positive-completion-report";
+    Object.assign(executor.requests[0], { submission: "submitted", outcome: "completed", response_status: 200, terminal_observation: "api-200-label-response", authority_commit: "a".repeat(40), authority_generation: 1, completion_record: "coordination:terminal-response" });
+    if (update === "omitted-executor") supplied.history.executors = [];
+    if (update === "omitted-request") executor.requests = [];
+    const f = fixture(t, { qualified: true, evidence: canonical, state: { workflowState: "disabled_manually" } });
+    const r = f.run("transition-check", ["--session", "owner-a", "--action", action, "--evidence", f.evidence(supplied)]);
+    assert.equal(r.status, update === "completed" ? 0 : 3, JSON.stringify(r.report));
+    assert.equal(r.report.transition.ready, update === "completed");
+    assert.ok(r.state.calls.every((call) => call.method === "GET"));
+  });
+});
+
+test("disabled first setup stays inspectable without certifying a first interval or erasing prior unknown use", async (t) => {
+  for (const prior of [false, true]) await t.test(String(prior), (t) => {
+    const f = fixture(t, { qualified: true, evidence: attestation(), issues: [issue(2, ["wayfinder:task", "needs-triage"])], state: { workflowState: "disabled_manually" } });
+    f.update((state) => {
+      state.control.mode = "inspect"; state.control.writer_coverage = "unqualified"; state.control.authorized_implementations = []; state.control.fixture_issue_numbers = []; state.control.operating_interval = null;
+      if (prior) state.runs = [{ id: 401, workflow_id: 123, run_attempt: 1, status: "completed", conclusion: "cancelled", created_at: "2026-11-15T00:00:00Z" }];
+    });
+    const inspected = f.run("inspect");
+    assert.equal(inspected.report.scan.complete, true);
+    assert.equal(inspected.report.scan.conflicts.length, 1);
+    assert.equal(inspected.report.transition.ready, false);
+    assert.ok(inspected.report.repair.unresolved.length > 0);
+    if (prior) assert.ok(inspected.report.repair.unresolved.some((gap) => gap.includes("automatic:401:1")));
+    assert.ok(inspected.state.calls.every((call) => call.method === "GET"));
+    const unavailable = f.run("inspect", ["--evidence", join(f.root, "missing-evidence.json")]);
+    assert.equal(unavailable.report.scan.complete, true);
+    assert.equal(unavailable.report.transition.ready, false);
+    assert.ok(unavailable.report.repair.unresolved.includes("unreadable-evidence"));
+    const supplied = attestation();
+    const checked = f.run("transition-check", ["--session", "owner-a", "--action", "drain", "--evidence", f.evidence(supplied)]);
+    assert.equal(checked.status, 3);
+    assert.equal(checked.report.transition.ready, false);
+  });
+});
+
+
+test("inspection observations never reset apply health and unknown requests still take precedence", async (t) => {
+  const anchor = Date.now();
+  const time = (secondsAgo) => new Date(anchor - secondsAgo * 1000).toISOString();
+  const times = { good: time(60), failed: time(45), inspected: time(30), recovered: time(15) };
+  t.diagnostic("Constructed scan times, not live job observations: " + JSON.stringify(times));
+  const scan = (id, mode, complete, finished_at, requests = []) => ({ id, kind: "manual", owner: "owner-a", state: "stopped", admission_record: `coordination:${id}:admitted`, report_record: `coordination:${id}:report`, requests, scan: { mode, complete, finished_at, authority_generation: 1, conflicts: 0 } });
+  const good = scan("manual:good", "apply", true, times.good);
+  const failed = scan("manual:failed", "apply", false, times.failed, [{ id: "settled-delete", executor: "manual:failed", issue_number: 2, submission: "submitted", outcome: "completed", response_status: 200, terminal_observation: "api-200-label-response", authority_commit: "a".repeat(40), authority_generation: 1, completion_record: "coordination:terminal-response" }]);
+  const inspected = scan("manual:inspected", "inspect", true, times.inspected);
+  const recovered = scan("manual:recovered", "apply", true, times.recovered);
+  const unknown = { id: "manual:unknown", kind: "manual", owner: "owner-a", state: "stopped", admission_record: "coordination:unknown-admitted", report_record: "coordination:unknown-report", requests: [{ id: "unknown-delete", executor: "manual:unknown", issue_number: 2, submission: "uncertain", outcome: "unknown" }] };
+  for (const [name, records, health] of [
+    ["successful apply", [good], "healthy"],
+    ["incomplete apply", [good, failed], "failed"],
+    ["successful inspection", [good, failed, inspected], "failed"],
+    ["successful new apply", [good, failed, inspected, recovered], "healthy"],
+    ["unknown still outstanding", [good, failed, inspected, recovered, unknown], "unknown"],
+    ["failed inspection only", [good, { ...inspected, scan: { ...inspected.scan, complete: false } }], "healthy"],
+  ]) await t.test(name, (t) => {
+    const f = fixture(t, { qualified: true, evidence: steady(), issues: [] });
+    const evidence = steady(); evidence.history.executors = records;
+    const r = f.run("status", ["--evidence", f.evidence(evidence)]);
+    assert.equal(r.report.repair.health, health, JSON.stringify(r.report));
+    if (name === "successful inspection") {
+      assert.equal(r.report.repair.latest_attempt.mode, "inspect");
+      assert.equal(r.report.repair.latest_apply_attempt.executor, "manual:failed");
+      assert.equal(r.report.repair.latest_complete_apply.executor, "manual:good");
+    }
+    assert.ok(r.state.calls.every((call) => call.method === "GET"));
+  });
+});
+
+
+test("automatic execution retains the validated canonical admission reference", (t) => {
+  const canonical = steady(); canonical.transition.admission.record = "coordination:continuing-automatic-admission";
+  const supplied = structuredClone(canonical); supplied.transition.admission.record = "coordination:newer-observation";
+  const f = fixture(t, { qualified: true, evidence: canonical, issues: [issue(2, ["wayfinder:task", "needs-triage"])] });
+  const r = f.run("apply", ["--executor", "automatic", "--evidence", f.evidence(supplied)], { GITHUB_RUN_ID: "501", GITHUB_RUN_ATTEMPT: "1" });
+  assert.equal(r.status, 0, JSON.stringify(r.report));
+  assert.equal(r.report.execution.admission_record, "coordination:continuing-automatic-admission");
+  assert.equal(r.state.calls.filter((call) => call.method === "DELETE").length, 1);
+});

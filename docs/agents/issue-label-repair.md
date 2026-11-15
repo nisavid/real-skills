@@ -26,7 +26,19 @@ Automatic event and scheduled runs use that continuing interval; they do not req
 
 For manual fallback or a transition, an authorized actor supplies additional records through `--evidence FILE`. Use the maintained [synthetic operator-evidence specimen](../../tests/fixtures/wayfinder-label-repair/operator-evidence.json) for the accepted input shape. It is test data, not usable live evidence or an approval. Establish each live assertion from the applicable GitHub records and native coordination history, identify its authorized author, and account for automatic attempts and admitted manual sessions. A manual `--session` must match its previously admitted bounded session; a transition `--session` identifies the accepted owner.
 
+Apply, drain, and resume share an assessment of canonical structure, repository/generation and stable interval identity, accepted owner, required admission references, and executor/request coverage before their action-specific conditions. Supplied evidence must match the canonical identity and owner; it cannot supply a missing canonical interval. Preserve matching newer phase, admission-closure, and completion records without requiring whole-record equality. Retain known canonical executor/request identities: a matching newer completion may settle the same request, while omission cannot erase unknown work. Inapplicable supplied evidence cannot shorten Actions history. Missing operating evidence remains inspectable and permits no positive readiness or apply.
+
+Validate both canonical and supplied admission references. Automatic apply retains the validated canonical reference with its execution record. A missing or empty reference means refusal before DELETE and a stopped, no-request report.
+
 The helper checks structure, consistency, applicability, and claimed coverage. It does not independently establish the truth of an attestation or enforce a repository-wide lock. An assertion cannot override missing records, ambiguous admission, or an uncertain DELETE. Existing supported records and authorized attestations may suffice; this procedure requires no new ledger, attestation service, or particular evidence-producing program.
+
+## Stage the first operating interval
+
+Prepare first-interval metadata from existing records of the repository, accepted owner, interval identity, admission references, and accounting boundary. Retain the literal-false job guard, inspect-only control, unqualified writers, and empty apply implementation/fixture authorization. Staging needs no successful resume and establishes neither qualification nor readiness.
+
+An evidenced inception can establish the start of first-use accounting; it is not a prior drain. Unknown prior admission or request history prevents a first-use claim. Previously active repair requires the full pause-and-drain procedure below, including unresolved earlier work.
+
+Staged or incomplete metadata stays inspectable with its limits reported. After separate publication/trial authority, the reviewed inspect-only receiving stage may collect non-destructive observations while apply authorization remains empty; retain its actual attempt, identity, manual-inventory, and boundary records. Before the first positive drain, resume, or apply result, establish initial-history coverage, the shared canonical bindings, and applicable writer/admission conditions. Only the separately authorized, reviewed fixture implementation and coherent authority may open bounded apply. Staging itself grants no destructive request.
 
 ## Inspect conflicts and repair health
 
@@ -37,7 +49,7 @@ node scripts/reconcile-wayfinder-labels.mjs inspect
 node scripts/reconcile-wayfinder-labels.mjs status
 ```
 
-Both commands are read-only. Read the report's current conflicts and coverage together with authority, workflow state, operating interval, transition state, and unresolved execution evidence. A clean current label read does not discharge an earlier uncertain request. Missing records remain visible even after a later successful run. An inspect-only success does not establish successful apply health.
+Both commands are read-only. Read the report's current conflicts and coverage together with authority, workflow state, operating interval, transition state, and unresolved execution evidence. A clean current label read does not discharge an earlier uncertain request. Missing records remain visible even after a later successful run. Track the latest apply attempt independently of the latest observation. An older successful apply followed by an incomplete or failed apply remains failed apply health even after a successful inspection. A subsequent complete successful apply may restore health when the other conditions hold; unresolved request outcomes still override healthy status. An inspect-only success does not establish successful apply health.
 
 The CLI returns JSON. Exit `0` means clean, `1` means observed conflicts, `2` means incomplete coverage, and `3` means refusal. Retain the report and inspect its limits rather than reducing it to a successful process exit.
 
@@ -55,7 +67,7 @@ The workflow requests no shared concurrency policy that replaces pending runs. R
 
 A repair pass:
 
-1. Resolves current authority and validates the qualified interval, implementation, policy, admission, and execution history.
+1. Resolves current authority and consumes the shared canonical structure, identity, owner, admission-reference, and coverage assessment before checking the action-specific apply conditions, implementation, and policy.
 2. Enumerates all supported issues with pagination, collecting identities before removals. It excludes pull requests and reads each candidate's current labels.
 3. Checks eligibility and any authorized fixture allowlist. Immediately before a removal, it resolves current authority again and records the executor, attempt, target, authority, and submission.
 4. Removes only the named `needs-triage` label, then reads back the issue and retains the outcome. It never replaces the label set or follows a mutation redirect into another repository.
@@ -71,7 +83,7 @@ Use this transition before removing the last recognized Wayfinder marker, changi
 
 1. **Establish one owner.** Record one accepted repository-wide owner/session in the existing coordination context. That owner controls admission closure, drain, changes, verification, and resume. A second transition waits. A handoff transfers the complete active state explicitly; ambiguous or lost ownership keeps repair paused. No timeout grants takeover.
 2. **Close admission.** Disable the repair workflow and read back its disabled state. Close the sole manual-admission route. Account for already admitted automatic and manual executors and stop them taking further work. Eligibility and policy changes wait. Disabling a workflow alone does not close manual admission or finish submitted requests.
-3. **Account for the history.** Inventory every potentially admitted executor, queued run, attempt, retry, and manual session since the last evidenced drain boundary, retaining that boundary's supporting records. Cross-check supplied completion history against the canonical preadmitted manual-session inventory in current control. Every canonical session must be represented; a completeness assertion cannot override an omitted session. If the boundary cannot be established, expand the history to all potentially admitted work. Missing coverage prevents a positive drain.
+3. **Account for the history.** Inventory every potentially admitted executor, queued run, attempt, retry, and manual session since the last evidenced drain boundary, retaining that boundary's supporting records. Apply the shared canonical interval, owner, admission-reference, and coverage assessment. Cross-check supplied completion history against the canonical preadmitted manual-session inventory in current control. Every canonical session must be represented; a completeness assertion cannot override an omitted session. If the boundary cannot be established, expand the history to all potentially admitted work. Missing coverage prevents a positive drain.
 4. **Establish completion.** For each executor, establish either that it stopped before submission or that all submitted destructive requests have definitively finished and it can submit no more. Run `transition-check --action drain` through the maintained CLI with the owner's `--session` and applicable `--evidence FILE`. Its result checks the supplied account; it does not replace the owner's evidence assessment.
 5. **Make the authorized change.** Proceed only with exclusive ownership, closed admission, and a positive drain supported by the records. Verify resulting labels. For policy or implementation cutover, publish a coherent new control generation and policy with the authorized implementation manifest, remove obsolete authorization, and independently read the result back through the API.
 6. **Verify resume.** The same owner completes all accepted transition work, checks the current authority and writer controls, repeats the canonical manual-inventory cross-check against supplied completion history, and runs `transition-check --action resume` with the applicable owner and evidence. Only that owner may then reopen authorized admission and relinquish the transition. The check itself is not an enablement action or permission.
@@ -82,7 +94,7 @@ Rollback is another authorized transition. Moving the repository, ref, or author
 
 ## Use manual fallback
 
-Manual fallback uses the same eligibility rule, live authority, implementation checks, and request accounting as automatic apply. Disabling automatic execution does not authorize a manual session. The current preadmitted session may begin its own apply without first being recorded as stopped; that admission exception cannot establish drain or resume readiness.
+Manual fallback uses the same eligibility rule, live authority, implementation checks, and request accounting as automatic apply. Disabling automatic execution does not authorize a manual session. The current preadmitted session may begin its own bounded apply before it has an execution-history entry. That exception applies only to its own admission; an existing or uncertain execution record cannot be treated as fresh, and the exception cannot establish drain or resume readiness.
 
 The owner admits one bounded manual session before closing further admission, records its identity and scope, and holds eligibility and policy stable while it runs. Invoke `apply --executor manual --session ID --evidence FILE` through the maintained CLI using that admitted identity and established records. Remove only confirmed eligible `needs-triage`, read back each issue, and retain every submission and outcome.
 
@@ -107,6 +119,10 @@ Use `capturing-agent-procedures` and the repository's independent review route f
 | Missing attempt/report, uncertain DELETE, expired evidence, or an unproved history boundary | Status retains the uncertainty and drain is refused, including after a later clean scan. |
 | Canonical manual sessions omitted from supplied history, active or lost sessions, missing reports, or uncertain requests | Both drain and resume refuse despite completeness assertions. Positively stopped sessions with settled or no submissions permit readiness when the other gates hold. |
 | Approved checkout with different actual executing-workflow content; identical content at another revision; missing or inconsistent actual-source identity | Different executing content or unresolved identity refuses before DELETE. Identical authorized workflow content remains usable at another revision when the other gates hold. |
+| Missing canonical interval, mismatched supplied interval or owner, and matching newer transition records | Apply, drain, and resume use the shared applicability assessment. Both transition checks refuse missing or mismatched canonical bindings; matching newer phase, closure, and completion records remain usable when the other gates hold. |
+| Missing or empty canonical automatic admission reference | Automatic apply refuses with zero DELETE calls and a stopped, no-request report; consecutive qualified automatic repair remains usable. |
+| Non-destructive first-interval staging and unknown prior use | Staged metadata stays inspectable under disabled defaults without positive readiness or a required prior resume. An evidenced inception can bound first use; unknown prior work cannot be relabeled as a clean inception or prior drain. |
+| Successful apply, later incomplete apply, then successful inspection | Apply health remains failed despite the newer observation. A subsequent complete successful apply can restore it only when the other health conditions hold; unknown requests still override healthy status. |
 | Authorized manual fallback and coherent cutover | The consumer uses the admitted session, accounts for all requests, verifies current authority, and resumes only through the same owner. |
 
 Run deterministic cases only through the test transport. `--offline-transport ABSOLUTE_EXECUTABLE` belongs to offline tests and supplies no live qualification. Retain the actual trace, candidate revision, inputs, result, and missing evidence for each selected evaluation.

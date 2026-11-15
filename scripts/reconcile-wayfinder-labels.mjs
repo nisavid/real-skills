@@ -57,7 +57,7 @@ const report = {
   schema_version: 1, command: process.argv[2], offline: false,
   repository, observed_at: new Date().toISOString(), authority: null,
   scan: { complete: false, issues_seen: 0, conflicts: [], unsupported: [], warnings: [], outcomes: [] },
-  repair: { health: "unknown", workflow: null, evidence_basis: "operator-record-attestation", unresolved: [], latest_attempt: null, latest_run_attempt: null, latest_complete_apply: null },
+  repair: { health: "unknown", workflow: null, evidence_basis: "operator-record-attestation", unresolved: [], latest_attempt: null, latest_apply_attempt: null, latest_run_attempt: null, latest_complete_apply: null },
   transition: { owner: null, phase: "unknown", ready: false, reasons: [] }, attempts: [], refusals: [],
 };
 
@@ -183,12 +183,13 @@ async function main() {
     executing.source_revision = approved.source_revision;
   }
   let evidence = control.operating_interval ? structuredClone(control.operating_interval) : null;
+  let evidenceReadError = false;
   if (args["--evidence"]) {
     try { evidence = JSON.parse(readFileSync(args["--evidence"], "utf8")); }
-    catch { throw new Error("unreadable-evidence"); }
+    catch { evidence = null; evidenceReadError = true; }
   }
   const unresolved = report.repair.unresolved;
-  const reference = (value) => typeof value === "string" && value.length > 0 && value.length <= 2048;
+  const reference = (value) => typeof value === "string" && value.trim().length > 0 && value.length <= 2048;
   const instant = (value) => typeof value === "string" && Number.isFinite(Date.parse(value));
   function manualSessions(current) {
     const sessions = current.operating_interval?.manual_sessions ?? [];
@@ -196,19 +197,54 @@ async function main() {
     requireState(Array.isArray(sessions) && sessions.every((session) => object(session) && reference(session.id) && session.owner === owner && reference(session.admission_record) && Array.isArray(session.issue_numbers) && session.issue_numbers.every(positive)) && new Set(sessions.map((session) => session.id)).size === sessions.length, "malformed-manual-admission-inventory");
     return sessions;
   }
-  // These are an authorized actor's evidence-based assertions, not a lock.
-  // Missing records and unknown request outcomes stay unresolved regardless of age.
-  function assessEvidence() {
-    if (!evidence) { unresolved.push("missing-admission-and-request-history"); return; }
-    requireState(object(evidence) && evidence.schema_version === 1 && object(evidence.history) && object(evidence.transition), "malformed-evidence");
-    if (evidence.repository !== repository || evidence.authority_generation !== control.generation || !reference(evidence.interval_id)) unresolved.push("evidence-authority-generation-mismatch");
-    const { history, transition } = evidence;
-    requireState(Array.isArray(history.executors) && Array.isArray(transition.contenders), "malformed-evidence");
+  const assessment = { canonical: null, evidence: null, sessions: [], automaticAdmissionRecord: null, baseValid: false };
+  // Shared applicability precedes history collection and every action decision.
+  // These assertions are evidence-based operating records, not an enforced lock.
+  function assessOperatingEvidence() {
+    function interval(value, name) {
+      if (!value) { unresolved.push(`${name}-operating-interval-missing`); return null; }
+      if (!object(value) || value.schema_version !== 1 || !object(value.history) || !Array.isArray(value.history.executors) || !object(value.transition) || !Array.isArray(value.transition.contenders)) {
+        unresolved.push(`${name}-operating-interval-malformed`); return null;
+      }
+      if (value.repository !== repository || value.authority_generation !== control.generation || !reference(value.interval_id)) unresolved.push(`${name}-authority-binding-mismatch`);
+      if (!reference(value.attested_by) || !reference(value.attestation_record)) unresolved.push(`${name}-attestation-reference-missing`);
+      const owner = value.transition;
+      if (!reference(owner.owner) || owner.accepted !== true || !reference(owner.ownership_record) || owner.contenders.length) unresolved.push(`${name}-exclusive-owner-not-established`);
+      if (!object(owner.admission) || !["open", "closed"].includes(owner.admission.automatic) || !["open", "closed"].includes(owner.admission.manual) || !reference(owner.admission.record)) unresolved.push(`${name}-admission-record-missing-or-malformed`);
+      return value;
+    }
+    assessment.canonical = interval(control.operating_interval, "canonical");
+    assessment.evidence = interval(evidence, "supplied");
+    if (evidenceReadError) unresolved.push("unreadable-evidence");
+    if (assessment.canonical && assessment.evidence) {
+      if (assessment.canonical.interval_id !== assessment.evidence.interval_id || assessment.canonical.transition.owner !== assessment.evidence.transition.owner) unresolved.push("operating-interval-mismatch");
+      try { assessment.sessions = manualSessions(control); }
+      catch { unresolved.push("malformed-manual-admission-inventory"); }
+      assessment.automaticAdmissionRecord = assessment.canonical.transition.admission?.record ?? null;
+    }
+    assessment.baseValid = unresolved.length === 0;
+  }
+  function operatingEvidenceUsable() {
+    return assessment.canonical !== null && assessment.evidence !== null && unresolved.length === 0;
+  }
+  function assessHistory() {
+    if (!assessment.evidence) return;
+    const { history } = assessment.evidence;
     if (history.complete !== true || !reference(history.manual_inventory_record)) unresolved.push("incomplete-admission-inventory");
-    if (!reference(evidence.attested_by) || !reference(evidence.attestation_record)) unresolved.push("missing-authorized-attestation-reference");
     if (history.boundary?.covered_automatic_attempts !== undefined) requireState(Array.isArray(history.boundary.covered_automatic_attempts) && history.boundary.covered_automatic_attempts.every((id) => typeof id === "string" && /^automatic:[1-9][0-9]*:[1-9][0-9]*$/.test(id)) && new Set(history.boundary.covered_automatic_attempts).size === history.boundary.covered_automatic_attempts.length, "malformed-covered-attempt-inventory");
     if (history.boundary?.proved !== true || !reference(history.boundary?.record) || !(history.boundary.at === null || instant(history.boundary.at))) unresolved.push("unproved-history-boundary-expand-to-all-history");
-    for (const session of manualSessions(control)) {
+    // Newer completion records may settle known work, but cannot omit its identity.
+    for (const prior of assessment.canonical?.history.executors ?? []) {
+      if (!object(prior) || !reference(prior.id) || !["automatic", "manual"].includes(prior.kind) || !Array.isArray(prior.requests)) { unresolved.push("canonical-executor-inventory-malformed"); continue; }
+      const current = history.executors.find((executor) => executor?.id === prior.id && executor.kind === prior.kind);
+      if (!current || !Array.isArray(current.requests)) { unresolved.push(`${prior.id}:canonical-executor-unaccounted`); continue; }
+      if (reference(prior.admission_record) && current.admission_record !== prior.admission_record || reference(prior.owner) && current.owner !== prior.owner) unresolved.push(`${prior.id}:canonical-executor-binding-mismatch`);
+      for (const request of prior.requests) {
+        if (!object(request) || !reference(request.id) || !positive(request.issue_number)) { unresolved.push(`${prior.id}:canonical-request-inventory-malformed`); continue; }
+        if (!current.requests.some((candidate) => candidate?.id === request.id && candidate.issue_number === request.issue_number)) unresolved.push(`${prior.id}:${request.id}:canonical-request-unaccounted`);
+      }
+    }
+    for (const session of assessment.sessions) {
       const executor = history.executors.find((executor) => executor?.kind === "manual" && executor.id === session.id);
       const beginningCurrentApply = command === "apply" && args["--executor"] === "manual" && args["--session"] === session.id;
       if (!executor) {
@@ -225,7 +261,7 @@ async function main() {
       if (!reference(executor.admission_record)) unresolved.push(`${executor.id}:missing-admission-record`);
       if (!reference(executor.report_record)) unresolved.push(`${executor.id}:missing-or-expired-report`);
       if (!["stopped", "active", "queued", "lost"].includes(executor.state)) unresolved.push(`${executor.id}:unknown-executor-state`);
-      if (executor.state === "lost") unresolved.push(`${executor.id}:lost-executor-can-still-write`);
+      if (["active", "queued", "lost"].includes(executor.state)) unresolved.push(`${executor.id}:executor-can-still-submit`);
       const requestIds = new Set();
       let allFinished = true;
       for (const request of executor.requests) {
@@ -238,21 +274,25 @@ async function main() {
         requireState(object(executor.scan) && ["inspect", "apply"].includes(executor.scan.mode) && typeof executor.scan.complete === "boolean" && instant(executor.scan.finished_at) && Number.isSafeInteger(executor.scan.conflicts) && executor.scan.conflicts >= 0, "malformed-scan-evidence");
         const pass = { executor: executor.id, ...executor.scan };
         if (!report.repair.latest_attempt || Date.parse(pass.finished_at) > Date.parse(report.repair.latest_attempt.finished_at)) report.repair.latest_attempt = pass;
+        const latestApply = report.repair.latest_apply_attempt;
+        if (pass.mode === "apply" && (!latestApply || Date.parse(pass.finished_at) > Date.parse(latestApply.finished_at) || pass.finished_at === latestApply.finished_at && !pass.complete)) report.repair.latest_apply_attempt = pass;
         if (executor.state === "stopped" && reference(executor.report_record) && allFinished && pass.mode === "apply" && pass.complete) completed.push(pass);
       }
     }
     completed.sort((a, b) => Date.parse(b.finished_at) - Date.parse(a.finished_at));
     report.repair.latest_complete_apply = completed[0] ?? null;
-    report.transition.owner = transition.owner ?? null;
-    report.transition.phase = transition.phase ?? "unknown";
+  }
+  function assessTransition() {
+    const transition = assessment.evidence?.transition;
     const reasons = report.transition.reasons;
-    if (!reference(transition.owner) || transition.accepted !== true || !reference(transition.ownership_record) || transition.contenders.length) reasons.push("exclusive-owner-not-established");
+    report.transition.owner = transition?.owner ?? null;
+    report.transition.phase = transition?.phase ?? "unknown";
+    if (!operatingEvidenceUsable()) reasons.push("admission-or-request-history-unresolved");
+    if (!transition) return;
     if (args["--session"] !== transition.owner) reasons.push("only-accepted-owner-may-drain-or-resume");
-    if (transition.admission?.automatic !== "closed" || transition.admission?.manual !== "closed" || !reference(transition.admission?.record)) reasons.push("all-destructive-admission-not-closed");
+    if (transition.admission?.automatic !== "closed" || transition.admission?.manual !== "closed") reasons.push("all-destructive-admission-not-closed");
     if (report.repair.workflow?.state === "active") reasons.push("automatic-workflow-still-active");
-    if (history.executors.some((executor) => executor.state !== "stopped")) reasons.push("admitted-executors-not-stopped");
     if (control.writer_coverage !== "qualified") reasons.push("writer-coverage-unqualified");
-    if (unresolved.length) reasons.push("admission-or-request-history-unresolved");
     if (args["--action"] === "resume") {
       if (transition.phase !== "resume-pending" || transition.change_verified !== true || transition.authority_readback_commit !== report.authority.commit || control.mode !== "apply") reasons.push("coherent-cutover-not-verified");
     } else if (transition.phase !== "paused") reasons.push("transition-not-paused");
@@ -278,7 +318,7 @@ async function main() {
     const boundary = evidence?.history?.boundary;
     // Only a positively evidenced list of covered attempts can truncate history.
     // Creation/start timestamps do not identify which reruns the boundary drained.
-    const covered = boundary?.proved === true && typeof boundary.record === "string" && boundary.record && Array.isArray(boundary.covered_automatic_attempts) ? new Set(boundary.covered_automatic_attempts) : new Set();
+    const covered = assessment.baseValid && boundary?.proved === true && typeof boundary.record === "string" && boundary.record && Array.isArray(boundary.covered_automatic_attempts) ? new Set(boundary.covered_automatic_attempts) : new Set();
     for (const run of runs) {
       if (!object(run) || !positive(run.id) || run.workflow_id !== control.workflow_id || !positive(run.run_attempt) || run.run_attempt > 1000 || !Number.isFinite(Date.parse(run.created_at))) { unresolved.push("malformed-automatic-run"); continue; }
       for (let attempt = 1; attempt <= run.run_attempt; attempt++) {
@@ -319,11 +359,17 @@ async function main() {
     }
     if (currentId && !report.repair.current_attempt) unresolved.push(`${currentId}:current-attempt-not-observed`);
   }
+  assessOperatingEvidence();
   await collectAutomaticHistory();
-  assessEvidence();
+  assessHistory();
+  assessTransition();
   if (report.repair.health !== "disabled") {
     const last = report.repair.latest_complete_apply;
-    report.repair.health = unresolved.length ? "unknown" : report.repair.latest_run_attempt?.conclusion && report.repair.latest_run_attempt.conclusion !== "success" || report.repair.latest_attempt?.complete === false ? "failed" : !last || last.authority_generation !== control.generation ? "missing" : Date.now() - Date.parse(last.finished_at) > 90 * 60_000 ? "stale" : "healthy";
+    const failedRun = report.repair.latest_run_attempt?.conclusion && report.repair.latest_run_attempt.conclusion !== "success";
+    if (unresolved.length) report.repair.health = "unknown";
+    else if (failedRun || report.repair.latest_apply_attempt?.complete === false) report.repair.health = "failed";
+    else if (!last || last.authority_generation !== control.generation) report.repair.health = "missing";
+    else report.repair.health = Date.now() - Date.parse(last.finished_at) > 90 * 60_000 ? "stale" : "healthy";
   }
   const listed = new Map();
   for (let page = 1; ; page++) {
@@ -366,26 +412,21 @@ async function main() {
       requireState(current.writer_coverage === "qualified", "writer-coverage-unqualified");
       requireState(current.fixture_issue_numbers.length > 0, "no-authorized-fixtures");
       requireState(current.authorized_implementations.some((approved) => object(approved) && approved.source_revision === executing.source_revision && object(approved.manifest) && Object.keys(approved.manifest).length === implementationPaths.length && implementationPaths.every((path) => approved.manifest[path] === manifest[path])), "executing-implementation-not-authorized");
-      requireState(evidence && unresolved.length === 0, "admission-or-request-history-unresolved");
-      const owner = evidence.transition;
-      requireState(owner.accepted === true && reference(owner.owner) && reference(owner.ownership_record) && owner.contenders.length === 0, "exclusive-owner-not-established");
-      requireState(current.operating_interval?.interval_id === evidence.interval_id && current.operating_interval.transition?.owner === owner.owner, "operating-interval-mismatch");
-      requireState(evidence.history.executors.every((executor) => executor.state === "stopped"), "earlier-executor-can-still-submit");
-      const sessions = manualSessions(current);
-      requireState(sessions.every((session) => kind === "manual" && session.id === id || evidence.history.executors.some((executor) => executor.id === session.id && executor.state === "stopped")), "preadmitted-manual-session-unaccounted");
+      requireState(operatingEvidenceUsable(), "admission-or-request-history-unresolved");
+      const owner = assessment.evidence.transition;
       if (kind === "automatic") {
         requireState(report.repair.current_attempt?.id === id && report.repair.current_attempt.status === "in_progress", "automatic-attempt-not-current");
         requireState(report.repair.workflow?.state === "active" && owner.phase === "steady" && owner.admission?.automatic === "open" && owner.admission?.manual === "closed", "automatic-admission-closed");
       } else {
-        const session = current.operating_interval.manual_sessions?.find((session) => session.id === id);
+        const session = assessment.sessions.find((session) => session.id === id);
         requireState(!evidence.history.executors.some((executor) => executor.id === id), "manual-session-already-accounted-or-uncertain");
         requireState(owner.admission?.manual === "closed", "manual-admission-not-closed");
-        requireState(session && session.owner === owner.owner && reference(session.admission_record) && Array.isArray(session.issue_numbers) && session.issue_numbers.every(positive) && ["paused", "steady"].includes(owner.phase), "manual-session-not-preadmitted");
+        requireState(session && ["paused", "steady"].includes(owner.phase), "manual-session-not-preadmitted");
       }
     }
     admission(control);
-    const currentSession = kind === "manual" ? control.operating_interval.manual_sessions.find((session) => session.id === id) : null;
-    report.execution = { id, kind, owner: evidence.transition.owner, authority_generation: control.generation, implementation: executing, state: "stopped", admission_record: currentSession?.admission_record ?? control.operating_interval.transition.admission.record, report_record: kind === "automatic" ? `actions:${id}` : null, requests: report.attempts };
+    const currentSession = kind === "manual" ? assessment.sessions.find((session) => session.id === id) : null;
+    report.execution = { id, kind, owner: evidence.transition.owner, authority_generation: control.generation, implementation: executing, state: "stopped", admission_record: currentSession?.admission_record ?? assessment.automaticAdmissionRecord, report_record: kind === "automatic" ? `actions:${id}` : null, requests: report.attempts };
     const startingControl = JSON.stringify(control);
     for (const conflict of [...report.scan.conflicts]) {
       if (!control.fixture_issue_numbers.includes(conflict.number) || kind === "manual" && !currentSession.issue_numbers.includes(conflict.number)) {
