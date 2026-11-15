@@ -515,7 +515,8 @@ async function main() {
       const owner = assessment.evidence.transition;
       if (kind === "automatic") {
         requireState(report.repair.current_attempt?.id === id && report.repair.current_attempt.status === "in_progress", "automatic-attempt-not-current");
-        requireState(report.repair.workflow?.state === "active" && owner.phase === "steady" && owner.admission?.automatic === "open" && owner.admission?.manual === "closed", "automatic-admission-closed");
+        const automaticOpen = (transition) => transition?.phase === "steady" && transition.admission?.automatic === "open";
+        requireState(report.repair.workflow?.state === "active" && automaticOpen(current.operating_interval?.transition) && automaticOpen(owner) && owner.admission?.manual === "closed", "automatic-admission-closed");
       } else {
         const session = assessment.sessions.find((session) => session.id === id);
         requireState(!evidence.history.executors.some((executor) => executor.id === id), "manual-session-already-accounted-or-uncertain");

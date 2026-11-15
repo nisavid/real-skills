@@ -922,3 +922,61 @@ test("native failed complete applies survive equal-time recovery evidence in eit
     assert.equal(observed.state.calls.filter((call) => call.method === "DELETE").length, 1);
   });
 });
+
+
+test("canonical automatic admission cannot be reopened by supplied evidence", async (t) => {
+  for (const scenario of ["canonical-paused-closed", "canonical-phase-paused", "canonical-automatic-closed", "canonical-manual-open", "supplied-closed", "both-open"]) await t.test(scenario, (t) => {
+    const open = steady(); open.transition.admission.record = "coordination:canonical-open";
+    const suppliedOpen = structuredClone(open); suppliedOpen.transition.admission.record = "coordination:supplied-open";
+    const f = fixture(t, { qualified: true, evidence: open, issues: [issue(2, ["wayfinder:task", "needs-triage", "keep"])] });
+    const path = f.evidence(suppliedOpen);
+    const initialEvidence = readFileSync(path, "utf8");
+    const first = f.run("apply", ["--executor", "automatic", "--evidence", path], { GITHUB_RUN_ID: "501", GITHUB_RUN_ATTEMPT: "1" });
+    assert.equal(first.status, 0, JSON.stringify(first.report));
+    assert.equal(first.report.attempts[0].outcome, "completed");
+    const canonical = structuredClone(open);
+    const supplied = structuredClone(suppliedOpen);
+    if (scenario === "canonical-paused-closed") { canonical.transition.phase = "paused"; canonical.transition.admission.automatic = "closed"; }
+    if (scenario === "canonical-phase-paused") canonical.transition.phase = "paused";
+    if (scenario === "canonical-automatic-closed") canonical.transition.admission.automatic = "closed";
+    if (scenario === "canonical-manual-open") {
+      canonical.transition.admission.manual = "open";
+      supplied.transition.admission.record = "coordination:supplied-newer-manual-closure";
+      supplied.attestation_record = "coordination:newer-manual-closure-observation";
+    }
+    if (scenario.startsWith("canonical-")) canonical.transition.admission.record = "coordination:canonical-updated-admission";
+    if (scenario === "supplied-closed") {
+      supplied.transition.phase = "paused";
+      supplied.transition.admission = { automatic: "closed", manual: "closed", record: "coordination:supplied-newer-closure" };
+      f.evidence(supplied);
+    }
+    f.update((state) => {
+      Object.assign(state.runs[0], { status: "completed", conclusion: "success", created_at: first.report.observed_at, updated_at: first.report.execution.scan.finished_at });
+      state.artifacts = [artifact(901, first.report)];
+      state.control.operating_interval = canonical;
+      state.issues[0].labels.push({ name: "needs-triage" });
+    });
+    if (scenario === "canonical-manual-open") f.evidence(supplied);
+    const current = f.run("apply", ["--executor", "automatic", "--evidence", path], { GITHUB_RUN_ID: "502", GITHUB_RUN_ATTEMPT: "1" });
+    const admitted = scenario === "both-open" || scenario === "canonical-manual-open";
+    const currentCalls = current.state.calls.slice(first.state.calls.length);
+    assert.equal(current.status, admitted ? 0 : 3, JSON.stringify(current.report));
+    assert.deepEqual(current.report.repair.unresolved, []);
+    assert.equal(current.report.repair.workflow.state, "active");
+    assert.equal(current.report.repair.current_attempt.id, "automatic:502:1");
+    assert.equal(current.report.repair.current_attempt.status, "in_progress");
+    assert.equal(currentCalls.filter((call) => call.method === "DELETE").length, admitted ? 1 : 0);
+    assert.equal(current.report.execution.id, "automatic:502:1");
+    assert.equal(current.report.execution.state, "stopped");
+    assert.equal(current.report.execution.scan.complete, admitted);
+    if (admitted) {
+      assert.equal(current.report.execution.admission_record, canonical.transition.admission.record);
+      if (scenario === "both-open") assert.equal(readFileSync(path, "utf8"), initialEvidence);
+      assert.equal(current.state.calls.filter((call) => call.method === "DELETE").length, 2);
+      assert.deepEqual(current.state.issues[0].labels.map((label) => label.name), ["wayfinder:task", "keep"]);
+    } else {
+      assert.ok(current.report.refusals.includes("automatic-admission-closed"));
+      assert.deepEqual(current.report.execution.requests, []);
+    }
+  });
+});
