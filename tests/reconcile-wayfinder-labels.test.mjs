@@ -650,3 +650,84 @@ test("automatic observations reconcile by identity across canonical supplied and
     if (action !== "automatic") assert.equal(r.report.transition.ready, usable);
   });
 });
+
+
+test("native workflow failure tracks relevant apply identity and chronology without clearing uncertainty", async (t) => {
+  for (const scenario of ["manual-recovery", "failed-inspection", "latest-native-apply-failure", "unknown-after-recovery"]) await t.test(scenario, (t) => {
+    const session = (id) => ({ id, owner: "owner-a", admission_record: `coordination:${id}:admitted`, issue_numbers: [2] });
+    let earlierUnknown = null;
+    if (scenario === "unknown-after-recovery") {
+      const interval = attestation(); interval.manual_sessions = [session("manual:earlier-uncertain")];
+      const lost = fixture(t, { qualified: true, evidence: interval, issues: [issue(2, ["wayfinder:task", "needs-triage"])], state: { workflowState: "disabled_manually", disconnectDelete: true } });
+      const result = lost.run("apply", ["--executor", "manual", "--session", "manual:earlier-uncertain"]);
+      assert.equal(result.status, 3, JSON.stringify(result.report));
+      assert.equal(result.report.attempts[0].outcome, "unknown");
+      earlierUnknown = { ...result.report.execution, report_record: "coordination:retained-earlier-uncertain-report" };
+      t.diagnostic("Synthetic earlier uncertain execution was generated in a separate disposable transport; its retained record is introduced after recovery as newly available history.");
+    }
+    const f = fixture(t, { qualified: true, evidence: steady(), issues: [issue(2, ["wayfinder:task", "needs-triage"])] });
+    function retain(result, conclusion) {
+      assert.equal(result.report.execution.scan.authority_generation, 1);
+      f.update((state) => {
+        const run = state.runs.find((run) => `automatic:${run.id}:${run.run_attempt}` === result.report.execution.id);
+        Object.assign(run, { status: "completed", conclusion, created_at: result.report.observed_at, updated_at: result.report.execution.scan.finished_at });
+        state.artifacts ??= [];
+        state.artifacts.push(artifact(900 + run.id, result.report));
+      });
+    }
+    const first = auto(f, "501");
+    assert.equal(first.status, 0, JSON.stringify(first.report));
+    assert.equal(first.report.execution.scan.complete, true);
+    assert.equal(first.report.attempts[0].outcome, "completed");
+    retain(first, scenario === "failed-inspection" ? "success" : "failure");
+    let expectedApply = first.report.execution.id;
+    if (scenario === "manual-recovery" || scenario === "unknown-after-recovery") {
+      f.update((state) => {
+        state.workflowState = "disabled_manually";
+        const interval = state.control.operating_interval;
+        interval.manual_sessions = [session("manual:recovery")];
+        Object.assign(interval.transition, { phase: "paused", admission: { automatic: "closed", manual: "closed", record: "coordination:closed-for-recovery" } });
+        state.issues[0].labels.push({ name: "needs-triage" });
+      });
+      const recovered = f.run("apply", ["--executor", "manual", "--session", "manual:recovery"]);
+      assert.equal(recovered.status, 0, JSON.stringify(recovered.report));
+      assert.equal(recovered.report.execution.scan.authority_generation, 1);
+      assert.equal(recovered.report.execution.scan.complete, true);
+      assert.equal(recovered.report.attempts[0].outcome, "completed");
+      assert.equal(recovered.state.calls.filter((call) => call.method === "DELETE").length, 2);
+      expectedApply = recovered.report.execution.id;
+      f.update((state) => {
+        const interval = state.control.operating_interval;
+        interval.history.executors = [{ ...recovered.report.execution, report_record: "coordination:retained-manual-recovery-report" }];
+        Object.assign(interval.transition, { phase: "resume-pending", change_verified: true, authority_readback_commit: state.commit });
+      });
+      const resume = f.run("transition-check", ["--session", "owner-a", "--action", "resume"]);
+      assert.equal(resume.status, 0, JSON.stringify(resume.report));
+      assert.equal(resume.report.transition.ready, true);
+      f.update((state) => {
+        state.workflowState = "active";
+        Object.assign(state.control.operating_interval.transition, { phase: "steady", admission: { automatic: "open", manual: "closed", record: "coordination:resumed-after-recovery" } });
+        if (earlierUnknown) {
+          state.control.operating_interval.manual_sessions.push(session(earlierUnknown.id));
+          state.control.operating_interval.history.executors.push(earlierUnknown);
+        }
+      });
+    }
+    if (scenario === "failed-inspection") {
+      f.update((state) => state.issues[0].labels.push({ name: "wayfinder:future" }));
+      const inspected = f.run("inspect", ["--executor", "automatic"], { GITHUB_RUN_ID: "502", GITHUB_RUN_ATTEMPT: "1" });
+      assert.equal(inspected.status, 2, JSON.stringify(inspected.report));
+      assert.equal(inspected.report.execution.scan.mode, "inspect");
+      retain(inspected, "failure");
+      f.update((state) => { state.issues[0].labels = state.issues[0].labels.filter((label) => label.name !== "wayfinder:future"); });
+    }
+    const result = f.run("status");
+    const health = scenario === "unknown-after-recovery" ? "unknown" : scenario === "latest-native-apply-failure" ? "failed" : "healthy";
+    assert.equal(result.report.repair.health, health, JSON.stringify(result.report));
+    assert.equal(result.report.repair.latest_apply_attempt.executor, expectedApply);
+    assert.equal(result.report.repair.latest_run_attempt.conclusion, "failure");
+    assert.equal(result.report.repair.latest_run_attempt.id, scenario === "failed-inspection" ? "automatic:502:1" : "automatic:501:1");
+    if (earlierUnknown) assert.ok(result.report.repair.unresolved.some((gap) => gap.includes("potentially-outstanding-request")));
+    else assert.deepEqual(result.report.repair.unresolved, []);
+  });
+});

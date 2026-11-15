@@ -371,6 +371,7 @@ async function main() {
     } else if (transition.phase !== "paused") reasons.push("transition-not-paused");
     report.transition.ready = reasons.length === 0;
   }
+  const nativeAttempts = new Map();
   async function collectAutomaticHistory() {
     if (!positive(control.workflow_id)) return;
     const currentId = report.execution?.kind === "automatic" ? report.execution.id : null;
@@ -399,6 +400,7 @@ async function main() {
         try {
           const observed = (await request("GET", `${prefix}/actions/runs/${run.id}/attempts/${attempt}`)).body;
           requireState(object(observed) && observed.id === run.id && observed.workflow_id === control.workflow_id && observed.run_attempt === attempt, "attempt-identity-mismatch");
+          nativeAttempts.set(id, { status: observed.status, conclusion: observed.conclusion });
           const observedTime = [observed.run_started_at, observed.updated_at, run.created_at].find((value) => typeof value === "string" && Number.isFinite(Date.parse(value)));
           const latest = report.repair.latest_run_attempt;
           if (!latest || Date.parse(observedTime) > Date.parse(latest.started_or_updated_at) || observedTime === latest.started_or_updated_at && (run.id > latest.run_id || run.id === latest.run_id && attempt > latest.attempt)) {
@@ -443,7 +445,10 @@ async function main() {
   assessTransition();
   if (report.repair.health !== "disabled") {
     const last = report.repair.latest_complete_apply;
-    const failedRun = report.repair.latest_run_attempt?.conclusion && report.repair.latest_run_attempt.conclusion !== "success";
+    // Native failure qualifies its own apply, ordered with all retained applies.
+    // The latest native observation remains visible even when it is an inspect.
+    const applyRun = nativeAttempts.get(report.repair.latest_apply_attempt?.executor);
+    const failedRun = applyRun?.status === "completed" && applyRun.conclusion && applyRun.conclusion !== "success";
     if (unresolved.length) report.repair.health = "unknown";
     else if (failedRun || report.repair.latest_apply_attempt?.complete === false) report.repair.health = "failed";
     else if (!last || last.authority_generation !== control.generation) report.repair.health = "missing";
