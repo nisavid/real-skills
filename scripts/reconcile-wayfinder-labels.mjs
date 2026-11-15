@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { dirname, isAbsolute, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { isDeepStrictEqual } from "node:util";
 import { inflateRawSync } from "node:zlib";
 
 const repository = "nisavid/real-skills";
@@ -153,6 +154,17 @@ async function main() {
     const types = labels.filter((name) => markers.has(name));
     return { labels, eligible: types.length > 0 && unknown.length === 0, unknown, multiple_types: types.length > 1 };
   }
+  function observeClassification(issue) {
+    const classification = classify(issue);
+    function retain(entries, reason) {
+      const entry = entries.find((entry) => entry.number === issue.number && entry.reason === reason);
+      if (entry) entry.labels = classification.labels;
+      else entries.push({ number: issue.number, labels: classification.labels, reason });
+    }
+    if (classification.multiple_types) retain(report.scan.warnings, "multiple-wayfinder-types");
+    if (classification.unknown?.length) retain(report.scan.unsupported, "unknown-wayfinder-classification");
+    return classification;
+  }
   const control = await authority();
   const implementationPaths = ["scripts/reconcile-wayfinder-labels.mjs", ".github/workflows/wayfinder-label-repair.yml"];
   const manifest = Object.fromEntries(implementationPaths.map((path) => [path, sha256(readFileSync(join(root, path)))]));
@@ -227,23 +239,84 @@ async function main() {
   function operatingEvidenceUsable() {
     return assessment.canonical !== null && assessment.evidence !== null && unresolved.length === 0;
   }
+  function requestFinished(request, executor) {
+    return request.submission === "not-submitted" && reference(request.completion_record) || request.submission === "submitted" && request.outcome === "completed" && positive(request.response_status) && (request.response_status === 200 && request.terminal_observation === "api-200-label-response" || request.response_status === 404 && request.terminal_observation === "api-404-and-absent-readback") && request.executor === executor && sha(request.authority_commit) && positive(request.authority_generation) && reference(request.completion_record);
+  }
+  function scanValid(scan) {
+    return object(scan) && ["inspect", "apply"].includes(scan.mode) && typeof scan.complete === "boolean" && instant(scan.finished_at) && Number.isSafeInteger(scan.conflicts) && scan.conflicts >= 0;
+  }
+  function reconcileExecutor(known, observed) {
+    requireState(object(known) && object(observed) && known.id === observed.id && reference(known.id) && Array.isArray(known.requests) && Array.isArray(observed.requests), "malformed-executor-evidence");
+    const id = known.id;
+    function incompatible(field) {
+      const reason = `${id}:incompatible-${field}`;
+      if (!unresolved.includes(reason)) unresolved.push(reason);
+    }
+    function bindings(left, right, fields) {
+      const merged = { ...left, ...right };
+      for (const field of fields) {
+        if (left[field] !== undefined && left[field] !== null) {
+          if (right[field] !== undefined && right[field] !== null && !isDeepStrictEqual(left[field], right[field])) incompatible(field);
+          merged[field] = left[field];
+        }
+      }
+      return merged;
+    }
+    const merged = bindings(known, observed, ["id", "kind", "owner", "admission_record", "authority_generation", "implementation"]);
+    const requests = new Map();
+    for (const record of [known, observed]) {
+      const ids = new Set();
+      for (const request of record.requests) {
+        requireState(object(request) && reference(request.id) && positive(request.issue_number) && !ids.has(request.id), "malformed-request-evidence");
+        ids.add(request.id);
+        const prior = requests.get(request.id);
+        if (!prior) { requests.set(request.id, request); continue; }
+        const combined = bindings(prior, request, ["id", "executor", "issue_number", "owner", "authority_commit", "authority_generation", "policy", "implementation", "response_status", "terminal_observation"]);
+        const submitted = ["submitted", "not-submitted"];
+        if (submitted.includes(prior.submission) && submitted.includes(request.submission) && prior.submission !== request.submission) incompatible(`${request.id}-submission`);
+        const terminal = requestFinished(prior, id) ? prior : requestFinished(request, id) ? request : null;
+        if (terminal) {
+          for (const field of ["submission", "outcome", "response_status", "terminal_observation", "completion_record"]) combined[field] = terminal[field];
+        } else {
+          combined.submission = prior.submission === "submitted" || request.submission === "submitted" ? "submitted" : "uncertain";
+          combined.outcome = "unknown";
+          combined.completion_record = null;
+        }
+        requests.set(request.id, combined);
+      }
+    }
+    for (const request of known.requests) if (!observed.requests.some((candidate) => candidate.id === request.id)) unresolved.push(`${id}:${request.id}:canonical-request-unaccounted`);
+    merged.requests = [...requests.values()];
+    for (const record of [known, observed]) if (!["stopped", "active", "queued", "lost"].includes(record.state)) incompatible("executor-state");
+    const stopped = [known, observed].find((record) => record.state === "stopped" && reference(record.report_record));
+    if (stopped) merged.state = "stopped";
+    merged.report_record = reference(observed.report_record) ? observed.report_record : known.report_record;
+    if (known.scan && observed.scan) {
+      requireState(scanValid(known.scan) && scanValid(observed.scan), "malformed-scan-evidence");
+      bindings(known.scan, observed.scan, ["mode", "authority_generation"]);
+      const difference = Date.parse(observed.scan.finished_at) - Date.parse(known.scan.finished_at);
+      merged.scan = difference > 0 || difference === 0 && !observed.scan.complete ? observed.scan : known.scan;
+    } else merged.scan = observed.scan ?? known.scan;
+    return merged;
+  }
+  function reconcileCanonicalHistory() {
+    if (!assessment.evidence) return;
+    const { history } = assessment.evidence;
+    // Newer completion records may settle known work, but cannot omit its identity.
+    for (const prior of assessment.canonical?.history.executors ?? []) {
+      if (!object(prior) || !reference(prior.id) || !["automatic", "manual"].includes(prior.kind) || !Array.isArray(prior.requests)) { unresolved.push("canonical-executor-inventory-malformed"); continue; }
+      const index = history.executors.findIndex((executor) => executor?.id === prior.id && executor.kind === prior.kind);
+      if (index < 0 || !Array.isArray(history.executors[index].requests)) { unresolved.push(`${prior.id}:canonical-executor-unaccounted`); continue; }
+      history.executors[index] = reconcileExecutor(prior, history.executors[index]);
+    }
+    assessment.baseValid = assessment.baseValid && unresolved.length === 0;
+  }
   function assessHistory() {
     if (!assessment.evidence) return;
     const { history } = assessment.evidence;
     if (history.complete !== true || !reference(history.manual_inventory_record)) unresolved.push("incomplete-admission-inventory");
     if (history.boundary?.covered_automatic_attempts !== undefined) requireState(Array.isArray(history.boundary.covered_automatic_attempts) && history.boundary.covered_automatic_attempts.every((id) => typeof id === "string" && /^automatic:[1-9][0-9]*:[1-9][0-9]*$/.test(id)) && new Set(history.boundary.covered_automatic_attempts).size === history.boundary.covered_automatic_attempts.length, "malformed-covered-attempt-inventory");
     if (history.boundary?.proved !== true || !reference(history.boundary?.record) || !(history.boundary.at === null || instant(history.boundary.at))) unresolved.push("unproved-history-boundary-expand-to-all-history");
-    // Newer completion records may settle known work, but cannot omit its identity.
-    for (const prior of assessment.canonical?.history.executors ?? []) {
-      if (!object(prior) || !reference(prior.id) || !["automatic", "manual"].includes(prior.kind) || !Array.isArray(prior.requests)) { unresolved.push("canonical-executor-inventory-malformed"); continue; }
-      const current = history.executors.find((executor) => executor?.id === prior.id && executor.kind === prior.kind);
-      if (!current || !Array.isArray(current.requests)) { unresolved.push(`${prior.id}:canonical-executor-unaccounted`); continue; }
-      if (reference(prior.admission_record) && current.admission_record !== prior.admission_record || reference(prior.owner) && current.owner !== prior.owner) unresolved.push(`${prior.id}:canonical-executor-binding-mismatch`);
-      for (const request of prior.requests) {
-        if (!object(request) || !reference(request.id) || !positive(request.issue_number)) { unresolved.push(`${prior.id}:canonical-request-inventory-malformed`); continue; }
-        if (!current.requests.some((candidate) => candidate?.id === request.id && candidate.issue_number === request.issue_number)) unresolved.push(`${prior.id}:${request.id}:canonical-request-unaccounted`);
-      }
-    }
     for (const session of assessment.sessions) {
       const executor = history.executors.find((executor) => executor?.kind === "manual" && executor.id === session.id);
       const beginningCurrentApply = command === "apply" && args["--executor"] === "manual" && args["--session"] === session.id;
@@ -267,11 +340,11 @@ async function main() {
       for (const request of executor.requests) {
         requireState(object(request) && reference(request.id) && !requestIds.has(request.id) && positive(request.issue_number), "malformed-request-evidence");
         requestIds.add(request.id);
-        const finished = request.submission === "not-submitted" && reference(request.completion_record) || request.submission === "submitted" && request.outcome === "completed" && positive(request.response_status) && (request.response_status === 200 && request.terminal_observation === "api-200-label-response" || request.response_status === 404 && request.terminal_observation === "api-404-and-absent-readback") && request.executor === executor.id && sha(request.authority_commit) && positive(request.authority_generation) && reference(request.completion_record);
+        const finished = requestFinished(request, executor.id);
         if (!finished) { unresolved.push(`${executor.id}:${request.id}:potentially-outstanding-request`); allFinished = false; }
       }
       if (executor.scan) {
-        requireState(object(executor.scan) && ["inspect", "apply"].includes(executor.scan.mode) && typeof executor.scan.complete === "boolean" && instant(executor.scan.finished_at) && Number.isSafeInteger(executor.scan.conflicts) && executor.scan.conflicts >= 0, "malformed-scan-evidence");
+        requireState(scanValid(executor.scan), "malformed-scan-evidence");
         const pass = { executor: executor.id, ...executor.scan };
         if (!report.repair.latest_attempt || Date.parse(pass.finished_at) > Date.parse(report.repair.latest_attempt.finished_at)) report.repair.latest_attempt = pass;
         const latestApply = report.repair.latest_apply_attempt;
@@ -351,8 +424,12 @@ async function main() {
           const saved = archiveReport(body?.archive_base64);
           requireState(`sha256:${saved.digest}` === matching[0].digest && saved.report.schema_version === 1 && saved.report.repository === repository && saved.report.offline === report.offline && saved.report.execution?.id === id && saved.report.execution.kind === "automatic" && saved.report.execution.state === "stopped", "unconfirmed-attempt-report");
           if (evidence && object(evidence.history) && Array.isArray(evidence.history.executors)) {
-            requireState(!evidence.history.executors.some((executor) => executor.id === id), "duplicate-attempt-evidence");
-            evidence.history.executors.push({ ...saved.report.execution, report_record: `actions-artifact:${matching[0].id}` });
+            const execution = { ...saved.report.execution, report_record: `actions-artifact:${matching[0].id}` };
+            const index = evidence.history.executors.findIndex((executor) => executor?.id === id);
+            const known = index < 0 ? assessment.canonical?.history.executors.find((executor) => executor?.id === id) : evidence.history.executors[index];
+            const reconciled = known ? reconcileExecutor(known, execution) : execution;
+            if (index < 0) evidence.history.executors.push(reconciled);
+            else evidence.history.executors[index] = reconciled;
           }
         } catch { unresolved.push(`${id}:missing-incomplete-or-unconfirmed-attempt-record`); }
       }
@@ -360,6 +437,7 @@ async function main() {
     if (currentId && !report.repair.current_attempt) unresolved.push(`${currentId}:current-attempt-not-observed`);
   }
   assessOperatingEvidence();
+  reconcileCanonicalHistory();
   await collectAutomaticHistory();
   assessHistory();
   assessTransition();
@@ -391,10 +469,8 @@ async function main() {
   }
   for (const row of listed.values()) {
     const issue = (await request("GET", `${prefix}/issues/${row.number}`)).body;
-    const classification = classify(issue);
+    const classification = observeClassification(issue);
     report.scan.issues_seen++;
-    if (classification.multiple_types) report.scan.warnings.push({ number: issue.number, labels: classification.labels, reason: "multiple-wayfinder-types" });
-    if (classification.unknown?.length) report.scan.unsupported.push({ number: issue.number, labels: classification.labels, reason: "unknown-wayfinder-classification" });
     if (classification.eligible && classification.labels.includes("needs-triage")) report.scan.conflicts.push({ number: issue.number, url: issue.html_url, ...classification });
   }
   report.scan.complete = true;
@@ -438,7 +514,12 @@ async function main() {
       requireState(JSON.stringify(current) === startingControl, "authority-changed-during-execution");
       admission(current);
       const before = (await request("GET", `${prefix}/issues/${conflict.number}`)).body;
-      const classification = classify(before);
+      const classification = observeClassification(before);
+      if (classification.unknown?.length) {
+        report.scan.conflicts = report.scan.conflicts.filter((issue) => issue.number !== conflict.number);
+        report.scan.outcomes.push({ number: conflict.number, result: "unsupported-classification", labels: classification.labels });
+        throw new Error("unsupported-classification-refuses-apply");
+      }
       if (!classification.eligible || !classification.labels.includes("needs-triage")) {
         report.scan.outcomes.push({ number: conflict.number, result: classification.eligible ? "already-absent" : "eligibility-changed" });
         report.scan.conflicts = report.scan.conflicts.filter((issue) => issue.number !== conflict.number);
@@ -457,7 +538,7 @@ async function main() {
         attempt.completion_record = `report:${attempt.id}`;
       }
       const after = (await request("GET", `${prefix}/issues/${conflict.number}`)).body;
-      const final = classify(after);
+      const final = observeClassification(after);
       if (response.status === 404 && !final.labels.includes("needs-triage")) {
         attempt.outcome = "completed";
         attempt.terminal_observation = "api-404-and-absent-readback";
@@ -481,6 +562,6 @@ for (const attempt of report.attempts) {
   if (attempt.outcome !== "completed" && !report.repair.unresolved.some((gap) => gap.includes(attempt.id))) report.repair.unresolved.push(`${attempt.id}:potentially-outstanding-request`);
 }
 if (report.execution) report.execution.scan = { mode: report.command === "apply" ? "apply" : "inspect", complete: report.scan.complete && report.scan.unsupported.length === 0 && report.refusals.length === 0, authority_generation: report.authority?.generation ?? null, conflicts: report.scan.conflicts.length, finished_at: new Date().toISOString() };
-report.result = report.refusals.length ? "refused" : !report.scan.complete || report.scan.unsupported.length || report.command === "status" && report.repair.unresolved.length ? "incomplete" : report.scan.conflicts.length ? "conflicts" : "clean";
+report.result = report.refusals.length ? "refused" : !report.scan.complete || report.scan.unsupported.length || ["inspect", "status"].includes(report.command) && report.repair.unresolved.length ? "incomplete" : report.scan.conflicts.length ? "conflicts" : "clean";
 process.stdout.write(JSON.stringify(report, null, 2) + "\n");
 process.exitCode = report.result === "refused" ? 3 : report.result === "incomplete" ? 2 : report.result === "conflicts" ? 1 : 0;

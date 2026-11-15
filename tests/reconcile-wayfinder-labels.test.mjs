@@ -53,7 +53,7 @@ else if (q.path.startsWith(prefix + "/contents/")) {
  body = { type: "file", encoding: "base64", content: Buffer.from(content).toString("base64") };
 }
 else if (q.path === prefix + "/actions/workflows/123") body = { id: 123, path: ".github/workflows/wayfinder-label-repair.yml", state: s.workflowState ?? "active" };\nelse if (q.path.startsWith(prefix + "/actions/workflows/123/runs?")) body = { total_count: (s.runs ?? []).length, workflow_runs: s.runs ?? [] };\nelse if (q.path.includes("/attempts/")) {\n const parts = q.path.split("/");\n const run = (s.runs ?? []).find((r) => r.id === Number(parts.at(-3)));\n body = run ? { ...run, run_attempt: Number(parts.at(-1)) } : null;\n if (!body) status = 404;\n}\nelse if (q.path.includes("/artifacts?")) {\n const run = Number(q.path.split("/").at(-2));\n const artifacts = (s.artifacts ?? []).filter((a) => a.run_id === run);\n body = { total_count: artifacts.length, artifacts };\n}\nelse if (q.path.endsWith("/zip")) {\n const artifact = (s.artifacts ?? []).find((a) => a.id === Number(q.path.split("/").at(-2)));\n body = artifact ? { archive_base64: artifact.archive_base64 } : null;\n if (!body) status = 404;\n}\nelse if (q.method === "DELETE") {\n status = s.deleteStatus ?? 200;\n const number = Number(q.path.split("/").at(-3));\n const row = s.issues.find((i) => i.number === number);\n if (row && s.removeOnDelete !== false) row.labels = row.labels.filter((label) => label.name !== "needs-triage");\n body = status === 200 ? (row?.labels ?? []) : { message: "synthetic error" };\n if (s.disconnectDelete) { writeFileSync(file, JSON.stringify(s)); process.exit(75); }\n}\nelse if (q.path.startsWith(prefix + "/issues?")) {\n const page = Number(new URL("https://api.github.com" + q.path).searchParams.get("page"));\n body = s.pages ? (s.pages[page - 1] ?? []) : s.issues;\n if (s.pages && page < s.pages.length) headers.link = '<https://api.github.com' + q.path.replace('&page=' + page, '&page=' + (page + 1)) + '>; rel="next"';\n}
-else if (q.path.startsWith(prefix + "/issues/") && Number.isSafeInteger(Number(q.path.split("/").at(-1)))) body = s.issues.find((i) => i.number === Number(q.path.split("/").at(-1)));
+else if (q.path.startsWith(prefix + "/issues/") && Number.isSafeInteger(Number(q.path.split("/").at(-1)))) {\n const number = Number(q.path.split("/").at(-1));\n s.issueReads ??= {}; s.issueReads[number] = (s.issueReads[number] ?? 0) + 1;\n body = s.issues.find((i) => i.number === number);\n if (s.addUnknownOnReread && s.issueReads[number] === 2) body.labels.push({ name: "wayfinder:future" });\n}
 else { status = 404; body = { message: "synthetic missing route" }; }
 writeFileSync(file, JSON.stringify(s));
 process.stdout.write(JSON.stringify({ status, headers, body }));
@@ -78,7 +78,7 @@ process.stdout.write(JSON.stringify({ status, headers, body }));
 }
 
 test("inspect reports current Wayfinder conflicts and preserves ordinary intake and pull requests", (t) => {
-  const f = fixture(t, { issues: [issue(1, ["needs-triage"]), issue(2, ["wayfinder:task", "needs-triage", "keep"]), issue(3, ["wayfinder:map", "needs-triage"], { pull_request: {} })] });
+  const f = fixture(t, { control: { operating_interval: attestation() }, issues: [issue(1, ["needs-triage"]), issue(2, ["wayfinder:task", "needs-triage", "keep"]), issue(3, ["wayfinder:map", "needs-triage"], { pull_request: {} })] });
   const r = f.run();
   assert.equal(r.status, 1, r.stderr + JSON.stringify(r.report));
   assert.deepEqual(r.report.scan.conflicts.map((i) => i.number), [2]);
@@ -90,7 +90,7 @@ test("inspect reports current Wayfinder conflicts and preserves ordinary intake 
 
 test("inspect gathers all pages before reading closed conflicts without filtering a shrinking label set", (t) => {
   const rows = [issue(10, ["wayfinder:task", "needs-triage"]), issue(11, ["wayfinder:map", "needs-triage"], { state: "closed" })];
-  const f = fixture(t, { issues: rows, state: { pages: [[rows[0]], [rows[1]]] } });
+  const f = fixture(t, { control: { operating_interval: attestation() }, issues: rows, state: { pages: [[rows[0]], [rows[1]]] } });
   const r = f.run();
   assert.equal(r.status, 1, r.stderr + JSON.stringify(r.report));
   assert.deepEqual(r.report.scan.conflicts.map((i) => i.number), [10, 11]);
@@ -566,4 +566,87 @@ test("automatic execution retains the validated canonical admission reference", 
   assert.equal(r.status, 0, JSON.stringify(r.report));
   assert.equal(r.report.execution.admission_record, "coordination:continuing-automatic-admission");
   assert.equal(r.state.calls.filter((call) => call.method === "DELETE").length, 1);
+});
+
+
+test("inspect completion includes explicitly incomplete operating history without preventing a read-only scan", async (t) => {
+  for (const complete of [true, false]) await t.test(String(complete), (t) => {
+    const evidence = attestation(); evidence.history.complete = complete;
+    const f = fixture(t, { qualified: true, evidence, issues: [] });
+    const r = f.run("inspect");
+    assert.equal(r.report.scan.complete, true);
+    assert.equal(r.status, complete ? 0 : 2, JSON.stringify(r.report));
+    assert.equal(r.report.result, complete ? "clean" : "incomplete");
+    if (!complete) assert.ok(r.report.repair.unresolved.includes("incomplete-admission-inventory"));
+    assert.ok(r.state.calls.every((call) => call.method === "GET"));
+  });
+});
+
+
+test("an unfamiliar type added on the final reread remains unsupported and cannot establish a complete apply", (t) => {
+  const f = fixture(t, { qualified: true, evidence: steady(), issues: [issue(2, ["wayfinder:task", "needs-triage"])], state: { addUnknownOnReread: true } });
+  const r = auto(f);
+  assert.ok(r.status === 2 || r.status === 3, JSON.stringify(r.report));
+  assert.ok(r.report.scan.unsupported.some((issue) => issue.number === 2 && issue.labels.includes("wayfinder:task") && issue.labels.includes("wayfinder:future") && issue.labels.includes("needs-triage")));
+  assert.equal(r.report.execution.scan.complete, false);
+  assert.equal(r.state.calls.filter((call) => call.method === "DELETE").length, 0);
+  f.update((state) => { state.runs[0].status = "completed"; state.runs[0].conclusion = "failure"; state.artifacts = [artifact(901, r.report)]; });
+  const status = f.run("status");
+  assert.equal(status.report.repair.latest_complete_apply, null);
+});
+
+
+test("automatic observations reconcile by identity across canonical supplied and Actions history", async (t) => {
+  for (const action of ["automatic", "drain", "resume"]) for (const variant of ["matching", "newer-completion", "supplied-newer", "incompatible", "omitted-request", "supplied-incompatible", "supplied-omitted-request", "supplied-omitted-executor"]) await t.test(`${action}: ${variant}`, (t) => {
+    const f = fixture(t, { qualified: true, evidence: steady(), issues: [issue(2, ["wayfinder:task", "needs-triage"])] });
+    const first = auto(f, "501");
+    assert.equal(first.status, 0, JSON.stringify(first.report));
+    const canonical = structuredClone(first.report.execution);
+    const saved = structuredClone(first.report);
+    let suppliedCompletion = null;
+    if (variant === "newer-completion" || variant === "supplied-newer") {
+      canonical.state = "lost"; canonical.report_record = null;
+      canonical.scan.complete = false;
+      canonical.scan.finished_at = new Date(Date.parse(canonical.scan.finished_at) - 1000).toISOString();
+      Object.assign(canonical.requests[0], { submission: "uncertain", outcome: "unknown", response_status: null, terminal_observation: null, completion_record: null });
+    }
+    if (variant === "supplied-newer") {
+      suppliedCompletion = structuredClone(first.report.execution);
+      saved.execution = { ...structuredClone(canonical), state: "stopped" };
+    }
+    if (variant.startsWith("supplied-") && variant !== "supplied-newer") {
+      suppliedCompletion = structuredClone(first.report.execution);
+      if (variant === "supplied-incompatible") Object.assign(suppliedCompletion.requests[0], { response_status: 404, terminal_observation: "api-404-and-absent-readback" });
+      if (variant === "supplied-omitted-request") suppliedCompletion.requests = [];
+    }
+    if (variant === "incompatible") Object.assign(saved.execution.requests[0], { response_status: 404, terminal_observation: "api-404-and-absent-readback" });
+    if (variant === "omitted-request") saved.execution.requests = [];
+    saved.attempts = structuredClone(saved.execution.requests);
+    if (variant === "supplied-newer") { saved.refusals = ["destructive-request-outcome-unknown"]; saved.result = "refused"; }
+    if (variant === "incompatible") saved.scan.outcomes = saved.scan.outcomes.map((outcome) => ({ ...outcome, response_status: 404, result: "already-absent" }));
+    f.update((state) => {
+      Object.assign(state.runs[0], { status: "completed", conclusion: "success" });
+      state.control.operating_interval.history.executors = [canonical];
+      state.artifacts = [artifact(901, saved)];
+      if (action === "automatic") state.issues[0].labels.push({ name: "needs-triage" });
+      else {
+        state.workflowState = "disabled_manually";
+        Object.assign(state.control.operating_interval.transition, { phase: action === "resume" ? "resume-pending" : "paused", admission: { automatic: "closed", manual: "closed", record: "coordination:after-first-closure" }, change_verified: true, authority_readback_commit: "a".repeat(40) });
+      }
+    });
+    const args = action === "automatic" ? ["--executor", "automatic"] : ["--session", "owner-a", "--action", action];
+    if (suppliedCompletion) {
+      const supplied = structuredClone(f.control.operating_interval);
+      if (action !== "automatic") Object.assign(supplied.transition, { phase: action === "resume" ? "resume-pending" : "paused", admission: { automatic: "closed", manual: "closed", record: "coordination:after-first-closure" }, change_verified: true, authority_readback_commit: "a".repeat(40) });
+      supplied.history.executors = variant === "supplied-omitted-executor" ? [] : [suppliedCompletion];
+      args.push("--evidence", f.evidence(supplied));
+    }
+    const r = f.run(action === "automatic" ? "apply" : "transition-check", args, action === "automatic" ? { GITHUB_RUN_ID: "502", GITHUB_RUN_ATTEMPT: "1" } : {});
+    const usable = ["matching", "newer-completion", "supplied-newer"].includes(variant);
+    assert.equal(r.status, usable ? 0 : 3, JSON.stringify(r.report));
+    assert.equal(r.report.repair.unresolved.length === 0, usable);
+    assert.equal(r.state.calls.filter((call) => call.method === "DELETE").length, usable && action === "automatic" ? 2 : 1);
+    if (usable) assert.equal(r.report.repair.latest_complete_apply.executor, "automatic:501:1");
+    if (action !== "automatic") assert.equal(r.report.transition.ready, usable);
+  });
 });
