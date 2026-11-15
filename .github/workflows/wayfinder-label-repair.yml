@@ -1,0 +1,47 @@
+name: Wayfinder label repair
+
+# Qualification candidate. The job stays disabled until a separate reviewed
+# enablement changes this gate and independently authorizes the live control.
+on:
+  issues:
+    types: [opened, labeled, unlabeled, reopened]
+  workflow_run:
+    workflows: [Triage label, Close needs-info]
+    types: [completed]
+  schedule:
+    - cron: "17,47 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+concurrency:
+  group: wayfinder-label-repair
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      issues: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - name: Reconcile current state
+        run: node scripts/reconcile-wayfinder-labels.mjs apply --executor automatic > report.json
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Retain every attempt report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: wayfinder-label-repair-${{ github.run_id }}-${{ github.run_attempt }}
+          path: report.json
+          if-no-files-found: error
+          retention-days: 90
