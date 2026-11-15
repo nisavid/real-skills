@@ -16,7 +16,6 @@ permissions: {}
 
 jobs:
   reconcile:
-    if: ${{ true }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
