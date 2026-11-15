@@ -18,6 +18,7 @@ const sha = (value) => typeof value === "string" && /^[a-f0-9]{40}$/.test(value)
 const hash = (value) => typeof value === "string" && /^[a-f0-9]{64}$/.test(value);
 const object = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
 const positive = (value) => Number.isSafeInteger(value) && value > 0;
+const reference = (value) => typeof value === "string" && value.trim().length > 0 && value.length <= 2048;
 function requireState(ok, reason) { if (!ok) throw new Error(reason); }
 
 function archiveReport(encoded) {
@@ -61,6 +62,35 @@ const report = {
   repair: { health: "unknown", workflow: null, evidence_basis: "operator-record-attestation", unresolved: [], latest_attempt: null, latest_apply_attempt: null, latest_run_attempt: null, latest_complete_apply: null },
   transition: { owner: null, phase: "unknown", ready: false, reasons: [] }, attempts: [], refusals: [],
 };
+
+const nativeAttempts = new Map();
+let repairEvidenceAssessed = false;
+
+function requestFinished(request, executor) {
+  return request.submission === "not-submitted" && reference(request.completion_record) || request.submission === "submitted" && request.outcome === "completed" && positive(request.response_status) && (request.response_status === 200 && request.terminal_observation === "api-200-label-response" || request.response_status === 404 && request.terminal_observation === "api-404-and-absent-readback") && request.executor === executor && sha(request.authority_commit) && positive(request.authority_generation) && reference(request.completion_record);
+}
+
+function observeScan(pass, completed) {
+  const repair = report.repair;
+  if (!repair.latest_attempt || Date.parse(pass.finished_at) > Date.parse(repair.latest_attempt.finished_at)) repair.latest_attempt = pass;
+  const latestApply = repair.latest_apply_attempt;
+  if (pass.mode === "apply" && (!latestApply || Date.parse(pass.finished_at) > Date.parse(latestApply.finished_at) || pass.finished_at === latestApply.finished_at && !pass.complete)) repair.latest_apply_attempt = pass;
+  const last = repair.latest_complete_apply;
+  if (completed && pass.mode === "apply" && pass.complete && (!last || Date.parse(pass.finished_at) > Date.parse(last.finished_at))) repair.latest_complete_apply = pass;
+}
+
+function assessRepairHealth() {
+  if (report.repair.health === "disabled") return;
+  if (!repairEvidenceAssessed || report.repair.unresolved.length) { report.repair.health = "unknown"; return; }
+  const last = report.repair.latest_complete_apply;
+  // Native failure qualifies its own apply, ordered with all retained applies.
+  // The latest native observation remains visible even when it is an inspect.
+  const applyRun = nativeAttempts.get(report.repair.latest_apply_attempt?.executor);
+  const failedRun = applyRun?.status === "completed" && applyRun.conclusion && applyRun.conclusion !== "success";
+  if (failedRun || report.repair.latest_apply_attempt?.complete === false) report.repair.health = "failed";
+  else if (!last || last.authority_generation !== report.authority?.generation) report.repair.health = "missing";
+  else report.repair.health = Date.now() - Date.parse(last.finished_at) > 90 * 60_000 ? "stale" : "healthy";
+}
 
 async function main() {
   const command = process.argv[2];
@@ -201,7 +231,6 @@ async function main() {
     catch { evidence = null; evidenceReadError = true; }
   }
   const unresolved = report.repair.unresolved;
-  const reference = (value) => typeof value === "string" && value.trim().length > 0 && value.length <= 2048;
   const instant = (value) => typeof value === "string" && Number.isFinite(Date.parse(value));
   function manualSessions(current) {
     const sessions = current.operating_interval?.manual_sessions ?? [];
@@ -238,9 +267,6 @@ async function main() {
   }
   function operatingEvidenceUsable() {
     return assessment.canonical !== null && assessment.evidence !== null && unresolved.length === 0;
-  }
-  function requestFinished(request, executor) {
-    return request.submission === "not-submitted" && reference(request.completion_record) || request.submission === "submitted" && request.outcome === "completed" && positive(request.response_status) && (request.response_status === 200 && request.terminal_observation === "api-200-label-response" || request.response_status === 404 && request.terminal_observation === "api-404-and-absent-readback") && request.executor === executor && sha(request.authority_commit) && positive(request.authority_generation) && reference(request.completion_record);
   }
   function scanValid(scan) {
     return object(scan) && ["inspect", "apply"].includes(scan.mode) && typeof scan.complete === "boolean" && instant(scan.finished_at) && Number.isSafeInteger(scan.conflicts) && scan.conflicts >= 0;
@@ -327,7 +353,6 @@ async function main() {
       }
     }
     const ids = new Set();
-    const completed = [];
     for (const executor of history.executors) {
       requireState(object(executor) && reference(executor.id) && ["automatic", "manual"].includes(executor.kind) && Array.isArray(executor.requests) && !ids.has(executor.id), "malformed-executor-evidence");
       ids.add(executor.id);
@@ -345,15 +370,9 @@ async function main() {
       }
       if (executor.scan) {
         requireState(scanValid(executor.scan), "malformed-scan-evidence");
-        const pass = { executor: executor.id, ...executor.scan };
-        if (!report.repair.latest_attempt || Date.parse(pass.finished_at) > Date.parse(report.repair.latest_attempt.finished_at)) report.repair.latest_attempt = pass;
-        const latestApply = report.repair.latest_apply_attempt;
-        if (pass.mode === "apply" && (!latestApply || Date.parse(pass.finished_at) > Date.parse(latestApply.finished_at) || pass.finished_at === latestApply.finished_at && !pass.complete)) report.repair.latest_apply_attempt = pass;
-        if (executor.state === "stopped" && reference(executor.report_record) && allFinished && pass.mode === "apply" && pass.complete) completed.push(pass);
+        observeScan({ executor: executor.id, ...executor.scan }, executor.state === "stopped" && reference(executor.report_record) && allFinished);
       }
     }
-    completed.sort((a, b) => Date.parse(b.finished_at) - Date.parse(a.finished_at));
-    report.repair.latest_complete_apply = completed[0] ?? null;
   }
   function assessTransition() {
     const transition = assessment.evidence?.transition;
@@ -371,7 +390,6 @@ async function main() {
     } else if (transition.phase !== "paused") reasons.push("transition-not-paused");
     report.transition.ready = reasons.length === 0;
   }
-  const nativeAttempts = new Map();
   async function collectAutomaticHistory() {
     if (!positive(control.workflow_id)) return;
     const currentId = report.execution?.kind === "automatic" ? report.execution.id : null;
@@ -443,17 +461,7 @@ async function main() {
   await collectAutomaticHistory();
   assessHistory();
   assessTransition();
-  if (report.repair.health !== "disabled") {
-    const last = report.repair.latest_complete_apply;
-    // Native failure qualifies its own apply, ordered with all retained applies.
-    // The latest native observation remains visible even when it is an inspect.
-    const applyRun = nativeAttempts.get(report.repair.latest_apply_attempt?.executor);
-    const failedRun = applyRun?.status === "completed" && applyRun.conclusion && applyRun.conclusion !== "success";
-    if (unresolved.length) report.repair.health = "unknown";
-    else if (failedRun || report.repair.latest_apply_attempt?.complete === false) report.repair.health = "failed";
-    else if (!last || last.authority_generation !== control.generation) report.repair.health = "missing";
-    else report.repair.health = Date.now() - Date.parse(last.finished_at) > 90 * 60_000 ? "stale" : "healthy";
-  }
+  repairEvidenceAssessed = true;
   const listed = new Map();
   for (let page = 1; ; page++) {
     requireState(page <= 10_000, "enumeration-limit-incomplete");
@@ -557,7 +565,6 @@ async function main() {
       requireState(attempt.outcome === "completed", "destructive-request-outcome-unknown");
       if (response.status !== 404 && (response.status < 200 || response.status >= 300)) throw new Error(`delete-http-${response.status}`);
     }
-    report.execution.scan = { mode: "apply", complete: true, conflicts: report.scan.conflicts.length, finished_at: new Date().toISOString() };
   }
 }
 
@@ -566,7 +573,11 @@ catch (error) { report.transition.ready = false; report.refusals.push(error inst
 for (const attempt of report.attempts) {
   if (attempt.outcome !== "completed" && !report.repair.unresolved.some((gap) => gap.includes(attempt.id))) report.repair.unresolved.push(`${attempt.id}:potentially-outstanding-request`);
 }
-if (report.execution) report.execution.scan = { mode: report.command === "apply" ? "apply" : "inspect", complete: report.scan.complete && report.scan.unsupported.length === 0 && report.refusals.length === 0, authority_generation: report.authority?.generation ?? null, conflicts: report.scan.conflicts.length, finished_at: new Date().toISOString() };
+if (report.execution) {
+  report.execution.scan = { mode: report.command === "apply" ? "apply" : "inspect", complete: report.scan.complete && report.scan.unsupported.length === 0 && report.refusals.length === 0, authority_generation: report.authority?.generation ?? null, conflicts: report.scan.conflicts.length, finished_at: new Date().toISOString() };
+  observeScan({ executor: report.execution.id, ...report.execution.scan }, report.execution.state === "stopped" && report.execution.requests.every((request) => requestFinished(request, report.execution.id)));
+}
+assessRepairHealth();
 report.result = report.refusals.length ? "refused" : !report.scan.complete || report.scan.unsupported.length || ["inspect", "status"].includes(report.command) && report.repair.unresolved.length ? "incomplete" : report.scan.conflicts.length ? "conflicts" : "clean";
 process.stdout.write(JSON.stringify(report, null, 2) + "\n");
 process.exitCode = report.result === "refused" ? 3 : report.result === "incomplete" ? 2 : report.result === "conflicts" ? 1 : 0;

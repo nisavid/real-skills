@@ -162,7 +162,7 @@ test("consecutive automatic repairs share one attested interval and an interrupt
   f.update((state) => { state.runs[0].status = "completed"; state.runs[0].conclusion = "success"; state.artifacts = [artifact(901, first.report)]; state.issues[0].labels.push({ name: "needs-triage" }); });
   const second = f.run("apply", ["--executor", "automatic"], { GITHUB_RUN_ID: "502", GITHUB_RUN_ATTEMPT: "1" });
   assert.equal(second.status, 0, JSON.stringify(second.report));
-  assert.equal(second.report.repair.latest_complete_apply.executor, "automatic:501:1");
+  assert.equal(second.report.repair.latest_complete_apply.executor, "automatic:502:1");
   assert.equal(second.state.calls.filter((q) => q.method === "DELETE").length, 2);
   f.update((state) => { state.workflowState = "disabled_manually"; state.control.operating_interval.transition.phase = "paused"; state.control.operating_interval.transition.admission.automatic = "closed"; state.runs[1].status = "completed"; state.runs[1].conclusion = "cancelled"; });
   const interrupted = f.run("transition-check", ["--session", "owner-a", "--action", "drain"]);
@@ -646,7 +646,7 @@ test("automatic observations reconcile by identity across canonical supplied and
     assert.equal(r.status, usable ? 0 : 3, JSON.stringify(r.report));
     assert.equal(r.report.repair.unresolved.length === 0, usable);
     assert.equal(r.state.calls.filter((call) => call.method === "DELETE").length, usable && action === "automatic" ? 2 : 1);
-    if (usable) assert.equal(r.report.repair.latest_complete_apply.executor, "automatic:501:1");
+    if (usable) assert.equal(r.report.repair.latest_complete_apply.executor, action === "automatic" ? "automatic:502:1" : "automatic:501:1");
     if (action !== "automatic") assert.equal(r.report.transition.ready, usable);
   });
 });
@@ -729,5 +729,56 @@ test("native workflow failure tracks relevant apply identity and chronology with
     assert.equal(result.report.repair.latest_run_attempt.id, scenario === "failed-inspection" ? "automatic:502:1" : "automatic:501:1");
     if (earlierUnknown) assert.ok(result.report.repair.unresolved.some((gap) => gap.includes("potentially-outstanding-request")));
     else assert.deepEqual(result.report.repair.unresolved, []);
+  });
+});
+
+
+test("finalized current executions update apply health while inspection keeps separate recency", async (t) => {
+  for (const scenario of ["enumeration-failure", "complete-success", "implementation-refusal", "disabled-refusal", "unknown-request"]) await t.test(scenario, (t) => {
+    const f = fixture(t, { qualified: true, evidence: steady(), issues: [issue(2, ["wayfinder:task", "needs-triage"])] });
+    function retain(result) {
+      f.update((state) => {
+        const run = state.runs.find((run) => `automatic:${run.id}:${run.run_attempt}` === result.report.execution.id);
+        Object.assign(run, { status: "completed", conclusion: result.status === 0 ? "success" : "failure", created_at: result.report.observed_at, updated_at: result.report.execution.scan.finished_at });
+        state.artifacts ??= [];
+        state.artifacts.push(artifact(900 + run.id, result.report));
+      });
+    }
+    const first = auto(f, "501");
+    assert.equal(first.status, 0, JSON.stringify(first.report));
+    assert.equal(first.report.execution.scan.complete, true);
+    retain(first);
+    f.update((state) => {
+      state.issues[0].labels.push({ name: "needs-triage" });
+      if (scenario === "enumeration-failure") state.failPath = "/issues?";
+      if (scenario === "implementation-refusal") state.control.authorized_implementations = [];
+      if (scenario === "disabled-refusal") state.control.mode = "inspect";
+      if (scenario === "unknown-request") state.disconnectDelete = true;
+    });
+    const current = auto(f, "502");
+    const success = scenario === "complete-success";
+    const health = scenario === "disabled-refusal" ? "disabled" : scenario === "unknown-request" ? "unknown" : success ? "healthy" : "failed";
+    assert.equal(current.status, success ? 0 : 3, JSON.stringify(current.report));
+    assert.equal(current.report.execution.scan.complete, success);
+    assert.equal(current.report.execution.scan.authority_generation, 1);
+    assert.equal(current.state.calls.filter((call) => call.method === "DELETE").length, success || scenario === "unknown-request" ? 2 : 1);
+    assert.equal(current.report.repair.health, health, JSON.stringify(current.report));
+    assert.equal(current.report.repair.latest_apply_attempt.executor, "automatic:502:1");
+    assert.equal(current.report.repair.latest_apply_attempt.complete, success);
+    assert.equal(current.report.repair.latest_complete_apply.executor, success ? "automatic:502:1" : "automatic:501:1");
+    retain(current);
+    f.update((state) => {
+      delete state.failPath; delete state.disconnectDelete;
+      // A synthetic external label change permits a clean inspection after failure.
+      state.issues[0].labels = [{ name: "wayfinder:task" }];
+    });
+    const inspected = f.run("inspect", ["--executor", "automatic"], { GITHUB_RUN_ID: "503", GITHUB_RUN_ATTEMPT: "1" });
+    assert.equal(inspected.report.execution.scan.complete, true, JSON.stringify(inspected.report));
+    assert.equal(inspected.report.execution.scan.mode, "inspect");
+    assert.equal(inspected.report.repair.latest_attempt.executor, "automatic:503:1");
+    assert.equal(inspected.report.repair.latest_attempt.mode, "inspect");
+    assert.equal(inspected.report.repair.latest_apply_attempt.executor, "automatic:502:1");
+    assert.equal(inspected.report.repair.health, health, JSON.stringify(inspected.report));
+    assert.equal(inspected.state.calls.filter((call) => call.method === "DELETE").length, success || scenario === "unknown-request" ? 2 : 1);
   });
 });
