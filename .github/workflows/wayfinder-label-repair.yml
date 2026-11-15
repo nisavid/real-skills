@@ -13,9 +13,6 @@ on:
   workflow_dispatch:
 
 permissions: {}
-concurrency:
-  group: wayfinder-label-repair
-  cancel-in-progress: false
 
 jobs:
   reconcile:

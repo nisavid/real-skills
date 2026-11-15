@@ -156,7 +156,7 @@ async function main() {
   const control = await authority();
   const implementationPaths = ["scripts/reconcile-wayfinder-labels.mjs", ".github/workflows/wayfinder-label-repair.yml"];
   const manifest = Object.fromEntries(implementationPaths.map((path) => [path, sha256(readFileSync(join(root, path)))]));
-  const executing = { checkout_revision: null, source_revision: null, manifest, committed: false };
+  const executing = { checkout_revision: null, source_revision: null, manifest, committed: false, workflow_source: null };
   try {
     const git = (argv) => execFileSync("git", argv, { cwd: root, env: { PATH: process.env.PATH }, maxBuffer: 4 * 1024 * 1024, stdio: ["ignore", "pipe", "pipe"] });
     executing.checkout_revision = git(["rev-parse", "HEAD"]).toString("utf8").trim();
@@ -168,6 +168,18 @@ async function main() {
     const approved = current.authorized_implementations.find((approved) => object(approved) && sha(approved.source_revision) && object(approved.manifest) && Object.keys(approved.manifest).length === implementationPaths.length && implementationPaths.every((path) => approved.manifest[path] === manifest[path]));
     requireState(approved, "executing-implementation-not-authorized");
     for (const path of implementationPaths) requireState(sha256(await file(path, approved.source_revision)) === manifest[path], "reviewed-source-content-mismatch");
+    if (args["--executor"] === "automatic") {
+      // GitHub's workflow identity describes the running configuration, which
+      // can differ from the main checkout used to execute this helper.
+      const workflowPath = ".github/workflows/wayfinder-label-repair.yml";
+      const workflowRef = process.env.GITHUB_WORKFLOW_REF;
+      const workflowRevision = process.env.GITHUB_WORKFLOW_SHA;
+      const expectedPrefix = `${repository}/${workflowPath}@`;
+      requireState(sha(workflowRevision) && typeof workflowRef === "string" && workflowRef.startsWith(expectedPrefix) && workflowRef.length > expectedPrefix.length && !/\s/.test(workflowRef), "actual-workflow-source-identity-missing-or-mismatched");
+      const contentHash = sha256(await file(workflowPath, workflowRevision));
+      executing.workflow_source = { ref: workflowRef, revision: workflowRevision, sha256: contentHash };
+      requireState(contentHash === approved.manifest[workflowPath], "actual-workflow-content-not-authorized");
+    }
     executing.source_revision = approved.source_revision;
   }
   let evidence = control.operating_interval ? structuredClone(control.operating_interval) : null;
@@ -178,6 +190,12 @@ async function main() {
   const unresolved = report.repair.unresolved;
   const reference = (value) => typeof value === "string" && value.length > 0 && value.length <= 2048;
   const instant = (value) => typeof value === "string" && Number.isFinite(Date.parse(value));
+  function manualSessions(current) {
+    const sessions = current.operating_interval?.manual_sessions ?? [];
+    const owner = current.operating_interval?.transition?.owner;
+    requireState(Array.isArray(sessions) && sessions.every((session) => object(session) && reference(session.id) && session.owner === owner && reference(session.admission_record) && Array.isArray(session.issue_numbers) && session.issue_numbers.every(positive)) && new Set(sessions.map((session) => session.id)).size === sessions.length, "malformed-manual-admission-inventory");
+    return sessions;
+  }
   // These are an authorized actor's evidence-based assertions, not a lock.
   // Missing records and unknown request outcomes stay unresolved regardless of age.
   function assessEvidence() {
@@ -190,6 +208,15 @@ async function main() {
     if (!reference(evidence.attested_by) || !reference(evidence.attestation_record)) unresolved.push("missing-authorized-attestation-reference");
     if (history.boundary?.covered_automatic_attempts !== undefined) requireState(Array.isArray(history.boundary.covered_automatic_attempts) && history.boundary.covered_automatic_attempts.every((id) => typeof id === "string" && /^automatic:[1-9][0-9]*:[1-9][0-9]*$/.test(id)) && new Set(history.boundary.covered_automatic_attempts).size === history.boundary.covered_automatic_attempts.length, "malformed-covered-attempt-inventory");
     if (history.boundary?.proved !== true || !reference(history.boundary?.record) || !(history.boundary.at === null || instant(history.boundary.at))) unresolved.push("unproved-history-boundary-expand-to-all-history");
+    for (const session of manualSessions(control)) {
+      const executor = history.executors.find((executor) => executor?.kind === "manual" && executor.id === session.id);
+      const beginningCurrentApply = command === "apply" && args["--executor"] === "manual" && args["--session"] === session.id;
+      if (!executor) {
+        if (!beginningCurrentApply) unresolved.push(`${session.id}:canonical-manual-admission-unaccounted`);
+      } else if (executor.owner !== session.owner || executor.admission_record !== session.admission_record) {
+        unresolved.push(`${session.id}:canonical-manual-admission-mismatch`);
+      }
+    }
     const ids = new Set();
     const completed = [];
     for (const executor of history.executors) {
@@ -344,8 +371,7 @@ async function main() {
       requireState(owner.accepted === true && reference(owner.owner) && reference(owner.ownership_record) && owner.contenders.length === 0, "exclusive-owner-not-established");
       requireState(current.operating_interval?.interval_id === evidence.interval_id && current.operating_interval.transition?.owner === owner.owner, "operating-interval-mismatch");
       requireState(evidence.history.executors.every((executor) => executor.state === "stopped"), "earlier-executor-can-still-submit");
-      const sessions = current.operating_interval.manual_sessions ?? [];
-      requireState(Array.isArray(sessions) && sessions.every((session) => object(session) && reference(session.id) && session.owner === owner.owner && reference(session.admission_record) && Array.isArray(session.issue_numbers) && session.issue_numbers.every(positive)) && new Set(sessions.map((session) => session.id)).size === sessions.length, "malformed-manual-admission-inventory");
+      const sessions = manualSessions(current);
       requireState(sessions.every((session) => kind === "manual" && session.id === id || evidence.history.executors.some((executor) => executor.id === session.id && executor.state === "stopped")), "preadmitted-manual-session-unaccounted");
       if (kind === "automatic") {
         requireState(report.repair.current_attempt?.id === id && report.repair.current_attempt.status === "in_progress", "automatic-attempt-not-current");

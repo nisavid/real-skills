@@ -47,7 +47,9 @@ if (s.failPath && q.path.includes(s.failPath)) { status = 503; body = { message:
 else if (q.path === prefix + "/git/ref/heads/main") {\n s.authorityReads = (s.authorityReads ?? 0) + 1;\n if (s.changeAuthorityAfter && s.authorityReads > s.changeAuthorityAfter) s.control.generation++;\n body = { object: { type: "commit", sha: s.commit } };\n}
 else if (q.path.startsWith(prefix + "/contents/")) {
  const path = q.path.slice((prefix + "/contents/").length).split("?")[0];
- const content = path === ".github/wayfinder-label-repair-control.json" ? JSON.stringify(s.control) : s.implementationFiles[path] ? Buffer.from(s.implementationFiles[path], "base64").toString("utf8") : s.policy;
+ const ref = new URL("https://api.github.com" + q.path).searchParams.get("ref");
+ const workflowContent = path === ".github/workflows/wayfinder-label-repair.yml" ? s.workflowFilesByRevision?.[ref] : undefined;
+ const content = workflowContent ?? (path === ".github/wayfinder-label-repair-control.json" ? JSON.stringify(s.control) : s.implementationFiles[path] ? Buffer.from(s.implementationFiles[path], "base64").toString("utf8") : s.policy);
  body = { type: "file", encoding: "base64", content: Buffer.from(content).toString("base64") };
 }
 else if (q.path === prefix + "/actions/workflows/123") body = { id: 123, path: ".github/workflows/wayfinder-label-repair.yml", state: s.workflowState ?? "active" };\nelse if (q.path.startsWith(prefix + "/actions/workflows/123/runs?")) body = { total_count: (s.runs ?? []).length, workflow_runs: s.runs ?? [] };\nelse if (q.path.includes("/attempts/")) {\n const parts = q.path.split("/");\n const run = (s.runs ?? []).find((r) => r.id === Number(parts.at(-3)));\n body = run ? { ...run, run_attempt: Number(parts.at(-1)) } : null;\n if (!body) status = 404;\n}\nelse if (q.path.includes("/artifacts?")) {\n const run = Number(q.path.split("/").at(-2));\n const artifacts = (s.artifacts ?? []).filter((a) => a.run_id === run);\n body = { total_count: artifacts.length, artifacts };\n}\nelse if (q.path.endsWith("/zip")) {\n const artifact = (s.artifacts ?? []).find((a) => a.id === Number(q.path.split("/").at(-2)));\n body = artifact ? { archive_base64: artifact.archive_base64 } : null;\n if (!body) status = 404;\n}\nelse if (q.method === "DELETE") {\n status = s.deleteStatus ?? 200;\n const number = Number(q.path.split("/").at(-3));\n const row = s.issues.find((i) => i.number === number);\n if (row && s.removeOnDelete !== false) row.labels = row.labels.filter((label) => label.name !== "needs-triage");\n body = status === 200 ? (row?.labels ?? []) : { message: "synthetic error" };\n if (s.disconnectDelete) { writeFileSync(file, JSON.stringify(s)); process.exit(75); }\n}\nelse if (q.path.startsWith(prefix + "/issues?")) {\n const page = Number(new URL("https://api.github.com" + q.path).searchParams.get("page"));\n body = s.pages ? (s.pages[page - 1] ?? []) : s.issues;\n if (s.pages && page < s.pages.length) headers.link = '<https://api.github.com' + q.path.replace('&page=' + page, '&page=' + (page + 1)) + '>; rel="next"';\n}
@@ -65,7 +67,7 @@ process.stdout.write(JSON.stringify({ status, headers, body }));
       if (index < 0) state.runs.push(run); else state.runs[index] = run;
     });
     const result = spawnSync(process.execPath, [join(project, "scripts/reconcile-wayfinder-labels.mjs"), command, "--offline-transport", transport, ...args], {
-      cwd: project, env: { ...gitEnv, GH_TOKEN: "synthetic-offline-only", ...env },
+      cwd: project, env: { ...gitEnv, GH_TOKEN: "synthetic-offline-only", ...(env.GITHUB_RUN_ID ? { GITHUB_WORKFLOW_REF: "nisavid/real-skills/.github/workflows/wayfinder-label-repair.yml@refs/heads/main", GITHUB_WORKFLOW_SHA: revision } : {}), ...env },
       encoding: "utf8", timeout: 15_000,
     });
     return { ...result, report: result.stdout ? JSON.parse(result.stdout) : null, state: JSON.parse(readFileSync(join(root, "state.json"))) };
@@ -350,4 +352,101 @@ test("status exposes the latest observed workflow attempt and its conclusion bes
   assert.equal(r.report.repair.latest_run_attempt.conclusion, "failure");
   assert.equal(r.report.repair.latest_complete_apply.executor, "automatic:501:1");
   assert.equal(r.report.repair.health, "failed");
+});
+
+
+test("drain and resume account for every canonical manual admission despite supplied completeness claims", async (t) => {
+  for (const action of ["drain", "resume"]) for (const scenario of ["omitted", "omitted-file", "active", "lost", "missing-report", "uncertain-request", "stopped-empty", "stopped-settled"]) await t.test(`${action}: ${scenario}`, (t) => {
+    const canonical = attestation();
+    canonical.manual_sessions = [{ id: "manual:canonical", owner: "owner-a", admission_record: "coordination:canonical-admission", issue_numbers: [2] }];
+    if (action === "resume") Object.assign(canonical.transition, { phase: "resume-pending", change_verified: true, authority_readback_commit: "a".repeat(40) });
+    const supplied = structuredClone(canonical);
+    const executor = { id: "manual:canonical", kind: "manual", owner: "owner-a", state: "stopped", admission_record: "coordination:canonical-admission", report_record: "coordination:canonical-completion", requests: [] };
+    if (!["omitted", "omitted-file"].includes(scenario)) supplied.history.executors.push(executor);
+    if (scenario === "omitted-file") supplied.manual_sessions = [];
+    if (scenario === "active" || scenario === "lost") executor.state = scenario;
+    if (scenario === "missing-report") executor.report_record = null;
+    if (scenario === "uncertain-request") executor.requests.push({ id: "canonical-delete", issue_number: 2, submission: "uncertain", outcome: "unknown" });
+    if (scenario === "stopped-settled") executor.requests.push({ id: "canonical-delete", executor: executor.id, issue_number: 2, submission: "submitted", outcome: "completed", response_status: 200, terminal_observation: "api-200-label-response", authority_commit: "a".repeat(40), authority_generation: 1, completion_record: "coordination:terminal-response" });
+    if (scenario !== "omitted-file") canonical.history = supplied.history;
+    const f = fixture(t, { qualified: true, evidence: canonical, state: { workflowState: "disabled_manually" } });
+    const args = ["--session", "owner-a", "--action", action];
+    if (scenario === "omitted-file") args.push("--evidence", f.evidence(supplied));
+    const r = f.run("transition-check", args);
+    const complete = scenario === "stopped-empty" || scenario === "stopped-settled";
+    assert.equal(r.status, complete ? 0 : 3, JSON.stringify(r.report));
+    assert.equal(r.report.transition.ready, complete);
+    assert.ok(r.state.calls.every((q) => q.method === "GET"));
+  });
+});
+
+
+test("automatic apply authorizes the actual workflow source independently of approved checkout bytes", async (t) => {
+  for (const scenario of ["different-content", "equivalent-revision", "missing-sha", "missing-ref", "wrong-ref", "malformed-sha", "unavailable-source"]) await t.test(scenario, (t) => {
+    const f = fixture(t, { qualified: true, evidence: steady(), issues: [issue(2, ["wayfinder:task", "needs-triage"])] });
+    const actualRevision = "b".repeat(40);
+    const workflow = readFileSync(join(f.project, ".github/workflows/wayfinder-label-repair.yml"), "utf8");
+    f.update((state) => { state.workflowFilesByRevision = { [actualRevision]: workflow + (scenario === "different-content" ? "\n# Synthetic obsolete workflow content.\n" : "") }; if (scenario === "unavailable-source") state.failPath = `?ref=${actualRevision}`; });
+    const env = { GITHUB_RUN_ID: "501", GITHUB_RUN_ATTEMPT: "1", GITHUB_WORKFLOW_SHA: actualRevision };
+    if (scenario === "missing-sha") env.GITHUB_WORKFLOW_SHA = undefined;
+    if (scenario === "missing-ref") env.GITHUB_WORKFLOW_REF = undefined;
+    if (scenario === "wrong-ref") env.GITHUB_WORKFLOW_REF = "other/repo/.github/workflows/wayfinder-label-repair.yml@refs/heads/main";
+    if (scenario === "malformed-sha") env.GITHUB_WORKFLOW_SHA = "not-a-commit";
+    const r = f.run("apply", ["--executor", "automatic"], env);
+    const usable = scenario === "equivalent-revision";
+    assert.equal(r.status, usable ? 0 : 3, JSON.stringify(r.report));
+    assert.equal(r.state.calls.filter((q) => q.method === "DELETE").length, usable ? 1 : 0);
+    if (usable) {
+      assert.equal(r.report.authority.executing.workflow_source.revision, actualRevision);
+      assert.equal(r.report.authority.executing.workflow_source.sha256, digest(workflow));
+      assert.equal(r.report.authority.executing.checkout_revision, f.revision);
+      assert.notEqual(actualRevision, f.revision);
+    }
+  });
+});
+
+
+test("repair avoids pending replacement and recovers after overlapping started refusals without new attestation", (t) => {
+  const workflow = readFileSync(join(repo, ".github/workflows/wayfinder-label-repair.yml"), "utf8");
+  assert.equal(/^\s*concurrency:/m.test(workflow), false, "repair must not request the native pending-replacement policy");
+  const f = fixture(t, { qualified: true, evidence: steady(), issues: [issue(2, ["wayfinder:task", "needs-triage"])], state: { runs: [501, 502].map((id) => ({ id, workflow_id: 123, run_attempt: 1, status: "in_progress", conclusion: null, created_at: "2026-11-15T00:00:00Z" })) } });
+  const interval = JSON.stringify(f.control.operating_interval);
+  const first = auto(f, "501");
+  const second = auto(f, "502");
+  for (const result of [first, second]) {
+    assert.equal(result.status, 3, JSON.stringify(result.report));
+    assert.equal(result.report.execution.state, "stopped");
+    assert.deepEqual(result.report.execution.requests, []);
+    assert.ok(result.report.repair.unresolved.some((gap) => gap.includes("executor-still-running")));
+    assert.equal(result.state.calls.filter((q) => q.method === "DELETE").length, 0);
+  }
+  f.update((state) => {
+    for (const run of state.runs) Object.assign(run, { status: "completed", conclusion: "failure" });
+    state.artifacts = [artifact(901, first.report), artifact(902, second.report)];
+  });
+  const recovered = auto(f, "503");
+  assert.equal(recovered.status, 0, JSON.stringify(recovered.report));
+  assert.deepEqual(recovered.report.repair.unresolved, []);
+  assert.equal(recovered.state.calls.filter((q) => q.method === "DELETE").length, 1);
+  assert.equal(JSON.stringify(recovered.state.control.operating_interval), interval);
+  assert.deepEqual(recovered.state.issues[0].labels, [{ name: "wayfinder:task" }]);
+});
+
+test("canceled unaccounted or uncertain attempts stay unresolved after replacement avoidance", async (t) => {
+  for (const scenario of ["missing-historical-report", "recorded-uncertain-request"]) await t.test(scenario, (t) => {
+    const f = fixture(t, { qualified: true, evidence: steady(), issues: [issue(2, ["wayfinder:task", "needs-triage"])] });
+    if (scenario === "recorded-uncertain-request") {
+      f.update((state) => { state.disconnectDelete = true; });
+      const uncertain = auto(f, "501");
+      assert.equal(uncertain.report.attempts[0].outcome, "unknown");
+      f.update((state) => { state.disconnectDelete = false; state.artifacts = [artifact(901, uncertain.report)]; state.issues[0].labels.push({ name: "needs-triage" }); Object.assign(state.runs[0], { status: "completed", conclusion: "cancelled" }); });
+    } else {
+      f.update((state) => { state.runs = [{ id: 501, workflow_id: 123, run_attempt: 1, status: "completed", conclusion: "cancelled", created_at: "2026-11-15T00:00:00Z" }]; });
+    }
+    const r = auto(f, "502");
+    assert.equal(r.status, 3, JSON.stringify(r.report));
+    assert.ok(r.report.repair.unresolved.some((gap) => gap.includes("automatic:501:1")));
+    assert.deepEqual(r.report.execution.requests, []);
+    assert.equal(r.state.calls.filter((q) => q.method === "DELETE").length, scenario === "recorded-uncertain-request" ? 1 : 0);
+  });
 });
