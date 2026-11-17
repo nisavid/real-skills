@@ -12,7 +12,7 @@ Allocate one release version for both archives and all supported surfaces: `M.m.
 
 Before freezing the release source, write the allocated full release version to `package.json`, run `node scripts/sync-plugin-version.mjs` to synchronize the Claude manifest, and run `npm run build-plugin-package` to regenerate the Codex manifest. Verify that all three versions equal the allocation, retain the promoted skill bytes and invocation settings, and run the native package procedure. Commit and independently review the resulting release candidate before using it as the source commit. Do not advance `stable-vanilla-plus` to the candidate until the GitHub release and archive checks are complete; then point it at that same reviewed commit and qualify repository-marketplace installation and updates separately for each selected harness.
 
-Use a gzip-compressed Git tar with root `mattpocock-skills-<full SHA>/` and `tar.umask=0022`. Bind the expected hash to those exact input bytes; a hash alone does not prove their Git origin.
+Use a gzip-compressed Git tar with root `real-skills-<full SHA>/` and `tar.umask=0022`. The builder also accepts historical inputs rooted at `mattpocock-skills-<full SHA>/`. Every member must share one of these roots and the selected full source commit. Bind the expected hash to the exact input bytes; changing the prefix changes that hash. Retain historical tar bytes and their recorded hashes for replay. A hash alone does not prove Git origin.
 
 Treat manifests, skills, supporting files, and license text as data. Execute only the reviewed builder and verification tools. Preserve upstream skill bytes and invocation settings.
 
@@ -44,7 +44,7 @@ sha256sum -- "$builder" > "$output/builder.sha256"
   gzip --version
 } > "$output/tool-versions.txt"
 git -c tar.umask=0022 archive --format=tar \
-  --prefix="mattpocock-skills-${SOURCE_COMMIT}/" "$SOURCE_COMMIT" \
+  --prefix="real-skills-${SOURCE_COMMIT}/" "$SOURCE_COMMIT" \
   | gzip -n > "$output/source.tar.gz"
 for run in first second; do
   mkdir -- "$output/$run"
@@ -111,6 +111,8 @@ python scripts/check-release-archive-provenance.py build \
   --upstream "$UPSTREAM_COMMIT" --base "$BASE_VERSION" \
   --release "$RELEASE_VERSION" --output "$OUTPUT_DIR"
 ```
+
+The runner retains the historical `mattpocock-skills-<full SHA>/` tar recipe required by its pinned builder and source hashes. For this runner, identify and hash the source tar using that recipe; the manual build block above generates a different prefix. Updating this manual builder does not update the runner's pinned builder or hashes.
 
 The runner executes the pinned archive builder in two separate Python processes. Its independent verifier derives both expected ZIPs' contents from the source Git tree. It checks the complete layouts, selected bytes and modes, generated manifests, provenance, and declared icon bytes. It checks Wayfinder asset derivation when the source declares the Wayfinder SVG. To check one existing ZIP against the same source binding, use the `verify` subcommand with `--format agent-plugins` or `--format claude` and `--archive PATH` in place of `--output`.
 
