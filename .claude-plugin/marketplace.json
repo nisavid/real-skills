@@ -8,7 +8,28 @@
   "plugins": [
     {
       "name": "real-skills-leashed",
-      "source": "./",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/nisavid/real-skills",
+        "ref": "stable-vanilla-plus"
+      },
+      "description": "A lightly revised and repackaged fork of Matt Pocock's Skills for Real Engineers.",
+      "category": "engineering",
+      "keywords": [
+        "engineering",
+        "skills",
+        "tdd",
+        "code-review",
+        "grilling"
+      ]
+    },
+    {
+      "name": "real-skills-unleashed",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/nisavid/real-skills",
+        "ref": "stable"
+      },
       "description": "A lightly revised and repackaged fork of Matt Pocock's Skills for Real Engineers.",
       "category": "engineering",
       "keywords": [

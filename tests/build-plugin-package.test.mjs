@@ -9,7 +9,7 @@ import { test } from "node:test";
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-function fixture(t) {
+function fixture(t, name = "real-skills-leashed") {
   const root = mkdtempSync(join(tmpdir(), "plugin-package-test-"));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const put = (path, bytes) => {
@@ -17,14 +17,14 @@ function fixture(t) {
     writeFileSync(join(root, path), bytes);
   };
   const manifest = {
-    name: "real-skills-leashed", version: "1.3.1", author: { name: "Matt Pocock" },
+    name, version: "1.3.1", author: { name: "Matt Pocock" },
     license: "MIT", skills: ["./skills/engineering/tdd", "./skills/productivity/handoff"],
   };
   put("package.json", JSON.stringify({ version: "1.3.1" }));
   put(".claude-plugin/plugin.json", JSON.stringify(manifest, null, 2) + "\n");
   put("LICENSE", "MIT attribution fixture\n");
-  put(".agents/plugins/marketplace.json", JSON.stringify({plugins:[{name:"real-skills-leashed",source:{source:"local",path:"./"}}]}));
-  put(".claude-plugin/marketplace.json", JSON.stringify({plugins:[{name:"real-skills-leashed",source:"./"}]}));
+  put(".agents/plugins/marketplace.json", JSON.stringify({plugins:[{name,source:{source:"local",path:"./"}}]}));
+  put(".claude-plugin/marketplace.json", JSON.stringify({plugins:[{name,source:"./"}]}));
   put("skills/engineering/tdd/SKILL.md", "---\nname: tdd\n---\n# TDD\n");
   put("skills/engineering/tdd/agents/openai.yaml", "policy:\n  allow_implicit_invocation: false\n");
   put("skills/engineering/tdd/references/binary.bin", Buffer.from([0, 255, 13, 10]));
@@ -55,6 +55,41 @@ test("build selects original promoted directories from the repository root witho
   assert.equal(codex.interface.displayName, "Real Skills [Leashed]");
   assert.equal(codex.interface.developerName, "Ivan D Vasin");
   assert.equal(readFileSync(join(f.root, "skills/misc/secret-draft/SKILL.md"), "utf8"), "Excluded draft\n");
+});
+
+test("build emits a separately named Unleashed package and preserves the selected skill files", (t) => {
+  const f = fixture(t, "real-skills-unleashed");
+  f.put("package.json", JSON.stringify({ name: "real-skills-unleashed", version: "1.3.1" }));
+  f.put("skills/engineering/tdd/agents/openai.yaml", "{}\n");
+  f.put("skills/productivity/handoff/SKILL.md", "---\nname: handoff\n---\n# Handoff\n");
+  f.put("skills/productivity/handoff/agents/openai.yaml", "{}\n");
+  const source = snapshot(join(f.root, "skills"));
+
+  const result = f.run();
+  assert.equal(result.status, 0, result.stderr);
+  const manifest = JSON.parse(readFileSync(join(f.root, ".codex-plugin/plugin.json")));
+  assert.equal(manifest.name, "real-skills-unleashed");
+  assert.equal(manifest.interface.displayName, "Real Skills [Unleashed]");
+  assert.deepEqual(manifest.skills, ["./skills/engineering/tdd", "./skills/productivity/handoff"]);
+  assert.deepEqual(snapshot(join(f.root, "skills")), source);
+  assert.equal(f.run("--check").status, 0);
+});
+
+test("build and check reject a conflicting package identity before writing", (t) => {
+  const f = fixture(t, "real-skills-unleashed");
+  f.put("package.json", JSON.stringify({ name: "real-skills-unleashed", version: "1.3.1" }));
+  assert.equal(f.run().status, 0);
+  f.manifest.description = "changed manifest content";
+  f.put(".claude-plugin/plugin.json", JSON.stringify(f.manifest));
+  f.put("package.json", JSON.stringify({ name: "real-skills-leashed", version: "1.3.1" }));
+  const before = snapshot(f.root);
+
+  for (const args of [[], ["--check"]]) {
+    const result = f.run(...args);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /Source plugin identity or version does not match package.json/);
+    assert.deepEqual(snapshot(f.root), before);
+  }
 });
 
 function snapshot(root) {
@@ -222,6 +257,67 @@ test("catalogs must resolve the native repository root and retain the plugin ide
   });
 });
 
+const sharedCatalogPaths = [".claude-plugin/marketplace.json", ".agents/plugins/marketplace.json"];
+
+function sharedCatalog() {
+  const url = "https://github.com/nisavid/real-skills";
+  return {
+    name: "real-skills",
+    plugins: [
+      { name: "real-skills-leashed", source: { source: "url", url, ref: "stable-vanilla-plus" } },
+      { name: "real-skills-unleashed", source: { source: "url", url, ref: "stable" } },
+    ],
+  };
+}
+
+test("the shared marketplace retains distinct refs and builds each local variant", async (t) => {
+  for (const name of ["real-skills-leashed", "real-skills-unleashed"]) {
+    await t.test(name, (t) => {
+      const f = fixture(t, name);
+      f.put("package.json", JSON.stringify({ name, version: "1.3.1" }));
+      for (const path of sharedCatalogPaths) f.put(path, JSON.stringify(sharedCatalog()));
+      const sources = snapshot(join(f.root, "skills"));
+
+      const result = f.run();
+      assert.equal(result.status, 0, result.stderr);
+      const manifest = JSON.parse(readFileSync(join(f.root, ".codex-plugin/plugin.json")));
+      assert.equal(manifest.name, name);
+      assert.deepEqual(snapshot(join(f.root, "skills")), sources);
+      assert.equal(f.run("--check").status, 0);
+    });
+  }
+});
+
+test("build and check reject invalid or disagreeing shared catalog sources before writing", async (t) => {
+  const cases = {
+    "catalogs mix local and shared routing": (catalog) => {
+      catalog.plugins = [{ name: "real-skills-leashed", source: { source: "local", path: "./" } }];
+    },
+    "different marketplace name": (catalog) => { catalog.name = "other-marketplace"; },
+    "missing variant": (catalog) => { catalog.plugins.pop(); },
+    "duplicate variant": (catalog) => { catalog.plugins[1] = catalog.plugins[0]; },
+    "same ref for both variants": (catalog) => { catalog.plugins[1].source.ref = "stable-vanilla-plus"; },
+    "wrong source repository": (catalog) => { catalog.plugins[1].source.url = "https://example.invalid/real-skills"; },
+    "additional source selector": (catalog) => { catalog.plugins[1].source.path = "./other-plugin"; },
+  };
+  for (const [name, change] of Object.entries(cases)) await t.test(name, (t) => {
+    const f = fixture(t);
+    for (const path of sharedCatalogPaths) f.put(path, JSON.stringify(sharedCatalog()));
+    assert.equal(f.run().status, 0);
+    const catalog = sharedCatalog();
+    change(catalog);
+    f.put(".agents/plugins/marketplace.json", JSON.stringify(catalog));
+    const before = snapshot(f.root);
+
+    for (const args of [[], ["--check"]]) {
+      const result = f.run(...args);
+      assert.notEqual(result.status, 0);
+      assert.match(result.stderr, /Marketplace must select|Marketplace catalogs disagree/);
+      assert.deepEqual(snapshot(f.root), before);
+    }
+  });
+});
+
 test("recursive native roots reject hidden extra skills and symlinked source or output paths", async (t) => {
   const cases = {
     "nested skill": (f) => f.put("skills/engineering/tdd/references/hidden/SKILL.md", "extra skill\n"),
@@ -305,10 +401,16 @@ test("native manifests identify the fork repository and credit the original auth
   }
 });
 
-test("native manifests retain the Wayfinder icon", () => {
+test("native manifests retain the icon for the selected variant", () => {
   const claude = JSON.parse(readFileSync(join(repo, ".claude-plugin/plugin.json")));
   const codex = JSON.parse(readFileSync(join(repo, ".codex-plugin/plugin.json")));
-  assert.equal(claude.icon, "./assets/wayfinder.svg");
-  assert.equal(codex.interface.logo, "./assets/wayfinder.svg");
-  assert.equal(codex.interface.composerIcon, "./assets/wayfinder.svg");
+  assert.equal(codex.name, claude.name);
+  if (claude.name === "real-skills-leashed") {
+    assert.equal(claude.icon, "./assets/wayfinder.svg");
+  } else {
+    assert.notEqual(claude.icon, "./assets/wayfinder.svg");
+  }
+  assert.equal(codex.icon, claude.icon);
+  assert.equal(codex.interface.logo, claude.icon);
+  assert.equal(codex.interface.composerIcon, claude.icon);
 });
