@@ -21,15 +21,13 @@ See [tests.md](tests.md) for examples and [mocking.md](mocking.md) for mocking g
 
 A **seam** is the public boundary you test at: the interface where you observe behavior without reaching inside. Tests live at seams, never against internals.
 
-**Test only at pre-agreed seams.** Before writing any test, write down the seams under test and confirm them with the user. No test is written at an unconfirmed seam. You can't test everything, so agreeing the seams up front is how testing effort lands on the critical paths and complex logic instead of every edge case.
-
-Ask: "What's the public interface, and which seams should we test?" Give each proposed seam a one-line note on what it catches and what it misses.
+**Choose the consumer boundary deliberately.** Before writing a test, identify the consumer, the public interface and behavior under test, and what the observation can and cannot establish. Reuse applicable decisions in the request or spec. Choose routine boundaries using the task context; give a concise rationale for what each test proves and misses. Ask the user only when a consequential product or design choice remains unresolved or when the intended effects lack authority.
 
 When the shape of that interface is itself in question (how deep the module is, where the seam belongs, what the interface should expose), call the Skill tool with "codebase-design" for the vocabulary. It is the shared source of the module, interface, depth, seam, adapter, leverage and locality terms, and it is a reference to consult, not a session to run.
 
 ## Consumer contract and evidence
 
-Before choosing an example, name the consumer, the outcome they need, supported inputs, and what failure means. At the agreed seam, state which real behavior executes, which effects are replaced, and what the observation cannot prove. Keep semantic assertions separate from driver or adapter details, with expected outcomes specified independently of the implementation.
+Before choosing an example, name the consumer, the outcome they need, supported inputs, and what failure means. At the selected seam, state which real behavior executes, which effects are replaced, and what the observation cannot prove. Keep semantic assertions separate from driver or adapter details, with expected outcomes specified independently of the implementation.
 
 Use the smallest existing specification language that expresses those distinctions. Qualify a new driver for the claim it makes: deliberately wrong expected outcomes must fail, and refusal must remain distinguishable from successful operation entry. A mocked successful subprocess does not establish that the real consumer accepts its command.
 
