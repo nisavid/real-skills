@@ -20,7 +20,7 @@ When changing the manual archive builder or its tests, install pytest and PyYAML
 
 ## Build
 
-Run the following Bash block from the checkout containing the reviewed procedure and builder. Supply the five environment variables named below. `OUTPUT_DIR` must name a new directory outside the checkout; keep the source commit available in this checkout's Git object database. Set `SOURCE_SHA256` from the retained, independently identified source tar, rather than deriving it inside this invocation. If preparing that tar for the first time, generate it with the same Git archive and gzip command, record its hash and source provenance, and use those fixed bytes for verification.
+Run the following Bash block from the checkout containing the reviewed procedure and builder. Supply the five required environment variables named below. To replay a retained tar, also set `SOURCE_TAR` to its absolute path; the block copies those bytes into the new output directory. With `SOURCE_TAR` unset or empty, it generates a tar with the canonical `real-skills-<full SHA>/` root. `OUTPUT_DIR` must name a new directory outside the checkout; keep the source commit available in this checkout's Git object database. Set `SOURCE_SHA256` from the retained, independently identified source tar, rather than deriving it inside this invocation. If preparing that tar for the first time, generate it with the same Git archive and gzip command, record its hash and source provenance, and use those fixed bytes for verification.
 
 ```bash
 set -euo pipefail
@@ -43,9 +43,13 @@ sha256sum -- "$builder" > "$output/builder.sha256"
   git --version
   gzip --version
 } > "$output/tool-versions.txt"
-git -c tar.umask=0022 archive --format=tar \
-  --prefix="real-skills-${SOURCE_COMMIT}/" "$SOURCE_COMMIT" \
-  | gzip -n > "$output/source.tar.gz"
+if [ -n "${SOURCE_TAR:-}" ]; then
+  cp -- "$SOURCE_TAR" "$output/source.tar.gz"
+else
+  git -c tar.umask=0022 archive --format=tar \
+    --prefix="real-skills-${SOURCE_COMMIT}/" "$SOURCE_COMMIT" \
+    | gzip -n > "$output/source.tar.gz"
+fi
 for run in first second; do
   mkdir -- "$output/$run"
   python3 - "$builder" "$output/source.tar.gz" "$SOURCE_SHA256" \
@@ -76,7 +80,7 @@ cmp -- "$output/first/report.json" "$output/second/report.json"
 (cd -- "$output" && sha256sum --check SHA256SUMS)
 ```
 
-Each run starts a separate Python process from the same immutable input. Require both to succeed and their ZIPs and reports to match byte for byte. The builder's own repeated encoding check is additional evidence, not the second build. A hash mismatch or any validation failure stops this candidate; resolve the input or projection issue before rebuilding.
+Each run starts a separate Python process from the same copied or generated input and checks it against the externally supplied `SOURCE_SHA256`. Require both to succeed and their ZIPs and reports to match byte for byte. The builder's own repeated encoding check is additional evidence, not the second build. A hash mismatch or any validation failure stops this candidate; resolve the input or projection issue before rebuilding.
 
 ## Verify against Git
 
@@ -112,7 +116,7 @@ python scripts/check-release-archive-provenance.py build \
   --release "$RELEASE_VERSION" --output "$OUTPUT_DIR"
 ```
 
-The runner retains the historical `mattpocock-skills-<full SHA>/` tar recipe required by its pinned builder and source hashes. For this runner, identify and hash the source tar using that recipe; the manual build block above generates a different prefix. Updating this manual builder does not update the runner's pinned builder or hashes.
+The runner retains the historical `mattpocock-skills-<full SHA>/` tar recipe required by its pinned builder and source hashes. For this runner, identify and hash the source tar using that recipe; the manual build block above generates a different prefix when no `SOURCE_TAR` is supplied. Updating this manual builder does not update the runner's pinned builder or hashes.
 
 The runner executes the pinned archive builder in two separate Python processes. Its independent verifier derives both expected ZIPs' contents from the source Git tree. It checks the complete layouts, selected bytes and modes, generated manifests, provenance, and declared icon bytes. It checks Wayfinder asset derivation when the source declares the Wayfinder SVG. To check one existing ZIP against the same source binding, use the `verify` subcommand with `--format agent-plugins` or `--format claude` and `--archive PATH` in place of `--output`.
 
