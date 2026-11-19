@@ -9,7 +9,7 @@ Several workflows write to the same issues. This contract lets them compose: eac
 
 The project's tracker instructions, reached through its `AGENTS.md` or `CLAUDE.md` pointer, hold the project's policy: which tracker is the authority for each fact, which combinations of axes it permits, and how its labels and native statuses map to the values below. A skill's own label guidance never overrides that policy.
 
-When the tracker instructions state no rule for a question this contract asks, because they have no Tracker policy section or the section is silent on it, first read the project's existing tracker docs for a stated rule and follow it. Where they state nothing, use the setup template's defaults: the chosen tracker is the authority for every fact, and every applicable combination is permitted. Say so in the output, and point to the `setup-matt-pocock-skills` skill. Stop only if the existing docs contradict the action being taken.
+When the tracker instructions state no rule for a question this contract asks, because they have no Tracker policy section or the section is silent on it, first read the project's existing tracker docs for a stated rule and follow it. Where they state nothing, use the setup template's defaults: the chosen tracker is the authority for every fact, and every applicable combination is permitted. Say so in the output, and point to the `setup-matt-pocock-skills` skill. Stop only if the existing docs contradict the action being taken. A fact the chosen tracker cannot represent, such as a mirror's native lifecycle status, has no default authority: leave it as the mirror holds it, and say so.
 
 ## Axes
 
@@ -73,7 +73,7 @@ When a parent depends on one of its own children, create the native blocking edg
 
 ## Linear
 
-Linear has no setup template. When a project uses Linear, as its tracker or as a projection of another, apply this mapping under the project's policy.
+Linear has no setup template. When a project uses Linear, as its tracker or as a projection of another, apply this mapping under the project's policy. A Linear status whose authority that policy does not name falls under the no-default rule above.
 
 - **Intake.** Native Triage. `needs-info` stays in Triage with its label.
 - **Acceptance.** When triage accepts an issue, move it to the team's configured post-triage status and keep `ready-for-agent` or `ready-for-human`. Backlog suits a fully specified fix nobody has selected for work yet; Todo suits a project whose policy puts accepted work directly in that queue. An issue already In Progress or In Review keeps that status when its readiness label changes.
