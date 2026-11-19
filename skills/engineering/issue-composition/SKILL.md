@@ -70,7 +70,13 @@ This contract adds no lock, adapter, or service.
 
 ## A parent blocked by its own child
 
-When a parent depends on one of its own children, create the native blocking edge and read it back in the intended direction. If the tracker rejects the edge, or the read-back does not show it, record a `Blocked by:` line for the parent naming the child, and keep the native parent and child relationship. The line belongs in the parent's body, and only that body's editor writes it there; a session that is not the editor posts it as a comment on the parent and keeps its claim on the parent until the editor folds the line into the body. The workflow that decides what can be picked up reads the line from the parent's body only. If it cannot read the body, or cannot verify the child's state, the parent's eligibility is unknown. A claim dropped before the fold leaves the line only in a comment, where no reader looks; preventing that is claim hygiene for the project's operators.
+A parent is blocked while any child of its own that is a decision ticket or a map is open: it is not picked up, resumed, or resolved. That matters wherever a parent is itself a ticket, such as a promoted ticket or a map inside a larger map. For those children the parent and child relationship is the blocker. It needs no edge and no `Blocked by:` line, and any session records it by adding the child.
+
+- **The native edge.** Where the tracker takes a blocking edge from a parent to its own child, add it for each child whose result the parent needs, and read it back in the intended direction; it shows the wait in the tracker's own view. If the tracker rejects the edge, or the read-back does not show it, a child that is a decision ticket or a map still blocks its parent, and nothing more is needed.
+- **Deciding pickup.** Whatever decides what can be picked up, resumed, or resolved counts those children among the parent's blockers, reading each fact at its authority, and reads them again immediately before it records a resolution. If it cannot list them, or cannot verify a child's state, the parent's eligibility is unknown.
+- **Ending the wait.** The wait ends when those children are closed. Ruling a child out of scope, or moving it out from under its parent together with any blocker the parent carries on it, is a scoping act for the parent's planning owner, not a way for a session to free the parent.
+- **Any other blocker.** A parent can also wait for a ticket outside its children, or for a child that is neither a decision ticket nor a map. Record that like any other blocker: by the native edge, or on a tracker without one, as a `Blocked by:` line that the body's editor writes in the parent's body. A session that can do neither does not rely on a comment, which nothing that decides pickup reads. It gives the parent a `task` child for the prerequisite and records the blocker on that child as it creates it.
+- **Never the reverse.** A child that is a decision ticket or a map does not wait for its own parent, directly or through other tickets, because each would wait for the other. A decision that needs the parent's decision belongs beside the parent, not under it.
 
 ## Linear
 
@@ -87,7 +93,7 @@ Linear has no setup template. When a project uses Linear, as its tracker or as a
 
 Each unverified tracker behavior gates only the feature that relies on it, which ships on its fallback:
 
-- **A parent blocked by its own child.** Use the native edge only where the tracker accepts it; otherwise the `Blocked by:` fallback above.
+- **A parent blocked by its own child.** The native edge is added only where the tracker accepts it. A child that is a decision ticket or a map blocks its parent either way.
 - **Grouped labels across a sync.** Flat labels until the round trips above pass.
 - **Status and closure across a sync.** Whether a label change at the authority moves the projection's status, and how a not-planned closure arrives there, are unverified. A step that depends on the projection's status reads it rather than assuming the sync moved it.
 - **Coordination notes across a sync.** Whether coordination notes reach a projection is unverified. Read and write them at the authority.

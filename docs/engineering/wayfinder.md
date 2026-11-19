@@ -54,7 +54,7 @@ Each decision ticket has one applicable Wayfinder type:
 
 That type is the ticket's **decision type**, and whether an issue is a map is its **map structure**. Wayfinder owns those two classifications; [triage](https://aihero.dev/skills-triage) owns work kind and triage state. Before it writes to the tracker, Wayfinder loads [issue-composition](https://aihero.dev/skills-issue-composition), the shared contract that lets those classifications sit on one issue without either skill overwriting the other's. A map can be followed by triage: knowing the route does not settle an incoming issue's classification or readiness.
 
-A decision ticket whose question needs a route of its own is **promoted** to a map in place. It keeps its identity, its place in the larger map, its claim, and its blockers, and it keeps its decision type while it still owns that decision, for example when a person must still choose after its children report.
+A decision ticket whose question needs a route of its own is **promoted** to a map in place. It keeps its identity, its place in the larger map, its claim, and its blockers, and it keeps its decision type while it still owns that decision, for example when a person must still choose after its children report. While a decision ticket or map beneath it is open, a promoted ticket is blocked, whatever else the tracker shows.
 
 An assessment stays fresh until something it depends on changes; age alone does not make it stale, unless time is itself the input, such as an authorization that expires. Before work starts, the check looks at the current blockers too, so a prerequisite added since the assessment is not missed.
 
