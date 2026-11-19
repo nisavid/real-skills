@@ -49,11 +49,11 @@ Every ticket carries a `wayfinder:<type>` label. Each ticket is either **[HITL](
 | `prototype` | HITL | "How should this look" or "how should this behave": a question talking cannot settle. | [prototype](https://aihero.dev/skills-prototype), with a link from the ticket to the built artifact |
 | `research` | AFK | A fact outside the working directory is blocking a decision. | A [research](https://aihero.dev/skills-research) [subagent](https://www.aihero.dev/ai-coding-dictionary/subagent), started when you chart the map and run in parallel on a `research/<name>` branch |
 | `task` | Either | Prerequisite work blocks a decision. | The agent within planning scope; service signup, provisioning, and real-data changes are handed to a separately authorized workflow or to the human |
-| `probing` | AFK | One bounded observation would itself answer the question, such as whether an assumed contract or behavior holds. | A [probing](https://github.com/nisavid/real-skills/blob/main/docs/engineering/probing.md) subagent in a fresh [context window](https://www.aihero.dev/ai-coding-dictionary/context-window); independent probes can run in parallel once you have checked that they do not share or disturb the same resources |
+| `probing` | AFK | One bounded observation would itself answer the question, such as whether an assumed contract or behavior holds. | A [probing](https://github.com/nisavid/real-skills/blob/main/docs/engineering/probing.md) subagent in a fresh [context window](https://www.aihero.dev/ai-coding-dictionary/context-window), started for unblocked probing tickets when you chart the map, with the charting session recording each result on its ticket; independent probes can run in parallel once you have checked that they do not share or disturb the same resources |
 
 `task` belongs on the map only because it unblocks a decision, never because it delivers part of the destination. The label and AFK mode grant no additional permission. Planning artifacts, decision documents, tracker updates, isolated research, throwaway prototypes, and bounded probe observations remain part of Wayfinder. Product implementation and live-service or real-data changes require a separate workflow authorized directly by the human. A prerequisite ticket stays open until its completion is observed.
 
-A `probing` ticket closes once it has delivered the observation it promised, whether the result is confirmed, refuted, or unknown. It stays open only while a promised measurement still waits for access. If a probe would only inform a choice you still have to make, the ticket stays `grilling`.
+A `probing` ticket closes once it has delivered the observation it promised, whether the result is confirmed, refuted, or unknown. A probe that returns no result at all has not resolved its ticket: the session records the failed attempt and releases its claim, so the ticket returns to the frontier. A delivered result keeps the ticket open only while a promised measurement still waits for access. If a probe would only inform a choice you still have to make, the ticket stays `grilling`.
 
 Research and probing are the exceptions to *one ticket per session*.
 
@@ -96,7 +96,7 @@ It is this skill. v1.1 renamed it to `wayfinder`, and you invoke it as `/wayfind
 - The destination is written down and agreed before a single ticket exists.
 - Every open ticket reads as a question. Any ticket that reads "build the X" is either mis-typed or belongs downstream of the map.
 - You can look at your tracker and see which tickets are takeable without opening the map, because native blocking shows the frontier.
-- A session resolves one ticket, posts the answer as a resolution comment, closes it, and adds one line to the map's *Decisions so far*. Then it stops.
+- A session working through the map resolves one ticket, posts the answer as a resolution comment, closes it, and adds one line to the map's *Decisions so far*. Then it stops.
 - **Not yet specified** shrinks over time. When fog graduates into a ticket, it leaves that section and does not appear in both places.
 - When the opening breadth-first grill finds no fog at all, the skill stops and tells you the effort is small enough to skip the map.
 - The session that finishes the map points you toward a spec, not a pull request.
