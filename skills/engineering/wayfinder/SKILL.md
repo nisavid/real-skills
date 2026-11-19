@@ -53,7 +53,7 @@ The map is an **index**, not a store. It lists the decisions made and points at 
 
 **Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** Resolve the tracker instructions through the project's `AGENTS.md` or `CLAUDE.md` pointer and read the "Wayfinding operations" section before ticket operations. Follow project policy for creation, labels, assignees, state, and relationships. If setup is missing, return the draft and identify the missing policy; where applicable, ask the human to run `setup-matt-pocock-skills`. A local-markdown tracker is an available representation only when the project or human has selected it, not permission to choose a new destination.
 
-Wayfinder owns two classification axes: **map structure** and **decision type**. Before writing a label, native status, relation, or issue body, call the Skill tool with "issue-composition" and follow its contract for owned axes, authority, narrow writes, and issue bodies. Other workflows own the other axes; preserve them.
+Wayfinder owns two classification axes: **map structure** and **decision type**. Before writing to the tracker, call the Skill tool with "issue-composition" and follow it. Other workflows own the other axes; preserve them.
 
 ### The map body
 

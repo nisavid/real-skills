@@ -42,7 +42,7 @@ Five **state** roles:
 
 For a PR, the same states read against the attached code: `ready-for-agent` means a brief is attached and an agent should take the next step on the diff; `ready-for-human` means it's ready for a human to merge.
 
-Every triaged issue should carry exactly one category role and one state role: its **work kind** and its **triage state**. Triage owns those two classification axes. Before changing a label, native status, relation, or issue body, call the Skill tool with "issue-composition" and follow its contract for owned axes, native intake states, authority, narrow writes, and conflicts. Wayfinder owns map structure and decision type; preserve them. A map, assessment, or claim does not establish readiness or grant execution authority.
+Every triaged issue should carry exactly one category role and one state role: its **work kind** and its **triage state**. Triage owns those two classification axes. Before writing to the tracker, call the Skill tool with "issue-composition" and follow it. Wayfinder owns map structure and decision type; preserve them. A map, assessment, or claim does not establish readiness or grant execution authority.
 
 These are canonical role names. The actual label strings used in the issue tracker may differ. The mapping should have been provided to you. If not, call the Skill tool with "setup-matt-pocock-skills" when governing instructions permit; otherwise tell the user to run `/setup-matt-pocock-skills`.
 
