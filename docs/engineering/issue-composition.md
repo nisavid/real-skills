@@ -14,6 +14,8 @@ Reach for it directly when you want to know how the classifications combine, for
 
 The contract reads the project's tracker instructions, which [setup-matt-pocock-skills](https://aihero.dev/skills-setup-matt-pocock-skills) configures under `docs/agents/`. Their **Tracker policy** section is where the project states which tracker is the authority for each fact and which combinations of axes it forbids. The triage label mapping says how labels and native statuses map to the canonical values.
 
+If that section is missing, or silent on a question, the skills first follow any rule your existing tracker docs state. Where those say nothing, they use setup's defaults (the chosen tracker is the authority for every fact, and every applicable combination is permitted), say so in their output, and point you to setup. They stop only when your existing docs contradict the action they are about to take.
+
 ## Four axes, four owners
 
 | Axis | What it says | Owner |

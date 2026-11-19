@@ -9,6 +9,8 @@ Several workflows write to the same issues. This contract lets them compose: eac
 
 The project's tracker instructions, reached through its `AGENTS.md` or `CLAUDE.md` pointer, hold the project's policy: which tracker is the authority for each fact, which combinations of axes it permits, and how its labels and native statuses map to the values below. A skill's own label guidance never overrides that policy.
 
+When the tracker instructions state no rule for a question this contract asks, because they have no Tracker policy section or the section is silent on it, first read the project's existing tracker docs for a stated rule and follow it. Where they state nothing, use the setup template's defaults: the chosen tracker is the authority for every fact, and every applicable combination is permitted. Say so in the output, and point to the `setup-matt-pocock-skills` skill. Stop only if the existing docs contradict the action being taken.
+
 ## Axes
 
 An issue carries only the axes that apply to it. An incoming issue may still be awaiting classification.
