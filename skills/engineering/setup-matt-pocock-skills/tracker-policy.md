@@ -31,4 +31,4 @@ Every applicable axis may coexist on one issue: a work kind, a triage state, map
 
 ### Native statuses
 
-How each triage state maps to the tracker's native status, if it has one, is in the triage label mapping (`docs/agents/triage-labels.md`).
+How each triage state maps to the tracker's native status, if it has one, is in the triage label mapping (`docs/agents/triage-labels.md`), when present (setup writes it if `triage` is installed).
