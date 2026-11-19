@@ -26,3 +26,18 @@ If a harness gives you no way to reach a namespaced or renamed skill at all, rep
 - #857: "Rename the research skill to avoid conflict with Copilot's built-in /research command"
 - #1019: "Shorthand `/prototype` conflicts with hidden new Claude Code built-in skill `/prototype`"
 - #1037: "Skill name overlap with devin cli inbuilt commands"
+
+## In this fork
+
+Everything above this section is upstream's text, written for its own `mattpocock-skills` plugin. This fork keeps the same rule: it does not rename a skill or add an alias to avoid a collision.
+
+Each Real Skills edition is a plugin under its own name, so the prefix differs from upstream's:
+
+```
+/real-skills-leashed:code-review
+/real-skills-unleashed:code-review
+```
+
+On Claude Code, with this fork's plugin installed and every other provider of these skills removed, the bare `/code-review` was observed listing Claude Code's built-in beside the plugin's qualified skill. So `implement` and `implement-spec` call this collection's own `code-review` by the plugin-qualified name they were loaded under, not by the bare name. Every other call between skills keeps its bare name, because the bare name is the portable identity across plugin and standalone installs.
+
+Before an edition is qualified for a harness, its skill names are compared with that harness's built-in names. The result is recorded in [Harness built-in names](../docs/agents/release-archives.md#harness-built-in-names).

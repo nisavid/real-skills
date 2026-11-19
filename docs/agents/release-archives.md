@@ -95,9 +95,20 @@ Generated manifest and provenance files have mode `0644`. Review the generated m
 
 Retain the source commit and tar hash, reviewed procedure revision and builder hash, dependency versions, both independent build results, direct Git comparison, reports, and verified checksums. The link scanner checks only its supported inline Markdown links outside recognized fenced blocks, and only relative file or directory existence. It does not establish complete Markdown-link coverage, fragment validity, external URL reachability, or general security. Review relocation-sensitive links beyond that coverage when the selected inputs need it. Package checks establish neither license clearance beyond preserving the source license nor harness behavior.
 
-Before publication, complete the native procedure's applicable source checks and the repository's independent review on the final procedure and candidate inputs. Record review evidence for the release artifacts and rerun affected checks whenever inputs, builder bytes, or relevant dependencies change. Before claiming discovery or qualifying an installation, exercise discovery for the selected ZIP through its intended harness route: compare observed names with the promoted inventory, confirm non-promoted names are absent, and record harness versions and observed invocation controls. Source metadata alone does not establish runtime enforcement. Unavailable or failed required review or direct verification blocks the affected release. Unavailable or failed discovery blocks the corresponding consumer qualification.
+Before publication, complete the native procedure's applicable source checks and the repository's independent review on the final procedure and candidate inputs. Record review evidence for the release artifacts and rerun affected checks whenever inputs, builder bytes, or relevant dependencies change. Before claiming discovery or qualifying an installation, exercise discovery for the selected ZIP through its intended harness route: compare observed names with the promoted inventory, confirm non-promoted names are absent, and record harness versions and observed invocation controls. Before qualifying an edition for a harness, compare the edition's skill names with that harness's built-in names, and record the result under [Harness built-in names](#harness-built-in-names). Source metadata alone does not establish runtime enforcement. Unavailable or failed required review or direct verification blocks the affected release. Unavailable or failed discovery blocks the corresponding consumer qualification.
 
 Follow the standing Git publication workflow for authorized repository changes. Release upload or publication, final installation, host configuration changes, and official-directory submission each retain their own authorization and acceptance requirements. Archive construction and discovery do not complete those actions. Consumers load the reviewed procedure revision and verify its required evidence before dependent use; useful corrections return to this maintained procedure and its builder.
+
+## Harness built-in names
+
+A harness built-in that shares a skill's bare name can take that name, so a bare call can reach the built-in instead of this collection's skill. Record each comparison here with the harness, the shared names, and the source. A name that a supported harness reserves gets a plugin-qualified call where one skill invokes it; every other sibling call keeps its bare name.
+
+Known so far:
+
+- **Claude Code:** `code-review`. Observed on 2026-11-18: with every other provider removed, the profile listed the built-in under the bare name beside the plugin's qualified skill.
+- **Claude Code:** `prototype`, from an upstream report ([mattpocock/skills#1019](https://github.com/mattpocock/skills/issues/1019)). This fork has not observed it.
+- **Copilot CLI:** `research`, from an upstream report ([mattpocock/skills#857](https://github.com/mattpocock/skills/issues/857)). This fork has not observed it.
+- **Codex:** not checked. Whether Codex reserves any of these names, or resolves a plugin-qualified skill name, has not been observed.
 
 ## Check provenance in CI
 

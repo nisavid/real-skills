@@ -6,7 +6,7 @@ The skill never merges or re-ranks the two axes. The report ends with a worst is
 
 ## When to reach for it
 
-Type `/code-review`, or the agent reaches for it automatically when you ask to review a branch, a PR, work in progress, or anything "since X".
+Type its plugin-qualified name, such as `/real-skills-leashed:code-review`, or the agent reaches for it automatically when you ask to review a branch, a PR, work in progress, or anything "since X". The bare `/code-review` can reach a different, built-in review instead (see the name clash below).
 
 | Your situation | Reach for |
 | --- | --- |
@@ -49,12 +49,16 @@ The **smell baseline** sits under the repo's standards. It is twelve code smells
 
 **It collides with Claude Code's own `/code-review`. What do I do?**
 
-This is the most reported problem with the skill, and it is not fixed. Claude Code ships its own `/code-review`, which does something different: it hunts bugs in the diff, where this one checks spec compliance and repo standards. When you install this library, one of them wins, and which one depends on how you installed:
+Reach this skill by its plugin-qualified name: `/real-skills-leashed:code-review` for Real Skills [Leashed], or `/real-skills-unleashed:code-review` for Real Skills [Unleashed]. Claude Code ships its own built-in `code-review`, a different review. On a Claude Code profile with this fork's plugin installed and every other provider of these skills removed, the bare name was observed listing the built-in beside the plugin's qualified skill. No host setting removes a built-in. That is why [implement](https://aihero.dev/skills-implement) and [implement-spec](https://aihero.dev/skills-implement-spec) call this skill by its plugin-qualified name, not by the bare one. With a standalone copy instead of the plugin, use the name your copy has.
 
-- **Plugin marketplace.** Every skill gets a `mattpocock-skills:` prefix, and the built-in becomes hard to reach at the unqualified name.
-- **Plain skills install.** The local file wins, and this skill shadows the built-in.
+The rest of this answer is upstream's text, written for its own `mattpocock-skills` plugin. This fork has not checked its claims about plugin and plain installs, and its suggestion to remove Claude Code's built-in skills is upstream's.
 
-One answer is to remove Claude Code's built-in skills entirely. That saves a lot of [context](https://www.aihero.dev/ai-coding-dictionary/context), and the collision stops mattering. The shadowing itself is arguably a Claude Code [harness](https://www.aihero.dev/ai-coding-dictionary/harness) bug (a skill author should be free to name a skill anything), so the other answer is to rename the local copy. `npx skills update` undoes an edit to the frontmatter or a renamed directory. The durable workaround users report is to fork the skill to a new name and drop `code-review` from the managed set. Keep a note of the commit you forked from so you can re-sync by hand.
+> This is the most reported problem with the skill, and it is not fixed. Claude Code ships its own `/code-review`, which does something different: it hunts bugs in the diff, where this one checks spec compliance and repo standards. When you install this library, one of them wins, and which one depends on how you installed:
+>
+> - **Plugin marketplace.** Every skill gets a `mattpocock-skills:` prefix, and the built-in becomes hard to reach at the unqualified name.
+> - **Plain skills install.** The local file wins, and this skill shadows the built-in.
+>
+> One answer is to remove Claude Code's built-in skills entirely. That saves a lot of [context](https://www.aihero.dev/ai-coding-dictionary/context), and the collision stops mattering. The shadowing itself is arguably a Claude Code [harness](https://www.aihero.dev/ai-coding-dictionary/harness) bug (a skill author should be free to name a skill anything), so the other answer is to rename the local copy. `npx skills update` undoes an edit to the frontmatter or a renamed directory. The durable workaround users report is to fork the skill to a new name and drop `code-review` from the managed set. Keep a note of the commit you forked from so you can re-sync by hand.
 
 **Its sub-agents keep invoking `/code-review` again and spawn more agents.**
 
@@ -64,7 +68,7 @@ These are instruction-level guards. Where your harness supports nondelegating wo
 
 **Should I run it in the same [session](https://www.aihero.dev/ai-coding-dictionary/session) that wrote the code?**
 
-Prefer a fresh one. As one reader put it: "Same context reviewing itself isn't review, it's confirmation bias with a slash command." An agent that reviews in the authoring session has every assumption that shaped the code in its context. An independent reviewer would not have that context. This is also why people ask for [implement](https://aihero.dev/skills-implement) without its built-in review step, because that step runs the review inside the session that just wrote the diff. The independent version is to invoke `/code-review` yourself from a clean session.
+Prefer a fresh one. As one reader put it: "Same context reviewing itself isn't review, it's confirmation bias with a slash command." An agent that reviews in the authoring session has every assumption that shaped the code in its context. An independent reviewer would not have that context. This is also why people ask for [implement](https://aihero.dev/skills-implement) without its built-in review step, because that step runs the review inside the session that just wrote the diff. The independent version is to invoke this skill yourself, by its plugin-qualified name, from a clean session.
 
 **After every ticket, or once at the end?**
 
