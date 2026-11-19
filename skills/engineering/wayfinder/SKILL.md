@@ -59,7 +59,7 @@ Wayfinder owns two classification axes: **map structure** and **decision type**.
 
 The whole map at low resolution, loaded once per session. Open tickets are **not** listed: they are open child issues, found by query.
 
-Every edit to this body, at any step, follows the editor rule in Work through the map's resolution step. The lifecycle's default planning owner, the agent running it where the project names none, is not a named editor for the map-body rule. Where the project names a planning or refresh owner, a dispatching session edits the body only as that owner's designated tracker writer.
+Every edit to this body, at any step, follows the editor rule in Work through the map's resolution step. The lifecycle's default planning owner, the agent running it where the project names none, is not a named editor for the map-body rule. Where the project names a planning or refresh owner, a dispatching session edits the body only as that owner's designated tracker writer. For the map-body rule, a claimed child is an open child with an active claim; a resolved or closed child no longer counts, even while it stays assigned.
 
 ```markdown
 ## Destination
