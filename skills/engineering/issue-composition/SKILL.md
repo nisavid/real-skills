@@ -70,7 +70,7 @@ This contract adds no lock, adapter, or service.
 
 ## A parent blocked by its own child
 
-When a parent depends on one of its own children, create the native blocking edge and read it back in the intended direction. If the tracker rejects the edge, or the read-back does not show it, record a `Blocked by:` line for the parent naming the child, and keep the native parent and child relationship. The line belongs in the parent's body; a session that is not that body's editor posts it as a comment on the parent, for the editor to fold. The workflow that decides what can be picked up reads the line from the parent's body and from any comment on the parent that the body does not yet reflect. If it cannot read them, or cannot verify the child's state, the parent's eligibility is unknown.
+When a parent depends on one of its own children, create the native blocking edge and read it back in the intended direction. If the tracker rejects the edge, or the read-back does not show it, record a `Blocked by:` line for the parent naming the child, and keep the native parent and child relationship. The line belongs in the parent's body, and only that body's editor writes it there; a session that is not the editor posts it as a comment on the parent and keeps its claim on the parent until the editor folds the line into the body. The workflow that decides what can be picked up reads the line from the parent's body only. If it cannot read the body, or cannot verify the child's state, the parent's eligibility is unknown. A claim dropped before the fold leaves the line only in a comment, where no reader looks; preventing that is claim hygiene for the project's operators.
 
 ## Linear
 
