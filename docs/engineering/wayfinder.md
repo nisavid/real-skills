@@ -31,7 +31,7 @@ The **map** is an issue labelled `wayfinder:map`, with decision tickets as its c
 
 - **Destination** names what the map is finding its way to.
 - **Notes** carries planning context and relevant skill suggestions, never execution permission.
-- **Decisions so far** links to resolved questions.
+- **Decisions so far** links to resolved questions. The map's planning owner is the one editor of the map body; a session that resolves a ticket posts its pointer as a comment on the map, and the editor folds it in.
 - **Not yet specified** holds the **fog of war**: in-scope questions that cannot yet be phrased sharply.
 - **Out of scope** records work beyond the destination.
 
