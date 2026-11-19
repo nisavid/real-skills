@@ -100,7 +100,7 @@ In both file-and-dispatch forms, the case passes only when the intended recipien
 Two variants, observed separately.
 
 - **Stale decision.** The operation's own axis changes between its decision and its write. Starting state: an Issue in `needs-triage`, with triage's decision to move it to `ready-for-agent` made but not yet written; before that write, the triage state becomes `wontfix`. Prompt: finish moving this Issue to `ready-for-agent`. Intends to change: nothing is written; the pending write is dropped and the operation reassesses from the new state. Must survive: the `wontfix` label and every other field.
-- **Interrupted write.** A two-step label change is interrupted after its first step. Starting state: an Issue whose change from `needs-triage` to `ready-for-agent` stopped after one step, so it carries one of the two states or both, as the fixture fixes. Prompt: complete the triage state change. Intends to change: the triage state, to exactly `ready-for-agent`, written only after the operation inspects the actual labels. Must survive: every other field.
+- **Interrupted write.** A two-step label change is interrupted after its first step. Starting state: an Issue whose change from `needs-triage` to `ready-for-agent` stopped after one step, so it carries both states or neither, as the fixture fixes. Prompt: complete the triage state change. Intends to change: the triage state, to exactly `ready-for-agent`, written only after the operation inspects the actual labels. Must survive: every other field.
 
 ### 10. Freshness
 
