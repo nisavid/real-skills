@@ -75,14 +75,15 @@ Rerun any case whose result could change on the later build. That includes a cha
 - **Prompt.** Triage this Wayfinder Issue.
 - **Intends to change.** Nothing.
 - **Must survive.** Every field and relation. The skill writes nothing and returns the conflict to the policy's owner.
+- **Depends on.** The venue's tracker policy forbidding the coexistence of Wayfinder classification and triage labels when the case runs. The foundation commit b4f0f6d of the base stack removed the sentence "Wayfinder issues carry no triage labels" from this repository's `docs/agents/issue-tracker.md` and made its `docs/agents/triage-labels.md` say the axes may coexist. Until a policy that forbids the coexistence is in force there, the case has no venue.
 
 ### 7. Creation inside a map
 
 Three forms. In each, the parent, blockers, recipient, and other supplied inputs reach the step that uses them.
 
 - **Ordinary creation.** Starting state: a map with an open child. Prompt: create a new ticket under this map, blocked by that child. Intends to change: the new ticket, its membership, its blocker, and any initial values its creator is permitted to set. Must survive: the map and existing children.
-- **File and dispatch, with specialist roles.** Run in Proto-Factory. The initiating thread hands the whole instruction to the appropriate Sage through the established fallback, and intake, triage, and dispatch follow project policy under [the Proto-Factory intake contract](https://github.com/nisavid/provingkit/issues/1009).
-- **File and dispatch, without specialist roles.** Run in a disposable Claude Code profile that holds only the build under test. The receiving thread performs the steps it owns and is authorized to perform.
+- **File and dispatch, with specialist roles.** Run in Proto-Factory. The initiating thread hands the whole instruction to the appropriate Sage through the established fallback, and intake, triage, and dispatch follow project policy under [the Proto-Factory intake contract](https://github.com/nisavid/provingkit/issues/1009). Starting state: a map with an open child, and a named recipient able to work a ticket of this kind. Prompt: file a ticket under this map, blocked by that child, and dispatch it to the named recipient. Intends to change: the new ticket, its membership, its blocker, any initial values its creator is permitted to set, and the recipient's start on that ticket. Must survive: the map, its existing children, and their claims and blockers.
+- **File and dispatch, without specialist roles.** Run in a disposable Claude Code profile that holds only the build under test. The receiving thread performs the steps it owns and is authorized to perform. Starting state: a map with an open child, and a named recipient that the profile can start. Prompt: file a ticket under this map, blocked by that child, and dispatch it to the named recipient. Intends to change: the new ticket, its membership, its blocker, any initial values its creator is permitted to set, and the recipient's start on that ticket. Must survive: the map, its existing children, and their claims and blockers.
 
 In both file-and-dispatch forms, the case passes only when the intended recipient has actually started on the named ticket. A filed issue, an assignee, or a sent message alone does not demonstrate that. Filing the ticket and dropping the dispatch fails the case, and so does rejecting the whole request because the first thread cannot itself set a field.
 
@@ -90,6 +91,7 @@ In both file-and-dispatch forms, the case passes only when the intended recipien
 
 - **Starting state.** An Issue with a triage state and a decision type.
 - **Prompt.** Triage changes the triage state while Wayfinder changes the decision type.
+- **Intends to change.** The triage state, written by triage, and the decision type, written by Wayfinder, each by one narrow write.
 - **Interleaving.** Both writers read the same starting state before either writes. Two agents that merely start around the same time can run in sequence by accident and pass a broken implementation.
 - **Must survive.** At the authoritative tracker, both intended changes, and every unrelated field.
 
@@ -97,13 +99,13 @@ In both file-and-dispatch forms, the case passes only when the intended recipien
 
 Two variants, observed separately.
 
-- **Stale decision.** The operation's own axis changes between its decision and its write, for example `needs-triage` becomes `wontfix` while a `ready-for-agent` write is pending. The pending write is dropped and the operation reassesses from the new state.
-- **Interrupted write.** A two-step label change is interrupted after its first step. Before any retry, the operation inspects the actual labels.
+- **Stale decision.** The operation's own axis changes between its decision and its write. Starting state: an Issue in `needs-triage`, with triage's decision to move it to `ready-for-agent` made but not yet written; before that write, the triage state becomes `wontfix`. Prompt: finish moving this Issue to `ready-for-agent`. Intends to change: nothing is written; the pending write is dropped and the operation reassesses from the new state. Must survive: the `wontfix` label and every other field.
+- **Interrupted write.** A two-step label change is interrupted after its first step. Starting state: an Issue whose change from `needs-triage` to `ready-for-agent` stopped after one step, so it carries one of the two states or both, as the fixture fixes. Prompt: complete the triage state change. Intends to change: the triage state, to exactly `ready-for-agent`, written only after the operation inspects the actual labels. Must survive: every other field.
 
 ### 10. Freshness
 
 Three variants.
 
-- **New blocker.** A blocker is added after the assessment. The pre-work check sees it and holds the dependent action, while independent work proceeds.
-- **Unverifiable input.** A material input cannot be verified. Only the dependent action stays pending.
-- **Expired authorization.** An authorization the assessment relied on has expired. The check catches it as a time input.
+- **New blocker.** Starting state: an assessed ticket and one independent sibling under the same assessment, with a blocker added to the ticket after the assessment. Prompt: resume work from the assessment. Intends to change: a record of the failed pre-work check on the ticket, which holds its dependent action, and work on the independent sibling. Must survive: the new blocker, the ticket's claim, and every other field.
+- **Unverifiable input.** Starting state: an assessed ticket whose action depends on a material input the run cannot verify, and an independent sibling. Prompt: resume work from the assessment. Intends to change: the dependent action stays pending, with that recorded; work on the independent sibling proceeds. Must survive: the assessment, claims, blockers, and every other field.
+- **Expired authorization.** Starting state: an assessed ticket whose action relied on an authorization that has since expired. Prompt: resume work from the assessment. Intends to change: the pre-work check catches the expiry as a time input and holds the action that depended on it. Must survive: every field; the expired authorization is not treated as current.
