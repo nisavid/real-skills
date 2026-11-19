@@ -31,7 +31,7 @@ The **map** is an issue labelled `wayfinder:map`, with decision tickets as its c
 
 - **Destination** names what the map is finding its way to.
 - **Notes** carries planning context and relevant skill suggestions, never execution permission.
-- **Decisions so far** links to resolved questions. The map body has one editor at a time: a planning owner the project names (or the tracker writer it designates), otherwise a session that dispatched parallel work on the map's children while the claimed children are all ones it dispatched, otherwise a session that holds the map alone. Every other session leaves its changes, such as a pointer to a resolved question, as comments on the map for the editor to fold in, so the body can lag behind the closed tickets.
+- **Decisions so far** links to resolved questions. The map body has one editor at a time, named by the skill's [map-body rule](https://github.com/nisavid/real-skills/blob/main/skills/engineering/wayfinder/SKILL.md#the-map-body). Everyone else leaves their changes, such as a pointer to a resolved question, as comments on the map for the editor to fold in, so the body can lag behind the closed tickets.
 - **Not yet specified** holds the **fog of war**: in-scope questions that cannot yet be phrased sharply.
 - **Out of scope** records work beyond the destination.
 
