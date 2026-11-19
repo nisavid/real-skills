@@ -42,7 +42,7 @@ Five **state** roles:
 
 For a PR, the same states read against the attached code: `ready-for-agent` means a brief is attached and an agent should take the next step on the diff; `ready-for-human` means it's ready for a human to merge.
 
-Every triaged issue should carry exactly one category role and one state role. These describe work kind and workflow state, independently of map structure or the operation needed next. Preserve applicable `wayfinder:<type>` classifications and other axes under project policy; a bug can also be a map. Use only meaningful, applicable axes. Where the tracker uses a native Triage state, use it instead of a duplicate `needs-triage` label. Triage changes only its own axes; a map, assessment, or claim does not establish readiness or grant execution authority. If state roles conflict, flag it and ask the maintainer before doing anything else.
+Every triaged issue should carry exactly one category role and one state role: its **work kind** and its **triage state**. Triage owns those two classification axes. Before changing a label, native status, relation, or issue body, call the Skill tool with "issue-composition" and follow its contract for owned axes, native intake states, authority, narrow writes, and conflicts. Wayfinder owns map structure and decision type; preserve them. A map, assessment, or claim does not establish readiness or grant execution authority.
 
 These are canonical role names. The actual label strings used in the issue tracker may differ. The mapping should have been provided to you. If not, call the Skill tool with "setup-matt-pocock-skills" when governing instructions permit; otherwise tell the user to run `/setup-matt-pocock-skills`.
 
@@ -65,7 +65,7 @@ Query the issue tracker and present three buckets, oldest first:
 2. **`needs-triage`**: evaluation in progress, using the project's mapped state, including native Linear Triage instead of a duplicate label.
 3. **`needs-info` with reporter activity since the last triage notes**: needs re-evaluation.
 
-Query the applicable state axis through the project's tracker mapping. A recorded later triage state stays in that state; do not reset it merely because an unrelated label is added. Surface conflicting state roles through the maintainer decision above rather than treating the conflict as an absent state.
+Query the applicable state axis through the project's tracker mapping. A recorded later triage state stays in that state; do not reset it merely because an unrelated label is added. Surface conflicting state roles under the composition contract's conflict rule rather than treating the conflict as an absent state.
 
 When PRs are in scope, include external PRs in these buckets and tag each line `[PR]` or `[issue]`. Discovery surfaces only *external* PRs (the tracker config defines who counts as external), so a collaborator's in-flight PR is not triage work. This filter is discovery-only; an explicitly named PR is always triaged regardless of author.
 
@@ -85,7 +85,7 @@ Show counts and a one-line summary per item. Let the maintainer pick.
    - `ready-for-agent`: post an agent brief comment ([AGENT-BRIEF.md](AGENT-BRIEF.md)).
    - `ready-for-human`: same structure as an agent brief, but note why it can't be delegated (judgment calls, external access, design decisions, manual testing).
    - `needs-info`: post triage notes (template below).
-   - For `wontfix`, close the issue, with the comment depending on *why*:
+   - For `wontfix`, close the issue using the tracker's representation of an authorized rejection, with the comment depending on *why*:
      - **Already implemented**: the change already exists in the codebase. Point to where it lives; do **not** write to `.out-of-scope/` (that KB is for *rejected* requests, not built ones).
      - **Rejected (bug)**: give a polite explanation, then close.
      - **Rejected (enhancement)**: write to `.out-of-scope/`, link to it from a comment, then close ([OUT-OF-SCOPE.md](OUT-OF-SCOPE.md)).
