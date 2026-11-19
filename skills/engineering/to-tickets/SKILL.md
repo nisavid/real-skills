@@ -58,7 +58,7 @@ Iterate until the user approves the breakdown.
 
 Publish the approved tickets. Before writing to the tracker, call the Skill tool with "issue-composition" and follow it. Before publishing the first ticket, check every ticket's initial values against project policy under that contract. **How** depends on the tracker `/setup-matt-pocock-skills` configured; the tickets are the same either way, only the shape of the blocking edges changes:
 
-- **Local files** → write one file per ticket under `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01` in dependency order (blockers first). Each file's "Blocked by" lists the numbers/titles it depends on. Use the per-ticket file template below: one ticket per file, never a single combined file.
+- **Local files** → write one file per ticket under `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01` in dependency order (blockers first). Each file's "Blocked by" lists the numbers/titles it depends on. Record each ticket's initial triage state on the line the project's tracker instructions name for it (`Triage:` in the setup template). Use the per-ticket file template below: one ticket per file, never a single combined file.
 - **A real issue tracker (GitHub, Linear, …)** → publish one issue per ticket in dependency order (blockers first) so each ticket's blocking edges can reference real identifiers. Use the platform's native blocking relationship where it has one; otherwise set each ticket's "Blocked by" to the blocking issues. If the source was an existing issue, make each ticket its sub-issue (tracker doc's operation). Initialize each ticket's triage state as `ready-for-agent` unless instructed otherwise; the tickets are agent-grabbable by construction.
 
 Work the **frontier**: any ticket whose blockers are all done. For a purely linear chain that means top to bottom.
@@ -73,7 +73,7 @@ Do NOT close or modify any parent issue.
 
 **Blocked by:** the numbers/titles of the tickets that gate this one, or "None (can start immediately)".
 
-**Triage:** ready-for-agent
+**<triage-state line>:** ready-for-agent
 
 - [ ] Acceptance criterion 1
 - [ ] Acceptance criterion 2
