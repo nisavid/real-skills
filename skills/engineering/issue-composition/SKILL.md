@@ -62,7 +62,7 @@ This contract adds no lock, adapter, or service.
 
 ## Issue bodies
 
-- **One writer per body.** Two writers editing different sections can erase each other's work when both submit the entire body, so the unit is the whole body, not a section. Wayfinder names the editor of a map body.
+- **One writer per body.** Two writers editing different sections can erase each other's work when both submit the entire body, so the unit is the whole body, not a section. Wayfinder's map-body rule (under The map body) names the editor of a map body.
 - **Coordinate the whole cycle.** Coordinate the read, edit, write, and read-back for that issue. A claim identifies the responsible editor, but it cannot exclude a simultaneous human or sync edit.
 - **Without coordination.** Leave the proposed change for the responsible editor, and keep any authoritative blocker where the frontier check reads it.
 - **Shared facts.** A fact that several operations write belongs in native relations, labels, or append-only comments, not in a body.
