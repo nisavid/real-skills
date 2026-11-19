@@ -70,7 +70,7 @@ This contract adds no lock, adapter, or service.
 
 ## A parent blocked by its own child
 
-When a parent depends on one of its own children, create the native blocking edge and read it back in the intended direction. If the tracker rejects the edge, or the read-back does not show it, put a `Blocked by:` line on the parent naming the child, and keep the native parent and child relationship. The workflow that decides what can be picked up reads that line. If it cannot verify the child's state, the parent's eligibility is unknown.
+When a parent depends on one of its own children, create the native blocking edge and read it back in the intended direction. If the tracker rejects the edge, or the read-back does not show it, put a `Blocked by:` line on the parent naming the child, and keep the native parent and child relationship. The workflow that decides what can be picked up reads the `Blocked by:` line in the parent's body or, until the map's editor folds it, in a comment on the parent; if it can verify neither, eligibility is unknown. If it cannot verify the child's state, the parent's eligibility is unknown.
 
 ## Linear
 
