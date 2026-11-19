@@ -16,7 +16,7 @@ _Avoid_: ticket (except **Decision ticket** or external systems' terminology)
 A Wayfinder **Issue** holding a question whose resolution is a decision rather than an implementation slice.
 
 **Triage role**:
-A category or state in the [triage vocabulary](docs/agents/triage-labels.md) for implementation **Issues**. Category roles describe the kind of work (`bug` or `enhancement`); state roles describe its triage status (such as `needs-triage` or `ready-for-agent`).
+A category or state in the [triage vocabulary](docs/agents/triage-labels.md) for implementation **Issues**. Category roles describe the kind of work (`bug` or `enhancement`); state roles describe its triage state (such as `needs-triage` or `ready-for-agent`).
 
 **Classification axis**:
 One of four independent ways to classify an **Issue**: **Work kind**, **Triage state**, **Map structure**, and **Decision type**. Each axis has one owning workflow, and an Issue carries only the axes that apply to it.
