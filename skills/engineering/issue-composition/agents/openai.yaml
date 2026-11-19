@@ -1,0 +1,3 @@
+interface:
+  display_name: "Issue Composition"
+  short_description: "Compose tracker axes without overwriting each other"
