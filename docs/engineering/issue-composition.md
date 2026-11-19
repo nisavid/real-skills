@@ -12,7 +12,7 @@ Reach for it directly when you want to know how the classifications combine, for
 
 ## Prerequisites
 
-The contract reads the project's tracker policy, which [setup-matt-pocock-skills](https://aihero.dev/skills-setup-matt-pocock-skills) writes into `docs/agents/`. That policy says which tracker holds the authority for each fact, which combinations of axes the project permits, and how its labels and native statuses map to the canonical values. If that policy is missing, the tracker-writing skills point you to the setup instead of guessing.
+The contract reads the project's tracker instructions, which [setup-matt-pocock-skills](https://aihero.dev/skills-setup-matt-pocock-skills) configures under `docs/agents/`. Their **Tracker policy** section is where the project states which tracker is the authority for each fact and which combinations of axes it forbids. The triage label mapping says how labels and native statuses map to the canonical values.
 
 ## Four axes, four owners
 
