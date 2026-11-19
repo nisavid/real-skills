@@ -30,7 +30,7 @@ When a Real Skills [Leashed] release is available, download the archive for your
 2. Choose **Add**, then **Upload plugin**.
 3. Select the Claude ZIP and choose **Upload**.
 
-If you already have an earlier installation, keep it until you have verified the replacement. During verification, disable other active providers of the same skills if the provider supports it; overlapping providers can make it unclear which instructions were used. This release uses a different plugin identity, and update or coexistence behavior depends on the provider.
+If you already have an earlier installation, keep it until you have verified the replacement. During verification, disable other active providers of the same skills if the provider supports it; overlapping providers can make it unclear which instructions were used. Each harness needs one selected provider for these skill names at all times, not only during verification, because the skills call each other by bare name. Otherwise a chain can continue in another provider's version of a skill, or be refused by it. This release uses a different plugin identity, and update or coexistence behavior depends on the provider.
 
 The sections below retain Matt's introduction, installation guidance, and descriptions of the original collection. First-person references in that material refer to Matt. The installation commands are for upstream, not this fork.
 
