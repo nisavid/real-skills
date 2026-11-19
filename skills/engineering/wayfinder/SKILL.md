@@ -99,7 +99,7 @@ Each decision ticket carries its applicable `wayfinder:<type>` label, one of `re
 
 A map or assessment does not complete triage, establish implementation readiness, or grant execution authority.
 
-A session **claims** a ticket by assigning it to the dev driving the map under the project's assignment convention, **before resolving it**, so concurrent sessions skip it. That assignee _is_ the claim: an open, unassigned ticket is unclaimed. Where sessions share an account, also post a coordination note naming the worker and session, and preserve the existing ones. Assessing a ticket or finding it eligible does not claim it; preserve an existing claim unless its owner or governing workflow transfers it.
+A session **claims** a ticket by assigning it to the dev driving the map under the project's assignment convention, **before resolving it**, so concurrent sessions skip it. That assignee _is_ the claim: an open, unassigned ticket is unclaimed. Where sessions share an account, preserve the project's worker and session coordination record (such as a coordination note) as well. Assessing a ticket or finding it eligible does not claim it; preserve an existing claim unless its owner or governing workflow transfers it.
 
 Blocking uses the tracker's **native** dependency relationship where available, so the human can see the frontier in its UI. Use the actual API's relationship direction and verify that the intended dependent is blocked by the intended prerequisite. A fallback `Blocked by:` reference belongs on the dependent and points to its blocker.
 
