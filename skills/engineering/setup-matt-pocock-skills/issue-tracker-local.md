@@ -27,4 +27,4 @@ Used by `/wayfinder`. The **map** is a file with one **child** file per ticket.
 - **Blocking**: a `Blocked by: NN, NN` line near the top. A ticket is unblocked when every file it lists is `resolved`.
 - **Frontier**: scan `.scratch/<effort>/issues/` for files that are open, unblocked, and unclaimed; first by number wins.
 - **Claim**: set `Status: claimed` and save before any work.
-- **Resolve**: append the answer under an `## Answer` heading, set `Status: resolved`, then record the Decisions-so-far context pointer (gist + link) where Wayfinder's "Work through the map" step 4 directs. A comment on the map is appended under the `## Comments` heading of `map.md`.
+- **Resolve**: append the answer under an `## Answer` heading, set `Status: resolved`, then record the Decisions-so-far context pointer (gist + link) where Wayfinder's map-body editor rule directs. A comment on the map is appended under the `## Comments` heading of `map.md`.

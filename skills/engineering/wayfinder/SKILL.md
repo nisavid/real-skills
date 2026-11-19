@@ -59,6 +59,8 @@ Wayfinder owns two classification axes: **map structure** and **decision type**.
 
 The whole map at low resolution, loaded once per session. Open tickets are **not** listed: they are open child issues, found by query.
 
+Every edit to this body, at any step, follows the editor rule in Work through the map's resolution step. The lifecycle's default planning owner, the agent running it where the project names none, is not a named editor for the map-body rule.
+
 ```markdown
 ## Destination
 
