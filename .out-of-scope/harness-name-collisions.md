@@ -38,6 +38,6 @@ Each Real Skills edition is a plugin under its own name, so the prefix differs f
 /real-skills-unleashed:code-review
 ```
 
-On Claude Code, with this fork's plugin installed and every other provider of these skills removed, the bare `/code-review` was observed listing Claude Code's built-in beside the plugin's qualified skill. So `implement` and `implement-spec` call this collection's own `code-review` by the plugin-qualified name they were loaded under, not by the bare name. Every other call between skills keeps its bare name, because the bare name is the portable identity across plugin and standalone installs.
+On Claude Code, with this fork's plugin installed and every other provider of these skills removed, the bare `/code-review` was observed listing Claude Code's built-in beside the plugin's qualified skill. So `implement` and `implement-spec` call this collection's own `code-review` by the plugin-qualified name they were loaded under, not by the bare name. Which other names get a qualified call is decided by [Harness built-in names](../docs/agents/release-archives.md#harness-built-in-names); every other call keeps the bare name, the portable identity across plugin and standalone installs.
 
 Before an edition is qualified for a harness, its skill names are compared with that harness's built-in names. The result is recorded in [Harness built-in names](../docs/agents/release-archives.md#harness-built-in-names).

@@ -101,13 +101,15 @@ Follow the standing Git publication workflow for authorized repository changes. 
 
 ## Harness built-in names
 
-A harness built-in that shares a skill's bare name can take that name, so a bare call can reach the built-in instead of this collection's skill. Record each comparison here with the harness, the shared names, and the source. A name that a supported harness reserves gets a plugin-qualified call where one skill invokes it; every other sibling call keeps its bare name.
+A harness built-in that shares a skill's bare name can take that name, so a bare call can reach the built-in instead of this collection's skill. Record each comparison here with the harness, the shared names, and the source. Only a reservation that was observed and recorded here makes one skill's call to that name plugin-qualified. A name that was reported but not observed is a lead to check, and sibling calls to it keep the bare name until the reservation is observed. Every other sibling call keeps its bare name.
 
 Known so far:
 
 - **Claude Code:** `code-review`. Observed on 2026-11-18: with every other provider removed, the profile listed the built-in under the bare name beside the plugin's qualified skill.
 - **Claude Code:** `prototype`, from an upstream report ([mattpocock/skills#1019](https://github.com/mattpocock/skills/issues/1019)). This fork has not observed it.
 - **Copilot CLI:** `research`, from an upstream report ([mattpocock/skills#857](https://github.com/mattpocock/skills/issues/857)). This fork has not observed it.
+- **Claude Code:** `pr`, present in the 2.1.327 bundled-skill list (static inspection). Not observed in a profile listing by this fork.
+- **ChatGPT upload route** ([the install block](../../.agents/install-block.md)): not checked.
 - **Codex:** not checked. Whether Codex reserves any of these names, or resolves a plugin-qualified skill name, has not been observed.
 
 ## Check provenance in CI
