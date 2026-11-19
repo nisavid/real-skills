@@ -39,7 +39,7 @@ The map has four sections:
 
 The **frontier** is the set of open, unblocked, unclaimed tickets (the edge of the known). A session claims a ticket by assigning it to itself before it does any work. The assignee *is* the claim, so concurrent sessions skip that ticket. Sessions refer to tickets by name, never by a bare `#42`, because a wall of issue numbers is hard to read in narration.
 
-## The four decision-ticket types
+## The five decision-ticket types
 
 Every ticket carries a `wayfinder:<type>` label. Each ticket is either **[HITL](https://www.aihero.dev/ai-coding-dictionary/human-in-the-loop)** (worked with a human who speaks for themselves) or **[AFK](https://www.aihero.dev/ai-coding-dictionary/afk)** (driven by the agent alone). A HITL ticket resolves only through the live exchange. An agent that answers its own [grilling](https://www.aihero.dev/ai-coding-dictionary/grilling) questions has broken it.
 
@@ -49,10 +49,13 @@ Every ticket carries a `wayfinder:<type>` label. Each ticket is either **[HITL](
 | `prototype` | HITL | "How should this look" or "how should this behave": a question talking cannot settle. | [prototype](https://aihero.dev/skills-prototype), with a link from the ticket to the built artifact |
 | `research` | AFK | A fact outside the working directory is blocking a decision. | A [research](https://aihero.dev/skills-research) [subagent](https://www.aihero.dev/ai-coding-dictionary/subagent), started when you chart the map and run in parallel on a `research/<name>` branch |
 | `task` | Either | Prerequisite work blocks a decision. | The agent within planning scope; service signup, provisioning, and real-data changes are handed to a separately authorized workflow or to the human |
+| `probing` | AFK | One bounded observation would itself answer the question, such as whether an assumed contract or behavior holds. | A [probing](https://github.com/nisavid/real-skills/blob/main/docs/engineering/probing.md) subagent in a fresh [context window](https://www.aihero.dev/ai-coding-dictionary/context-window); independent probes can run in parallel once you have checked that they do not share or disturb the same resources |
 
-`task` belongs on the map only because it unblocks a decision, never because it delivers part of the destination. The label and AFK mode grant no additional permission. Planning artifacts, decision documents, tracker updates, and isolated research or throwaway prototypes remain part of Wayfinder. Product implementation and live-service or real-data changes require a separate workflow authorized directly by the human. A prerequisite ticket stays open until its completion is observed.
+`task` belongs on the map only because it unblocks a decision, never because it delivers part of the destination. The label and AFK mode grant no additional permission. Planning artifacts, decision documents, tracker updates, isolated research, throwaway prototypes, and bounded probe observations remain part of Wayfinder. Product implementation and live-service or real-data changes require a separate workflow authorized directly by the human. A prerequisite ticket stays open until its completion is observed.
 
-Research is the only exception to *one ticket per session*.
+A `probing` ticket closes once it has delivered the observation it promised, whether the result is confirmed, refuted, or unknown. It stays open only while a promised measurement still waits for access. If a probe would only inform a choice you still have to make, the ticket stays `grilling`.
+
+Research and probing are the exceptions to *one ticket per session*.
 
 ## Common questions
 
@@ -86,7 +89,7 @@ This is the sharpest open complaint about wayfinder, and nobody has fixed it yet
 There is no official guidance, and the agent's default is unhelpful. It tends to design around the bad decision instead of challenging it, so you must steer it yourself. What works is to tell wayfinder plainly what changed. It then updates the map, revises the affected tickets, and comments on the closed ones. You can recover from scope changes mid-map. But if you *designed* a map to change, that is a sign the scope is wrong.
 
 **Where did `decision-mapping` go?**
-It is this skill. v1.1 renamed it to `wayfinder`, and you invoke it as `/wayfinder`. "Decision map" was jargon, and it was also inaccurate, because only one of the four ticket types is a decision by itself. The new name gave the skill one consistent vocabulary (destination, fog of war, frontier, the map) instead of an invented term on top. The unit kept the word "decision": a wayfinder ticket is a **decision ticket**, so that people do not read it as an implementation ticket.
+It is this skill. v1.1 renamed it to `wayfinder`, and you invoke it as `/wayfinder`. "Decision map" was jargon, and it was also inaccurate, because only one of its ticket types is a decision by itself. The new name gave the skill one consistent vocabulary (destination, fog of war, frontier, the map) instead of an invented term on top. The unit kept the word "decision": a wayfinder ticket is a **decision ticket**, so that people do not read it as an implementation ticket.
 
 ## It's working if
 
@@ -103,4 +106,4 @@ It is this skill. v1.1 renamed it to `wayfinder`, and you invoke it as `/wayfind
 
 `wayfinder` is a **situational on-ramp**, not the default starting point. Most work still starts on the grill-led idea → ship chain. You use wayfinder when the idea is too big to hold in one session. It rejoins that chain at [to-spec](https://aihero.dev/skills-to-spec), because a cleared map hands off and does not build.
 
-Most of the work happens in other skills that wayfinder schedules. [grilling](https://aihero.dev/skills-grilling) and [domain-modeling](https://aihero.dev/skills-domain-modeling) resolve the default ticket type, [prototype](https://aihero.dev/skills-prototype) resolves the tickets that talk cannot settle, and [research](https://aihero.dev/skills-research) runs as a subagent so its reading stays out of your session. [handoff](https://aihero.dev/skills-handoff) moves work in and out: into a map from a conversation that grew too big, and out of a map when a side quest appears mid-session. For anything else, [ask-matt](https://aihero.dev/skills-ask-matt) routes over the whole set.
+Most of the work happens in other skills that wayfinder schedules. [grilling](https://aihero.dev/skills-grilling) and [domain-modeling](https://aihero.dev/skills-domain-modeling) resolve the default ticket type, [prototype](https://aihero.dev/skills-prototype) resolves the tickets that talk cannot settle, [research](https://aihero.dev/skills-research) runs as a subagent so its reading stays out of your session, and [probing](https://github.com/nisavid/real-skills/blob/main/docs/engineering/probing.md) runs the same way when one bounded observation answers a ticket. [handoff](https://aihero.dev/skills-handoff) moves work in and out: into a map from a conversation that grew too big, and out of a map when a side quest appears mid-session. For anything else, [ask-matt](https://aihero.dev/skills-ask-matt) routes over the whole set.
