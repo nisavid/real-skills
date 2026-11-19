@@ -45,7 +45,7 @@ Rerun any case whose result could change on the later build. That includes a cha
 - **Starting state.** As in case 1, with GitHub as the authority and the fixture Linear team as its projection. The incoming request's Linear copy is in native Triage. A second, already accepted Issue on the map is In Progress in Linear.
 - **Prompt.** Assess the incoming request with Wayfinder, then triage it. Separately, change the map classification of the In Progress Issue.
 - **Intends to change.** The request's work kind and triage state at the authority; on acceptance, its Linear status moves to the team's configured post-triage status. The second Issue's map classification.
-- **Must survive.** Native Triage represents the request's intake: no skill adds a `needs-triage` label to represent it. The second Issue keeps In Progress through its map classification change. Projected copies stay as the sync left them.
+- **Must survive.** The request's Linear copy uses native Triage for intake. A `needs-triage` label written at the GitHub authority and projected into Linear is left alone, and no skill adds a `needs-triage` label in Linear to duplicate native Triage. The second Issue keeps In Progress through its map classification change. Other projected copies stay as the sync left them.
 
 ### 3. A bug that is also a map
 

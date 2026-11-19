@@ -12,7 +12,7 @@ Keep any existing claim. An open prerequisite still blocks the request, and an u
 
 ## Linear Triage
 
-An incoming request is in a Linear project's native Triage state. The planning owner assesses its route, reusing a current direct or parent assessment where adequate. The request remains in Triage until the project's `triage` workflow has actually set its work kind and triage state and made the state transition. Native Triage already represents its intake, so no `needs-triage` label is added.
+An incoming request is in a Linear project's native Triage state, and Linear owns intake for that project. The planning owner assesses its route, reusing a current direct or parent assessment where adequate. The request remains in Triage until the project's `triage` workflow has actually set its work kind and triage state and made the state transition. Native Triage already represents its intake, so no `needs-triage` label is added.
 
 Use the project's supported parent and blocking relationships independently, following the native operation's direction. If the available tool cannot perform a required state transition or relationship update, report that capability limit and return the proposed change. A label or body link does not prove a native transition or relationship exists.
 

@@ -46,7 +46,7 @@ Often neither skill. One observed cause is an unattended automation that adds a 
 ## It's working if
 
 - Running `wayfinder` and then `triage` on the same issue leaves both skills' classifications, plus its claim and blockers, intact.
-- An issue in Linear's native Triage never gains a duplicate `needs-triage` label from a skill.
+- Where Linear owns intake, an issue in its native Triage never gains a duplicate `needs-triage` label from a skill.
 - When your tracker policy forbids a combination, the run reports the conflict and the tracker shows no change.
 - A label change shows up as one added or removed label, not a rewritten label set.
 

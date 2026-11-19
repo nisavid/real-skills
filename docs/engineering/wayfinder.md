@@ -79,7 +79,7 @@ It means the route is clear. Multi-session work can move through [to-spec](https
 This is an instruction boundary. Technical prevention depends on the actual harness's tool and credential restrictions.
 
 **Can Wayfinder labels coexist with triage labels?**
-Yes, where the project's policy permits the combination. Each skill writes only its own labels, one at a time, and leaves the other skill's alone. Not every issue needs every classification, and Linear's native Triage status stands in for a `needs-triage` label. If the policy forbids the combination, the skill writes nothing and reports the conflict to whoever owns the policy.
+Yes, where the project's policy permits the combination. Each skill writes only its own labels, one at a time, and leaves the other skill's alone. Not every issue needs every classification, and where Linear owns intake, its native Triage status stands in for a `needs-triage` label. If the policy forbids the combination, the skill writes nothing and reports the conflict to whoever owns the policy.
 
 **Where did `decision-mapping` go?**
 It became `wayfinder` in v1.1. The map still consists of decision tickets: questions to resolve, rather than build slices.
@@ -91,7 +91,7 @@ It became `wayfinder` in v1.1. The map still consists of decision tickets: quest
 - Before work starts, the next step still fits the current inputs, claims, blockers, and holds.
 - Worker and supplier returns change only the parts of the route their evidence affects.
 - You can identify the next eligible decision, or see who owns the hold and exactly what permits work to resume.
-- Independent classifications coexist where your policy permits them, a Wayfinder write never removes a triage label, and Linear Triage is not duplicated by a label.
+- Independent classifications coexist where your policy permits them, a Wayfinder write never removes a triage label, and where Linear owns intake, its native Triage is not duplicated by a label.
 - A promoted ticket keeps its number, its claim, and its blockers.
 - Fog becomes precise questions as evidence arrives; unresolved human choices stay open.
 - A cleared map hands off to an authorized workflow, and the next session receives a current frontier.
