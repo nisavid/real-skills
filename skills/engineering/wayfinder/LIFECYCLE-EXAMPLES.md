@@ -6,13 +6,13 @@ These examples show assessment, classification, claims, and execution authority 
 
 A map has settled which audit records an export may include. A new request asks for one export format. The planning owner checks that the parent assessment covers this request's inputs, constraints, and next decision, then records the assessment pointer and coverage. Membership in the map alone would not establish that.
 
-The incoming request still needs `triage` to establish its issue classification and readiness under project policy. If it is also a decision ticket, retain its applicable Wayfinder type and map relationship. Permitted kind, domain, priority, or triage classifications can coexist; add only those that apply. If it is an implementation request, linking the map does not turn it into a Wayfinder decision ticket.
+The incoming request still needs `triage` to establish its work kind and triage state under project policy. If it is also a decision ticket, it keeps its decision type and map membership; Wayfinder and triage each write only their own axes under the composition contract. If it is an implementation request, linking the map does not turn it into a Wayfinder decision ticket.
 
 Keep any existing claim. An open prerequisite still blocks the request, and an undecided human choice stays with the human. A clear map does not grant implementation authority; the implementation workflow uses an applicable direct human grant.
 
 ## Linear Triage
 
-An incoming request is in a Linear project's native Triage state. The planning owner assesses its route, reusing a current direct or parent assessment where adequate. The request remains in Triage until the project's `triage` workflow has actually completed the required classification and state transition. Do not add a second `needs-triage` label to represent the same state.
+An incoming request is in a Linear project's native Triage state. The planning owner assesses its route, reusing a current direct or parent assessment where adequate. The request remains in Triage until the project's `triage` workflow has actually set its work kind and triage state and made the state transition. Native Triage already represents its intake, so no `needs-triage` label is added.
 
 Use the project's supported parent and blocking relationships independently, following the native operation's direction. If the available tool cannot perform a required state transition or relationship update, report that capability limit and return the proposed change. A label or body link does not prove a native transition or relationship exists.
 

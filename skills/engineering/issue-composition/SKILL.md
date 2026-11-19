@@ -20,7 +20,7 @@ An issue carries only the axes that apply to it. An incoming issue may still be 
 | Map structure | A map, or not | Applies or does not | `wayfinder` |
 | Decision type | The ticket types `wayfinder` defines | None or one | `wayfinder` |
 
-- Map structure and decision type can coexist on one issue, and a bug can also be a map. A map keeps its decision type while it still owns the decision that type describes.
+- Map structure and decision type can coexist on one issue, and a bug can also be a map. Wayfinder's promotion rule decides when a map keeps its decision type.
 - Owning triage state does not confer ownership of the issue's whole lifecycle. A tracker can use one field for several stages of work: a native intake state such as Linear's Triage is the triage state, while later lifecycle states such as In Progress or Done are not. Preserve later lifecycle states during unrelated edits, including a change of map classification. An authorized rejection can still perform the project's prescribed closure transition.
 - Claims, blockers, parent membership, holds, and authority are not axes. No workflow changes them as a side effect of writing an axis.
 

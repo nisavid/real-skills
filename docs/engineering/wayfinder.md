@@ -52,7 +52,11 @@ Each decision ticket has one applicable Wayfinder type:
 | `grilling` | A live exchange using [grilling](https://aihero.dev/skills-grilling) and [domain-modeling](https://aihero.dev/skills-domain-modeling). |
 | `task` | An observed prerequisite result that a decision needs. Work outside planning scope goes to a separately authorized workflow or the human. |
 
-The type does not replace other applicable issue classifications. GitHub labels may carry independent axes under project policy. A Linear project using native Triage keeps that state instead of duplicating it with a `needs-triage` label. A map can be followed by [triage](https://aihero.dev/skills-triage): knowing the route does not settle an incoming issue's classification or readiness.
+That type is the ticket's **decision type**, and whether an issue is a map is its **map structure**. Wayfinder owns those two classifications; [triage](https://aihero.dev/skills-triage) owns work kind and triage state. Before it writes to the tracker, Wayfinder loads [issue-composition](https://aihero.dev/skills-issue-composition), the shared contract that lets those classifications sit on one issue without either skill overwriting the other's. A map can be followed by triage: knowing the route does not settle an incoming issue's classification or readiness.
+
+A decision ticket whose question needs a route of its own is **promoted** to a map in place. It keeps its identity, its place in the larger map, its claim, and its blockers, and it keeps its decision type while it still owns that decision, for example when a person must still choose after its children report.
+
+An assessment stays fresh until something it depends on changes; age alone does not make it stale, unless time is itself the input, such as an authorization that expires. Before work starts, the check looks at the current blockers too, so a prerequisite added since the assessment is not missed.
 
 After a return, the planning owner checks what the result changes about the parent outcome. A proposed adapter or new dependency is not automatically necessary just because a worker supplied it. If an existing qualified route still meets the outcome, the extra work can remain follow-up.
 
@@ -75,7 +79,7 @@ It means the route is clear. Multi-session work can move through [to-spec](https
 This is an instruction boundary. Technical prevention depends on the actual harness's tool and credential restrictions.
 
 **Can Wayfinder labels coexist with triage labels?**
-Yes, where the project's policy permits the relevant independent classifications. That does not require every axis on every issue, and it does not replace a native workflow state such as Linear Triage. If project policy still makes the labels exclusive, its owner must change that policy before the additional labels are applied.
+Yes, where the project's policy permits the combination. Each skill writes only its own labels, one at a time, and leaves the other skill's alone. Not every issue needs every classification, and Linear's native Triage status stands in for a `needs-triage` label. If the policy forbids the combination, the skill writes nothing and reports the conflict to whoever owns the policy.
 
 **Where did `decision-mapping` go?**
 It became `wayfinder` in v1.1. The map still consists of decision tickets: questions to resolve, rather than build slices.
@@ -87,7 +91,8 @@ It became `wayfinder` in v1.1. The map still consists of decision tickets: quest
 - Before work starts, the next step still fits the current inputs, claims, blockers, and holds.
 - Worker and supplier returns change only the parts of the route their evidence affects.
 - You can identify the next eligible decision, or see who owns the hold and exactly what permits work to resume.
-- Independent classifications coexist where useful, and Linear Triage is not duplicated by a label.
+- Independent classifications coexist where your policy permits them, a Wayfinder write never removes a triage label, and Linear Triage is not duplicated by a label.
+- A promoted ticket keeps its number, its claim, and its blockers.
 - Fog becomes precise questions as evidence arrives; unresolved human choices stay open.
 - A cleared map hands off to an authorized workflow, and the next session receives a current frontier.
 
