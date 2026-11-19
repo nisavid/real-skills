@@ -62,10 +62,10 @@ The maintainer may invoke `/triage` and describe what they want in natural langu
 Query the issue tracker and present three buckets, oldest first:
 
 1. **No triage state**: incoming requests for which triage applies that have no mapped triage state yet. Ignore unrelated labels when selecting this bucket: an entirely unlabeled request and one carrying only a Wayfinder or other independent classification both belong here. Do not force planning-only maps through triage when that axis does not apply.
-2. **`needs-triage`**: evaluation in progress, read at the triage state's authority under the project's mapping.
+2. **`needs-triage`**: evaluation in progress.
 3. **`needs-info` with reporter activity since the last triage notes**: needs re-evaluation.
 
-Query the applicable state axis through the project's tracker mapping. A recorded later triage state stays in that state; do not reset it merely because an unrelated label is added. Surface conflicting state roles to the maintainer as a conflict rather than treating the conflict as an absent state.
+Query the applicable state axis at the triage state's authority, through the project's tracker mapping. A recorded later triage state stays in that state; do not reset it merely because an unrelated label is added. Surface conflicting state roles to the maintainer as a conflict rather than treating the conflict as an absent state.
 
 When PRs are in scope, include external PRs in these buckets and tag each line `[PR]` or `[issue]`. Discovery surfaces only *external* PRs (the tracker config defines who counts as external), so a collaborator's in-flight PR is not triage work. This filter is discovery-only; an explicitly named PR is always triaged regardless of author.
 
