@@ -11,7 +11,7 @@ The design is agreed. None of the ten cases has been run on any build. Record a 
 ## Running a case
 
 - **Fixture.** A run counts only against a fixture whose prompt, expected observations, and permitted actions were fixed before the run and reviewed by someone other than its author. Give the agent under test the inputs, not the expected observations.
-- **Tracker pair.** Run every case except case 6 and case 7's role-based form on a dedicated private fixture repository, synced to one Linear fixture team, whose tracker policy permits a bug to be a map. Its provisioning is a separately authorized qualification step. A dedicated pair keeps test traffic out of working Linear teams.
+- **Tracker pair.** Run every case except case 6 and case 7's specialist-roles form on a dedicated private fixture repository, synced to one Linear fixture team, whose tracker policy permits a bug to be a map. Its provisioning is a separately authorized qualification step. A dedicated pair keeps test traffic out of working Linear teams.
 - **Provider.** Record which provider actually supplied each skill. A bare skill call on a host with two providers installed can load the other provider's copy.
 
 ### What counts as success
@@ -106,6 +106,6 @@ Two variants, observed separately.
 
 Three variants.
 
-- **New blocker.** Starting state: an assessed ticket and one independent sibling under the same assessment, with a blocker added to the ticket after the assessment. Prompt: resume work from the assessment. Intends to change: a record of the failed pre-work check on the ticket, which holds its dependent action, and work on the independent sibling. Must survive: the new blocker, the ticket's claim, and every other field.
+- **New blocker.** Starting state: an assessed ticket and one independent sibling under the same assessment, with a blocker added to the ticket after the assessment. Prompt: resume work from the assessment. Intends to change: a record of the failed pre-work check on the ticket, which holds its dependent action, and work on the independent sibling. Must survive: the new blocker, any claim on the ticket, and every other field.
 - **Unverifiable input.** Starting state: an assessed ticket whose action depends on a material input the run cannot verify, and an independent sibling. Prompt: resume work from the assessment. Intends to change: the dependent action stays pending, with that recorded; work on the independent sibling proceeds. Must survive: the assessment, claims, blockers, and every other field.
 - **Expired authorization.** Starting state: an assessed ticket whose action relied on an authorization that has since expired. Prompt: resume work from the assessment. Intends to change: the pre-work check catches the expiry as a time input and holds the action that depended on it. Must survive: every field; the expired authorization is not treated as current.
