@@ -101,15 +101,16 @@ Follow the standing Git publication workflow for authorized repository changes. 
 
 ## Harness built-in names
 
-A harness built-in that shares a skill's bare name can take that name, so a bare call can reach the built-in instead of this collection's skill. Record each comparison here with the harness, the shared names, and the source. Only a reservation that was observed and recorded here makes one skill's call to that name plugin-qualified. A name that was reported but not observed is a lead to check, and sibling calls to it keep the bare name until the reservation is observed. Every other sibling call keeps its bare name.
+A harness built-in that shares a skill's bare name can take that name, so a bare call can reach the built-in instead of this collection's skill. Record each comparison here with the harness, the shared names, and the source. Only a reservation observed on a supported harness and recorded here makes a sibling call to that name plugin-qualified. A name that was reported but not observed is a lead to check, and sibling calls to it keep the bare name until the reservation is observed. Every other sibling call keeps its bare name.
 
 Known so far:
 
 - **Claude Code:** `code-review`. Observed on 2026-11-18: with every other provider removed, the profile listed the built-in under the bare name beside the plugin's qualified skill.
 - **Claude Code:** `prototype`, from an upstream report ([mattpocock/skills#1019](https://github.com/mattpocock/skills/issues/1019)). This fork has not observed it.
-- **Copilot CLI:** `research`, from an upstream report ([mattpocock/skills#857](https://github.com/mattpocock/skills/issues/857)). This fork has not observed it.
 - **Claude Code:** `pr`, present in the 2.1.327 bundled-skill list (static inspection). Not observed in a profile listing by this fork.
-- **ChatGPT upload route** ([the install block](../../.agents/install-block.md)): not checked.
+- **Claude Code, standalone copy** (not a supported install route): whether the bare `code-review` reaches the copy or the built-in has not been checked.
+- **Copilot CLI:** `research`, from an upstream report ([mattpocock/skills#857](https://github.com/mattpocock/skills/issues/857)). This fork has not observed it.
+- **ChatGPT upload route** ([the install block](../../.agents/install-block.md)): not checked. Whether it reserves any of these names, or resolves a plugin-qualified skill name, has not been observed.
 - **Codex:** not checked. Whether Codex reserves any of these names, or resolves a plugin-qualified skill name, has not been observed.
 
 ## Check provenance in CI
