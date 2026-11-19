@@ -66,6 +66,7 @@ This contract adds no lock, adapter, or service.
 - **Coordinate the whole cycle.** Coordinate the read, edit, write, and read-back for that issue. A claim identifies the responsible editor, but it cannot exclude a simultaneous human or sync edit.
 - **Without coordination.** Leave the proposed change for the responsible editor, and keep any authoritative blocker where the frontier check reads it.
 - **Shared facts.** A fact that several operations write belongs in native relations, labels, or append-only comments, not in a body.
+- **Coordination notes.** A coordination note is an append-only comment on an issue that records who is working it and what was checked before work.
 
 ## A parent blocked by its own child
 
