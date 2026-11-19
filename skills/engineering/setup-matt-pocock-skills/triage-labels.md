@@ -23,4 +23,4 @@ When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the 
 
 Edit the "Label in our tracker" column to match whatever vocabulary you actually use.
 
-Fill the "Native status" column when the tracker that is the authority for triage state has a native status for a role: for example Linear's Triage for `needs-triage`, or the post-triage status, such as Backlog or Todo, that an accepted issue moves to. Where the native status alone represents a role, write `none` in its label column; no skill adds a label to duplicate it.
+Fill the "Native status" column when the tracker that is the authority for triage state has a native status for a role: for example Linear's Triage for `needs-triage`, or the post-triage status, such as Backlog or Todo, that an accepted issue moves to. Where the native status alone represents a role, write `none` in its label column.
