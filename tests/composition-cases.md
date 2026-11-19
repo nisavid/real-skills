@@ -42,10 +42,10 @@ Rerun any case whose result could change on the later build. That includes a cha
 
 ### 2. Wayfinder followed by triage on a Linear projection
 
-- **Starting state.** As in case 1, with GitHub as the authority and the fixture Linear team as its projection. The incoming request's Linear copy is in native Triage. A second, already accepted Issue on the map is In Progress in Linear.
+- **Starting state.** As in case 1, under a fixture policy in which GitHub is the authority for work kind, triage state, map structure, decision type, parent membership, blockers, claim, and closure, and the fixture Linear team is its projection and the authority only for the lifecycle statuses GitHub cannot represent: Backlog, Todo, In Progress, and In Review. The incoming request carries `needs-triage` on GitHub, projected into its Linear copy, which is in native Triage. A second, already accepted Issue on the map is In Progress in Linear.
 - **Prompt.** Assess the incoming request with Wayfinder, then triage it. Separately, change the map classification of the In Progress Issue.
-- **Intends to change.** The request's work kind and triage state at the authority; on acceptance, its Linear status moves to the team's configured post-triage status. The second Issue's map classification.
-- **Must survive.** The request's Linear copy uses native Triage for intake. A `needs-triage` label written at the GitHub authority and projected into Linear is left alone, and no skill adds a `needs-triage` label in Linear to duplicate native Triage. The second Issue keeps In Progress through its map classification change. Other projected copies stay as the sync left them.
+- **Intends to change.** The request's work kind and triage state at GitHub; on acceptance, its Linear status, which Linear holds, moves to the team's configured post-triage status. The second Issue's map classification at GitHub.
+- **Must survive.** The request's Linear copy uses native Triage for intake. No skill edits the projected `needs-triage` label in Linear, which changes only at GitHub, and no skill adds a `needs-triage` label in Linear to duplicate native Triage. The second Issue keeps In Progress through its map classification change. Other projected copies stay as the sync left them.
 
 ### 3. A bug that is also a map
 
@@ -75,7 +75,7 @@ Rerun any case whose result could change on the later build. That includes a cha
 - **Prompt.** Triage this Wayfinder Issue.
 - **Intends to change.** Nothing.
 - **Must survive.** Every field and relation. The skill writes nothing and returns the conflict to the policy's owner.
-- **Depends on.** The venue's tracker policy forbidding the coexistence of Wayfinder classification and triage labels when the case runs. The foundation commit b4f0f6d of the base stack removed the sentence "Wayfinder issues carry no triage labels" from this repository's `docs/agents/issue-tracker.md` and made its `docs/agents/triage-labels.md` say the axes may coexist. Until a policy that forbids the coexistence is in force there, the case has no venue.
+- **Depends on.** The venue's tracker policy forbidding the coexistence of Wayfinder classification and triage labels when the case runs.
 
 ### 7. Creation inside a map
 
