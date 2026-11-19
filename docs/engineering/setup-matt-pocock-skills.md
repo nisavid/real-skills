@@ -32,7 +32,7 @@ It starts each section with the recommended answer, and skips any question its e
 | Decision | What it proposes | When it asks |
 | --- | --- | --- |
 | **Issue tracker** | the one matching your `git remote` | always, because this is the one real choice |
-| **Tracker policy** | the chosen tracker is the authority for every fact it can represent, and no combination of classifications is forbidden | only if you mention a second tracker that mirrors the first, such as a Linear sync |
+| **Tracker policy** | defaults that make the chosen tracker the authority for every fact it can represent and forbid no combination | only if you mention a second tracker that mirrors the first, such as a Linear sync |
 | **Triage labels** | keep the canonical names: `bug` and `enhancement` for work kind, and `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix` for triage state, with no native statuses | only if the `triage` skill is installed |
 | **Domain docs** | single-context: one `GLOSSARY.md` plus `docs/adr/` at the root | only if it spots monorepo signals, and then it offers a multi-context `GLOSSARY-MAP.md` |
 
