@@ -45,7 +45,7 @@ Default posture: these skills were designed for GitHub. If a `git remote` points
 - **Local markdown**: issues live as files under `.scratch/<feature>/` in this repo (good for solo projects or repos without a remote)
 - **Other** (Jira, Linear, etc.): ask the user to describe the workflow in one paragraph; the skill will record it as freeform prose
 
-Record the choice in `docs/agents/issue-tracker.md`, ending with the tracker policy section from [tracker-policy.md](./tracker-policy.md) for every choice, including "other". Its defaults make the chosen tracker the authority for every fact and permit every applicable combination; write them without asking. Ask only when the user mentions a second tracker that mirrors this one, such as a Linear sync: then record which facts it copies and which, if any, it owns. The user can edit the section later without touching a skill.
+Record the choice in `docs/agents/issue-tracker.md`, ending with the tracker policy section from [tracker-policy.md](./tracker-policy.md) for every choice, including "other". Its defaults make the chosen tracker the authority for every fact it can represent and forbid no combination; write them without asking. Ask only when the user mentions a second tracker that mirrors this one, such as a Linear sync: then record which facts it copies and which, if any, it owns. The user can edit the section later without touching a skill.
 
 The GitHub and GitLab templates carry a "PRs as a request surface" flag, defaulted **off**. Leave it off and don't raise it: a user who wants external PRs in the triage queue can flip the flag in the file later.
 

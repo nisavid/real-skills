@@ -1,10 +1,8 @@
 ## Tracker policy
 
-The skills that write to the tracker read this section through the composition contract (the `issue-composition` skill). It is this project's policy: edit it here, not in a skill.
+This project's tracker policy. Edit it here, not in a skill. What the skills do with each field is in the composition contract (the `issue-composition` skill).
 
 ### Authority
-
-Each fact is read and written at its authority. A copy of it in another tracker is a projection, and a relation missing from the copy is a projection gap.
 
 | Fact | Authority | Projections |
 | --- | --- | --- |
@@ -16,17 +14,15 @@ Each fact is read and written at its authority. A copy of it in another tracker 
 | Blockers | this tracker | none |
 | Claim | this tracker | none |
 | Closure | this tracker | none |
-| Lifecycle status | this tracker | none |
+| Lifecycle status | this tracker, if it has the field | none |
 
-When another tracker mirrors this one, name it under Projections for each fact it copies, and as the Authority for any fact it owns, such as a lifecycle status this tracker cannot represent. If people rely on the mirror's view of blockers, name the workflow assigned to copy those edges there and verify them:
+For a mirror, name it under Projections for each fact it copies, and as the Authority for any fact it owns.
 
-- Blocker copying: none.
+- Blocker copying (the workflow that copies blocker edges into a mirror and verifies them): none.
 
-### Permitted combinations
+### Forbidden combinations
 
-Every applicable axis may coexist on one issue: a work kind, a triage state, map structure, and a decision type. A bug can also be a map. List each combination this project forbids; a skill that would create one writes nothing and returns the conflict to the owner named here.
-
-- Forbidden combinations: none.
+- Forbidden combinations of classification axes: none.
 - Policy owner: the repository's maintainers.
 
 ### Native statuses
