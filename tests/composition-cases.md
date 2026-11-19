@@ -58,7 +58,7 @@ Rerun any case whose result could change on the later build. That includes a cha
 
 - **Starting state.** A claimed decision ticket with a decision type and one open blocker, a member of a larger map. Its question needs several children, one of them a probing ticket.
 - **Prompt.** Promote this ticket to a map and chart its children.
-- **Intends to change.** Map structure on the ticket; the new child tickets; a blocking edge from the ticket to each child whose result it actually needs.
+- **Intends to change.** Map structure on the ticket; the new child tickets; a blocking edge, or where the tracker rejects it the fallback the composition contract directs, from the ticket to each child whose result it actually needs.
 - **Must survive.** The ticket's identity, its membership in the larger map, its claim, and its existing blocker. It keeps its decision type while it still owns the decision that type describes; the fixture fixes whether a person must still choose after the children report, and the expected type follows from that.
 - **Depends on.** The probing decision type, which comes from [Add probing and the probing decision type to Real Skills [Leashed]](https://github.com/nisavid/real-skills/issues/115). The case cannot run until that type is in the build under test.
 
