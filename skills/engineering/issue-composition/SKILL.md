@@ -74,7 +74,7 @@ When a parent depends on one of its own children, create the native blocking edg
 
 ## Linear
 
-Linear has no setup template. When a project uses Linear, as its tracker or as a projection of another, apply this mapping under the project's policy. A Linear status whose authority that policy does not name falls under the no-default rule above.
+Linear has no setup template. When a project uses Linear, as its tracker or as a projection of another, apply this mapping under the project's policy. Where Linear mirrors another tracker, a Linear status whose authority that policy does not name falls under the no-default rule above.
 
 - **Intake.** Native Triage. `needs-info` stays in Triage with its label.
 - **Acceptance.** When triage accepts an issue, move it to the team's configured post-triage status and keep `ready-for-agent` or `ready-for-human`. Backlog suits a fully specified fix nobody has selected for work yet; Todo suits a project whose policy puts accepted work directly in that queue. An issue already In Progress or In Review keeps that status when its readiness label changes.
