@@ -54,9 +54,9 @@ After every RED and every GREEN, including review corrections. These are quick c
 
 Deeper work follows every completed clean code review. The owning implementation coordinator invokes [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) in automatic mode, implements eligible Strong recommendations, and gets the final candidate and assessment independently reviewed. It skips only when a verified completed baseline covers the same scope and no nontrivial code has changed since it. A new nontrivial implementation or fix makes that old skip unavailable.
 
-**When will it ask me about a test seam?**
+**It asked me to choose a test seam and I had no idea which to pick.**
 
-The agent chooses ordinary public test boundaries from the task and explains what each test can establish. It asks when the choice has a consequential unresolved product or design trade-off, or when the intended test effects need authority. If it asks you to decide, it should explain the alternatives in consumer terms rather than list boundary names alone.
+Routine seams no longer prompt you. This was the most-reported friction with the skill ([issue #607](https://github.com/mattpocock/skills/issues/607)); the agent now chooses ordinary public test boundaries from the task and explains what each test can establish. It still asks when the choice has a consequential unresolved product or design trade-off, or when the intended test effects need authority. When it does, it should explain the alternatives in consumer terms. If it lists seam names alone, ask it for the trade-offs before answering: what each seam catches, what it misses, and how much slower it is.
 
 **It wrote the implementation before the test, even though the skill says red first.**
 

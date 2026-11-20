@@ -2,7 +2,7 @@
 
 `to-spec` turns the conversation you have just had into a **[spec](https://www.aihero.dev/ai-coding-dictionary/spec)**, and publishes it to your issue tracker as a single issue.
 
-It synthesises what is known from the thread, the codebase, your `GLOSSARY.md`, and ADRs. It preserves the product and design decisions you already made and selects routine test boundaries from that context. It asks only when a consequential choice remains unresolved or a proposed action needs authority.
+It does not interview you. It synthesises what is known from the thread, the codebase, your `GLOSSARY.md`, and ADRs. The spec is not a place to make new product or design decisions: it preserves the ones you already made, and routine test boundaries are the only thing it chooses itself, from that same context. It asks only when a consequential choice remains unresolved or a proposed action needs authority.
 
 ## When to reach for it
 
@@ -25,7 +25,7 @@ Reach for it when the build is too big for one agent [session](https://www.aiher
 
 The spec exists because context windows end. You settled many things while [grilling](https://www.aihero.dev/ai-coding-dictionary/grilling): the shape of the solution, the choices you argued through, and what you deliberately refused. All of that is in one conversation that you are about to clear. The spec keeps it.
 
-The spec records settled product and design decisions in your project's own vocabulary, so a fresh session can pick up the work without you explaining it again. Routine testing choices carry a rationale tied to the consumer's behavior. A consequential choice that remains unresolved stays open for your direction.
+The spec records settled product and design decisions in your project's own vocabulary, so a fresh session can pick up the work without you explaining it again. Apart from routine testing choices, if the spec states something you never decided, that is a defect. Routine testing choices carry a rationale tied to the consumer's behavior. A consequential choice that remains unresolved stays open for your direction.
 
 ## Seams before prose
 
@@ -67,7 +67,7 @@ A tracker issue may not return a very large spec in full, and there is no local 
 - It starts writing instead of asking you a new round of questions.
 - It records consumer boundaries and what the proposed observations can and cannot establish.
 - It uses your project's nouns, not generic product-management boilerplate.
-- It preserves your product and design decisions, explains routine testing choices, and leaves consequential unresolved choices open.
+- It preserves your product and design decisions, explains routine testing choices, and leaves consequential unresolved choices open. Apart from routine testing choices, it invented nothing to fill a section.
 - The out-of-scope section lists real things. The things you refused are usually the most useful lines on the page.
 
 ## Where it fits

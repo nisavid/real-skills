@@ -61,6 +61,7 @@ A list of testing decisions that were made. Include:
 
 - A description of what makes a good test (only test external behavior, not implementation details)
 - Which modules will be tested
+- The seams under test, the consumer behavior each observes, and what it cannot establish
 - Prior art for the tests (i.e. similar types of tests in the codebase)
 
 ## Out of Scope
