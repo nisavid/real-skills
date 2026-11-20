@@ -21,7 +21,7 @@ See [tests.md](tests.md) for examples and [mocking.md](mocking.md) for mocking g
 
 A **seam** is the public boundary you test at: the interface where you observe behavior without reaching inside. Tests live at seams, never against internals.
 
-**Choose the consumer boundary deliberately.** Before writing a test, identify the consumer, the public interface and behavior under test, and what the observation can and cannot establish. Reuse applicable decisions in the request or spec. Choose routine boundaries using the task context; give a concise rationale for what each test proves and misses. Ask the user only when a consequential product or design choice remains unresolved or when the intended effects lack authority.
+**Choose the consumer boundary deliberately.** Before writing a test, identify the consumer, the public interface and behavior under test, and what the observation can and cannot establish. Reuse applicable decisions in the request or spec. Choose routine boundaries using the task context; give a concise rationale for what each test proves and misses. Ask the user only when a consequential product or design choice remains unresolved or when the intended effects lack authority. When you ask, give each alternative a one-line note on what it catches and what it misses.
 
 When the shape of that interface is itself in question (how deep the module is, where the seam belongs, what the interface should expose), call the Skill tool with "codebase-design" for the vocabulary. It is the shared source of the module, interface, depth, seam, adapter, leverage and locality terms, and it is a reference to consult, not a session to run.
 

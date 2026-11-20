@@ -25,11 +25,11 @@ Reach for it when the build is too big for one agent [session](https://www.aiher
 
 The spec exists because context windows end. You settled many things while [grilling](https://www.aihero.dev/ai-coding-dictionary/grilling): the shape of the solution, the choices you argued through, and what you deliberately refused. All of that is in one conversation that you are about to clear. The spec keeps it.
 
-The spec records settled product and design decisions in your project's own vocabulary, so a fresh session can pick up the work without you explaining it again. Apart from routine testing choices, if the spec states something you never decided, that is a defect. Routine testing choices carry a rationale tied to the consumer's behavior. A consequential choice that remains unresolved stays open for your direction.
+The spec records settled product and design decisions in your project's own vocabulary, so a fresh session can pick up the work without you explaining it again. Apart from routine test boundaries, if the spec states something you never decided, that is a defect. Routine test boundaries carry a rationale tied to the consumer's behavior. A consequential choice that remains unresolved stays open for your direction.
 
 ## Seams before prose
 
-Before writing the spec, `to-spec` identifies the public consumer boundaries where the feature can be tested, using the discussion and codebase. It prefers existing seams and describes what each observation proves and misses. Routine choices do not need your approval; consequential unresolved choices return for your direction.
+Before writing the spec, `to-spec` identifies the public consumer boundaries where the feature can be tested, using the discussion and codebase. It prefers existing seams and describes what each observation proves and misses. Routine test boundaries do not need your approval; consequential unresolved choices return for your direction.
 
 Other skills use those testing decisions later. [tdd](https://aihero.dev/skills-tdd) selects public consumer boundaries and states what its tests establish; [code-review](https://aihero.dev/skills-code-review) reviews the resulting diff against the applicable spec and standards. An implementation agent can refine a routine boundary as it learns, while preserving settled decisions.
 
@@ -67,7 +67,7 @@ A tracker issue may not return a very large spec in full, and there is no local 
 - It starts writing instead of asking you a new round of questions.
 - It records consumer boundaries and what the proposed observations can and cannot establish.
 - It uses your project's nouns, not generic product-management boilerplate.
-- It preserves your product and design decisions, explains routine testing choices, and leaves consequential unresolved choices open. Apart from routine testing choices, it invented nothing to fill a section.
+- It preserves your product and design decisions, explains routine test boundaries, and leaves consequential unresolved choices open. Apart from routine test boundaries, it invented nothing to fill a section.
 - The out-of-scope section lists real things. The things you refused are usually the most useful lines on the page.
 
 ## Where it fits
