@@ -55,7 +55,7 @@ Record the confirmed host and project in `docs/agents/issue-tracker.md`, and spe
 
 **Section B: Triage label vocabulary.** Skip this section entirely if the `triage` skill isn't installed (exploration told you), since an uninstalled skill needs no labels.
 
-If it is installed, ask exactly one question:
+If it is installed, ask this question, plus the post-triage status question below when native statuses apply:
 
 > Do you want to keep the default triage labels? (recommended: **yes**)
 
