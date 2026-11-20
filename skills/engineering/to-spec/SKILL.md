@@ -15,7 +15,7 @@ The issue tracker and triage label vocabulary should have been provided to you. 
 
 Check with the user that these seams match their expectations.
 
-3. Write the spec using the template below. Before publishing it or applying a triage label, check that the active request and governing instructions authorize those tracker operations and the selected target. Reuse an applicable user grant for the scoped workflow; do not require another confirmation just because the agent invoked this skill. If authority is absent, return the draft and proposed target and seek it before writing. Once authorized, publish the spec and apply the `ready-for-agent` triage label; no additional triage is needed.
+3. Write the spec using the template below. Before publishing it or applying a triage label, check that the active request and governing instructions authorize those tracker operations and the selected target. Reuse an applicable user grant for the scoped workflow; do not require another confirmation just because the agent invoked this skill. If authority is absent, return the draft and proposed target and seek it before writing. Once authorized, before writing to the tracker, call the Skill tool with "issue-composition" and follow it; then publish the spec and initialize its triage state as `ready-for-agent`; no additional triage is needed.
 
 <spec-template>
 

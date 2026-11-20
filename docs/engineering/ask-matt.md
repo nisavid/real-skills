@@ -30,7 +30,7 @@ The skill's leading word is **flow**, a path *through* the skills rather than a 
 - **On-ramps**, for a situation that generates work and then merges onto the main flow: incoming bug reports, something broken, or an effort too foggy and too large to hold in one session.
 - **Codebase health**, upkeep rather than feature work. [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) offers an interactive survey and an automatic mode after every completed clean code review. The owning implementation coordinator implements eligible in-scope Strong recommendations and obtains independent review of the final candidate and assessment. Only a verified unchanged completed baseline justifies skipping another assessment.
 - **Standalones**, which sit off every flow and which you use on their own: the prototype, the questionnaire, the research run.
-- **A vocabulary layer underneath**, the two references the other skills pull in when the words rather than the process are the problem.
+- **A vocabulary layer underneath**, the three references the other skills pull in when the words or the rules rather than the process are the problem. One of them, [issue-composition](https://aihero.dev/skills-issue-composition), is the contract the tracker-writing skills load so that Wayfinder and triage can classify the same issue without overwriting each other.
 
 ## The phase boundary
 

@@ -28,9 +28,9 @@ Executing a PR or a reporter's reproduction requires a disposable sandbox with n
 
 ## The state machine
 
-The attention query finds incoming work with no applicable triage state independently of its other labels. A Wayfinder-labelled incoming request remains discoverable; a planning-only map is not automatically triage work. Native Linear Triage is discovered through the mapped workflow state, and adding another classification never resets a later triage state.
+The attention query finds incoming work with no applicable triage state independently of its other labels. A Wayfinder-labelled incoming request remains discoverable; a planning-only map is not automatically triage work. The buckets are read at the tracker that holds the triage state, under your mapping, and adding another classification never resets a later triage state.
 
-Every triaged item ends with exactly one category role and one state role. Those axes can coexist with applicable Wayfinder classifications under project policy. A bug can also be a map, and triage changes do not remove its map classification. A planning-only issue need not carry irrelevant triage roles; a map does not make implementation work agent-ready. Where Linear uses native Triage, that workflow state replaces a duplicate `needs-triage` label. There are two categories: `bug` (something is broken) and `enhancement` (new feature or improvement). There are five states:
+Every triaged item ends with exactly one category role and one state role: its work kind and its triage state. Triage owns those two classifications and nothing else. Before it writes, it loads [issue-composition](https://aihero.dev/skills-issue-composition), the shared contract that keeps Wayfinder's map and decision-type labels, claims, and blockers intact while triage changes its own labels one at a time. A bug can also be a map where your policy allows it; if your policy forbids a combination, triage writes nothing and reports the conflict. A planning-only issue need not carry irrelevant triage roles; a map does not make implementation work agent-ready. Where Linear owns intake, its native Triage status is the triage state, and no skill adds a `needs-triage` label to duplicate it; a `needs-triage` label projected from another tracker that is the authority is left alone. There are two categories: `bug` (something is broken) and `enhancement` (new feature or improvement). There are five states:
 
 | State | Means |
 | --- | --- |
@@ -38,7 +38,7 @@ Every triaged item ends with exactly one category role and one state role. Those
 | `needs-info` | Waiting on the reporter. Returns to `needs-triage` when they reply. |
 | `ready-for-agent` | Fully specified, with an agent brief attached. An [AFK](https://www.aihero.dev/ai-coding-dictionary/afk) agent can take it. |
 | `ready-for-human` | The same brief, plus why an agent can't do it: judgment, external access, manual testing. |
-| `wontfix` | Closed, with the reason recorded. |
+| `wontfix` | Closed, with the reason recorded. How the close is represented depends on the tracker: GitHub's template closes it as not planned, and Linear maps it to Canceled. |
 
 That is the whole vocabulary. The rule of exactly one state role per item keeps the queries simple. The states are also the most-requested area of the [skill](https://www.aihero.dev/ai-coding-dictionary/skill). Users have asked for a state for work that is specified but blocked on another issue, a `deferred` state for work that waits on a future trigger, and a terminal `implemented` state. None of those has shipped. See the questions below.
 
@@ -105,6 +105,7 @@ Yes. The tracker is config, not a hard-coded assumption. People run it against L
 ## It's working if
 
 - Every item it touches ends with exactly one category role and one state role, never zero, and never two conflicting states.
+- Labels it did not set, such as a Wayfinder map or decision type, are still there afterwards.
 - It gives you a recommendation with reasoning and stops. It does not relabel the issue and move on.
 - It distinguishes static review from reproduction or PR tests, records the tested revision and isolation, and clearly marks any checks that could not run.
 - The briefs it writes name types and behaviours, and contain no file paths and no line numbers.
