@@ -48,7 +48,12 @@ def clone_support(tmp_path_factory):
         try:
             tool.ficlone(left.fileno(), right.fileno())
             supported = True
-        except OSError:
+        except OSError as error:
+            # Only a refusal means this filesystem cannot reflink. Any other
+            # errno (ENOTTY from a wrong request number, EBADF from swapped
+            # arguments) is a defect in the write path and must fail loudly.
+            if error.errno not in (errno.EOPNOTSUPP, errno.EXDEV):
+                raise
             supported = False
     return supported, filesystem(root)
 
