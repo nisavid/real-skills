@@ -6,7 +6,7 @@ Assessment does not require a map. A bounded request can proceed with a short as
 
 ## When to reach for it
 
-Type `/wayfinder`, or let the agent invoke it on new intake, before work, and when a change or return could alter the route. Sage owns the assessment, directly or through a Sage child using the same effective model and reasoning selection. Invoking the skill does not grant permission to change the tracker or perform the eventual work.
+Type `/wayfinder`, or let the agent invoke it on new intake, before work, and when a change or return could alter the route. The effort's planning owner owns the assessment: whoever the project's policy names, or the agent running the skill when it names no one. Invoking the skill does not grant permission to change the tracker or perform the eventual work.
 
 | What you have in front of you | What happens next |
 | --- | --- |
@@ -54,7 +54,7 @@ Each decision ticket has one applicable Wayfinder type:
 
 The type does not replace other applicable issue classifications. GitHub labels may carry independent axes under project policy. A Linear project using native Triage keeps that state instead of duplicating it with a `needs-triage` label. A map can be followed by [triage](https://aihero.dev/skills-triage): knowing the route does not settle an incoming issue's classification or readiness.
 
-After a return, Sage checks what the result changes about the parent outcome. A proposed adapter or new dependency is not automatically necessary just because a worker supplied it. If an existing qualified route still meets the outcome, the extra work can remain follow-up.
+After a return, the planning owner checks what the result changes about the parent outcome. A proposed adapter or new dependency is not automatically necessary just because a worker supplied it. If an existing qualified route still meets the outcome, the extra work can remain follow-up.
 
 Each refresh ends with the next eligible step or a hold that names its owner and exact return trigger. Independent branches can proceed while a blocked branch waits. The interactive map modes still resolve at most one non-research ticket per session; they hand the refreshed frontier to the next session.
 
