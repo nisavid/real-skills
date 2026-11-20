@@ -65,7 +65,7 @@ A tracker issue may not return a very large spec in full, and there is no local 
 ## It's working if
 
 - It starts writing instead of asking you a new round of questions.
-- It records consumer boundaries and what the proposed observations can and cannot establish.
+- It records consumer boundaries, marks each as settled (with its source), routine, or open, and states what the proposed observations can and cannot establish.
 - It uses your project's nouns, not generic product-management boilerplate.
 - It preserves your product and design decisions, explains routine test boundaries, and leaves consequential unresolved choices open. Apart from routine test boundaries, it invented nothing to fill a section.
 - The out-of-scope section lists real things. The things you refused are usually the most useful lines on the page.
