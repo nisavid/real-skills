@@ -2,7 +2,7 @@
 
 `to-spec` turns the conversation you have just had into a **[spec](https://www.aihero.dev/ai-coding-dictionary/spec)**, and publishes it to your issue tracker as a single issue.
 
-It does not interview you. When you reach for it, the deciding is already done. So it synthesises what is known (from the thread, the codebase, your `GLOSSARY.md` and ADRs) and does not start a new round of questions. The spec records decisions you already made. It is not a place to make new ones.
+It does not interview you. It synthesises what is known from the thread, the codebase, your `GLOSSARY.md`, and ADRs. The spec is not a place to make new product or design decisions: it preserves the ones you already made, and routine test boundaries are the only thing it chooses itself, from that same context. It asks only when a consequential choice remains unresolved or a proposed action needs authority.
 
 ## When to reach for it
 
@@ -25,13 +25,13 @@ Reach for it when the build is too big for one agent [session](https://www.aiher
 
 The spec exists because context windows end. You settled many things while [grilling](https://www.aihero.dev/ai-coding-dictionary/grilling): the shape of the solution, the choices you argued through, and what you deliberately refused. All of that is in one conversation that you are about to clear. The spec keeps it.
 
-So the spec does not validate or decide anything. It records what you decided, in your project's own vocabulary, so a fresh session can pick up the work without you explaining it again. If the spec states something you never said, that is a defect.
+The spec records settled product and design decisions in your project's own vocabulary, so a fresh session can pick up the work without you explaining it again. Apart from routine test boundaries, if the spec states something you never decided, that is a defect. Routine test boundaries carry a rationale tied to the consumer's behavior. A consequential choice that remains unresolved stays open for your direction.
 
 ## Seams before prose
 
-Before it writes anything, `to-spec` sketches the **seams** where the feature will be tested, and checks them with you. It prefers existing seams to new ones, and picks the highest seam it can. The ideal number of seams for a change is one.
+Before writing the spec, `to-spec` identifies the public consumer boundaries where the feature can be tested, using the discussion and codebase. It prefers existing seams and describes what each observation proves and misses. Routine test boundaries do not need your approval; consequential unresolved choices return for your direction.
 
-Other skills use those agreed seams later. [tdd](https://aihero.dev/skills-tdd) works only at seams you agreed in advance. [code-review](https://aihero.dev/skills-code-review) reviews the diff against the spec, so a seam nobody agreed to shows up as a review finding. Both connections go through this document. That is why you should take the seam conversation seriously here, and not leave it for implementation.
+Other skills use those testing decisions later. [tdd](https://aihero.dev/skills-tdd) selects public consumer boundaries and states what its tests establish; [code-review](https://aihero.dev/skills-code-review) reviews the resulting diff against the applicable spec and standards.
 
 ## Common questions
 
@@ -65,9 +65,9 @@ A tracker issue may not return a very large spec in full, and there is no local 
 ## It's working if
 
 - It starts writing instead of asking you a new round of questions.
-- It shows you the seams before it writes, and proposes as few as it can.
+- It records consumer boundaries and states what the proposed observations can and cannot establish.
 - It uses your project's nouns, not generic product-management boilerplate.
-- You remember making every decision in it. It invented nothing to fill a section.
+- It preserves your product and design decisions, explains routine test boundaries, and leaves consequential unresolved choices open. Apart from routine test boundaries, it invented nothing to fill a section.
 - The out-of-scope section lists real things. The things you refused are usually the most useful lines on the page.
 
 ## Where it fits

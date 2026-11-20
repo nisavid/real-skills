@@ -2,7 +2,7 @@
 
 `tdd` builds a feature or fixes a bug test-first: one failing test, a quick refactor, just enough code to pass the test, and another quick refactor before the next behaviour. It carries the standards that make that loop produce tests worth keeping: what a good test is, where tests go, what mocks are for, and the three anti-patterns that make a suite worthless.
 
-It writes no test at a seam you have not agreed to first. Before any test exists, it names the public boundaries it intends to test at and stops for your confirmation. Testing effort is finite, and this step spends it on the critical paths instead of on every edge case. `tdd` is also a **reference**, not a driver. It contains the rules of the loop, and something else (you, or [implement](https://aihero.dev/skills-implement)) runs the [session](https://www.aihero.dev/ai-coding-dictionary/session) that applies them.
+Before writing a test, the agent identifies the public consumer boundary, the behavior the test should prove, and what the observation cannot establish. Testing effort is finite, so it prefers the highest existing public boundary and spends that effort on the critical paths and complex logic instead of on every edge case. It reuses decisions already made and asks you when a consequential choice remains unresolved or an intended effect lacks authority. Routine boundary choices do not require your approval. `tdd` is also a **reference**, not a driver. It contains the rules of the loop, and something else (you, or [implement](https://aihero.dev/skills-implement)) runs the [session](https://www.aihero.dev/ai-coding-dictionary/session) that applies them.
 
 ## When to reach for it
 
@@ -13,7 +13,7 @@ Reach for it when there is a concrete behaviour to build, with an input and an o
 | Your situation | Where to go |
 | --- | --- |
 | A behaviour with defined inputs and outputs (business logic, a request/response contract, a transformation, validation) | `tdd` |
-| The behaviour isn't pinned down yet | [to-spec](https://aihero.dev/skills-to-spec), which also agrees the test seams before any code is written |
+| The behaviour isn't pinned down yet | [to-spec](https://aihero.dev/skills-to-spec), which records the consumer boundaries and testing decisions |
 | The question is really the shape of the interface, not the tests | [codebase-design](https://aihero.dev/skills-codebase-design) |
 | You have a [spec](https://www.aihero.dev/ai-coding-dictionary/spec) or [tickets](https://www.aihero.dev/ai-coding-dictionary/ticket) and want the whole build run for you | [implement](https://aihero.dev/skills-implement), which drives `tdd` per ticket |
 | Config, wiring, glue, type annotations, straight CRUD delegation | Nothing here fits well; see the open gap below |
@@ -32,7 +32,7 @@ The skill rests on three terms.
 
 **Vertical slice.** Write one test at one seam, then the minimal implementation, then repeat. The first cycle is a **tracer bullet** that proves a single path end to end. The opposite is horizontal slicing: all the tests first, then all the code. Tests written in bulk verify *imagined* behaviour. They check the shape of things rather than what a user does, and they commit you to a test structure before you understand the implementation.
 
-**Pre-agreed seam.** A seam is the public boundary you observe behaviour at without reaching inside. The rule has no exceptions. No test goes at an unconfirmed seam. In the full chain the seams are agreed earlier, during [to-spec](https://aihero.dev/skills-to-spec): "`/tdd` is told to only work at pre-agreed test seams, `/code-review` checks that only agreed-upon test seams were used." Invoked on its own, `tdd` asks you directly.
+**Consumer boundary.** A seam is the public boundary where a test observes behaviour without reaching inside. The agent records the consumer, intended outcome, supported inputs, and what the observation proves and misses. It reuses applicable decisions in the request, the ticket, or its parent spec, chooses routine seams itself, and brings you consequential unresolved choices or effects that need authority.
 
 The three anti-patterns it is written to prevent:
 
@@ -56,7 +56,7 @@ Deeper work follows every completed clean code review. The owning implementation
 
 **It asked me to choose a test seam and I had no idea which to pick.**
 
-This is the most-reported friction with the skill ([issue #607](https://github.com/mattpocock/skills/issues/607)). The prompt lists candidate seams by name only, with nothing about what each one catches or misses, so you are choosing between labels. There is no fix shipped yet. The practical workaround is to ask the agent for the trade-offs before answering: what does the component-level seam miss that the integration seam catches, and how much slower is it. It is also why the chain agrees seams up front in `to-spec`, where you have the whole feature in view rather than one prompt.
+Routine seams no longer prompt you. This was the most-reported friction with the skill ([issue #607](https://github.com/mattpocock/skills/issues/607)); the agent now chooses ordinary public test boundaries from the task and explains what each test can establish. It still asks when the choice has a consequential unresolved product or design trade-off, or when the intended test effects need authority. When it does, it should explain the alternatives in consumer terms. If it lists seam names alone, ask it for the trade-offs before answering: what each seam catches, what it misses, and how much slower it is.
 
 **It wrote the implementation before the test, even though the skill says red first.**
 
@@ -80,7 +80,7 @@ No. Run against one ticket, it can propose work that belongs to a sibling ticket
 
 ## It's working if
 
-- It stops and names the seams it intends to test at, and waits, before any test file exists.
+- Before writing a test, it identifies the consumer boundary, the behavior the test proves, and the limits of the observation; it asks only for a consequential unresolved choice or missing authority.
 - One test appears and fails for the intended reason. Quick cleanup preserves that failure, the smallest implementation makes it pass, and another quick cleanup preserves GREEN before the next test appears.
 - Each RED and GREEN has a cleanup result, including an explicit statement when nothing warrants refactoring.
 - The original failure and later passing result identify the source and inputs they actually exercised.
@@ -97,4 +97,4 @@ No. Run against one ticket, it can propose work that belongs to a sibling ticket
 grill-with-docs → to-spec → to-tickets → implement → code-review → retro
 ```
 
-[to-spec](https://aihero.dev/skills-to-spec) agrees the test seams up front, [implement](https://aihero.dev/skills-implement) drives `tdd` per ticket, and [code-review](https://aihero.dev/skills-code-review) checks the resulting diff. Every clean review sends the owning implementation coordinator to [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) for automatic deep refactoring, subject to its verified completed-baseline exception. Its other neighbour is [codebase-design](https://aihero.dev/skills-codebase-design), the shared source of the seam and deep-module vocabulary that `tdd` uses. You can also reach for it on its own, whenever there is a concrete behaviour to build and no full spec in play. When you are unsure which skill fits your situation, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.
+[to-spec](https://aihero.dev/skills-to-spec) records relevant consumer boundaries and testing decisions, [implement](https://aihero.dev/skills-implement) drives `tdd` per ticket, and [code-review](https://aihero.dev/skills-code-review) checks the resulting diff. Every clean review sends the owning implementation coordinator to [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) for automatic deep refactoring, subject to its verified completed-baseline exception. Its other neighbour is [codebase-design](https://aihero.dev/skills-codebase-design), the shared source of the seam and deep-module vocabulary that `tdd` uses. You can also reach for it on its own, whenever there is a concrete behaviour to build and no full spec in play. When you are unsure which skill fits your situation, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.

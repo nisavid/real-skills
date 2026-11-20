@@ -51,7 +51,7 @@ A review of the whole spec before all its tickets land can mistake unbuilt work 
 
 **Does it drive tdd like implement does?**
 
-It does now, though it didn't at first. Users running the in-progress version noticed that "the implementer subagents don't inherit the /tdd directive", so red-green stopped as soon as they scaled up from one ticket to a whole spec. Each implementer now builds its ticket with `tdd`. There is still no step where you agree seams interactively, as there is in an `implement` session, so name the seams in the spec or the tickets if you want them pinned.
+Each implementer builds its ticket with `tdd`. The implementation agents choose routine public consumer boundaries from the spec and tickets, state what their tests establish, and escalate consequential unresolved choices or missing authority.
 
 **Two implementers running in parallel collided on the same file, or picked different names for the same thing.**
 
