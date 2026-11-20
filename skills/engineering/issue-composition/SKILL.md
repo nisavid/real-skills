@@ -62,7 +62,7 @@ This contract adds no lock, adapter, or service.
 
 ## Issue bodies
 
-- **One writer per body.** Two writers editing different sections can erase each other's work when both submit the entire body, so the unit is the whole body, not a section. Wayfinder's map-body rule (under The map body) names the editor of a map body, a promoted ticket's included; for a map body, a claim does not.
+- **One writer per body.** Two writers editing different sections can erase each other's work when both submit the entire body, so the unit is the whole body, not a section. Wayfinder's map-body rule (under The map body) names the editor of a map body, which includes a promoted ticket's body; for a map body, a claim does not.
 - **Coordinate the whole cycle.** Coordinate the read, edit, write, and read-back for that issue. Outside a map body, a claim identifies the responsible editor, but it cannot exclude a simultaneous human or sync edit.
 - **Without coordination.** Leave the proposed change for the responsible editor, and keep any authoritative blocker where the frontier check reads it.
 - **Shared facts.** A fact that several operations write is recorded in native relations, labels, or append-only comments; a body that reflects it, such as a map body, changes only through its responsible editor.
@@ -84,7 +84,7 @@ Linear has no setup template. When a project uses Linear, as its tracker or as a
 
 - **Intake.** Native Triage. `needs-info` stays in Triage with its label.
 - **Acceptance.** When triage accepts an issue, move it to the team's configured post-triage status and keep `ready-for-agent` or `ready-for-human`. Backlog suits a fully specified fix nobody has selected for work yet; Todo suits a project whose policy puts accepted work directly in that queue. An issue already In Progress or In Review keeps that status when its readiness label changes.
-- **Rejection.** An authorized `wontfix` maps to Canceled. Canceled alone does not say why an issue closed, so the `wontfix` label shows beside it and the closing comment gives the reason, such as a declined request or behavior that already existed.
+- **Rejection.** An authorized `wontfix` maps to Canceled. Canceled alone does not say why an issue closed, so the closing comment gives the reason, such as a declined request or behavior that already existed. Where Linear mirrors GitHub, the `wontfix` label is written on GitHub and shows in Linear only if the sync carries it.
 - **Maps.** A map is a parent issue carrying the map label, with native sub-issues. It is not a Linear project.
 - **Labels.** Use flat labels. Separate single-choice label groups, one for decision type and one for the label-based triage states, replace them only after the sync is verified to preserve their meaning: setting, replacing, and clearing a value in each enabled sync direction, and a conflicting pair set on GitHub that Linear must not silently resolve and write back. Keep the map label outside the decision-type group, because a map may still own a decision.
 - **Planning-only issues.** A planning-only issue moves out of intake at charting. When Wayfinder creates it directly in Linear, it may initialize it in Backlog if project policy permits. When a sync creates the Linear copy in Triage, the workflow authorized to maintain that copy can make the same transition, after confirming that the copy is still in Triage and is solely planning work. Assessing an existing issue gives Wayfinder no general right to change its status. A bug that is also a map can still need triage.
@@ -97,3 +97,4 @@ Each unverified tracker behavior gates only the feature that relies on it, which
 - **Grouped labels across a sync.** Flat labels until the round trips above pass.
 - **Status and closure across a sync.** Whether a label change at the authority moves the projection's status, and how a not-planned closure arrives there, are unverified. A step that depends on the projection's status reads it rather than assuming the sync moved it.
 - **Coordination notes across a sync.** Whether coordination notes reach a projection is unverified. Read and write them at the authority.
+- **Labels new to Linear.** Whether the sync from GitHub creates the `wontfix` or `wayfinder:probing` label in Linear the first time a GitHub issue carries it is unobserved. A rejection's closing comment gives its reason either way.
