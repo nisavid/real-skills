@@ -11,7 +11,7 @@
       "source": {
         "source": "url",
         "url": "https://github.com/nisavid/real-skills",
-        "ref": "stable-vanilla-plus"
+        "ref": "c63cbf7f7ceb578eb3d55950cf6bb18bad7f680b"
       },
       "description": "A lightly revised and repackaged fork of Matt Pocock's Skills for Real Engineers.",
       "category": "engineering",
@@ -28,7 +28,7 @@
       "source": {
         "source": "url",
         "url": "https://github.com/nisavid/real-skills",
-        "ref": "stable"
+        "ref": "d58bd4e5bb0a1c9d693709d4c0d79cbced247a24"
       },
       "description": "A lightly revised and repackaged fork of Matt Pocock's Skills for Real Engineers.",
       "category": "engineering",
