@@ -1,16 +1,21 @@
 ## What it does
 
-`improve-codebase-architecture` surveys a codebase for **deepening opportunities**. These are places where a shallow module (an interface nearly as complex as the thing it hides) could become a deep one. It writes them up as a self-contained HTML report, and then [grills](https://www.aihero.dev/ai-coding-dictionary/grilling) you through the one you pick.
+`improve-codebase-architecture` finds **deepening opportunities**: places where a shallow module exposes too much complexity to its callers. It has an interactive survey and an automatic deep-refactor mode. Automatic work stays within the assigned behavioural surface and preserves its consumer behaviour and invariants.
 
-It never changes the code. The whole run produces a conversation and one HTML file in your OS temp directory. You do the refactor later, in a separate [session](https://www.aihero.dev/ai-coding-dictionary/session), through the normal build flow. This makes it a survey, not a refactoring tool, so you can run it on a codebase you are not ready to touch yet.
+| Mode | What it produces |
+| --- | --- |
+| Interactive | A self-contained HTML report, followed by [grilling](https://www.aihero.dev/ai-coding-dictionary/grilling) on the candidate you choose. Code changes happen later through the normal build flow. |
+| Automatic | A textual assessment, implemented in-scope Strong recommendations, verification, and independent review of the final candidate together with the assessment. It opens no HTML or browser and asks no routine selection questions. |
 
-Two filters stop the report from becoming generic cleanup advice. First, every candidate must pass the **deletion test**: if you removed this module, would its complexity move behind a smaller interface, or spread across the callers? Only the first case gets a card. Second, unless you point it at a specific area, it reads recent commit history first and focuses the scan on paths that change often. A deepening in code that nobody touches is a refactor that never pays back.
+Both modes compare a proposed deepening with the smallest adequate alternative, including deletion or inlining. A Strong recommendation needs a demonstrated present design problem and a concrete improvement; a possible future benefit is Speculative.
 
 ## When to reach for it
 
 Type `/improve-codebase-architecture`, or the agent can invoke it when the task fits.
 
-It is not a step in the main build loop. You run it periodically to queue up more work that improves the codebase. People use it in four situations:
+The owning implementation coordinator invokes automatic mode after every completed clean code review, unless a verified completed baseline covers the scope and no nontrivial code has changed since it. You can also request that mode explicitly. Invocation supplies no new authority for edits or external actions.
+
+Interactive mode remains available for a wider survey:
 
 | Situation | How it is used |
 | --- | --- |
@@ -27,9 +32,12 @@ Where it is confusable with siblings:
 
 ## Prerequisites
 
-None to run it. If `GLOSSARY.md` or ADRs in `docs/adr/` exist, it reads them and uses your domain's own nouns. A candidate then reads as "deepen the Order intake module," not "refactor the FooBarHandler."
+Both modes use [codebase-design](https://aihero.dev/skills-codebase-design) for the architecture vocabulary. If `GLOSSARY.md` or relevant ADRs exist, the skill reads them and uses your domain's own nouns. A candidate then reads as "deepen the Order intake module," not "refactor the FooBarHandler."
 
-It writes in two places. The report goes to `<tmpdir>/architecture-review-<timestamp>.html`, outside the repo. During the grilling loop it adds or sharpens terms in `GLOSSARY.md`, and creates that file if it does not exist. It also offers to record a rejected candidate as an ADR, so a future run does not suggest it again.
+| Mode | What must be available |
+| --- | --- |
+| Interactive | A codebase to inspect. The HTML report goes to `<tmpdir>/architecture-review-<timestamp>.html`, outside the repo. Grilling may update `GLOSSARY.md` and offer an ADR for a lasting decision. |
+| Automatic | The assigned behavioural surface, candidate identity, consumer behaviour and invariants, relevant verification evidence, and the completed clean review. Implementation needs the task's existing authority; final acceptance needs independent review. |
 
 ## Depth, and the report that hunts for it
 
@@ -41,25 +49,35 @@ The skill rests on one idea: **depth**. A deep module puts a lot of behaviour be
 
 For each one, it proposes the deepening that fixes it.
 
-Each candidate is a card with the files involved, the friction, a plain-English solution, the benefit in terms of **locality** and **leverage**, a before/after diagram, and a strength badge.
+In interactive mode, each candidate is a card with the files involved, the friction, a plain-English solution, the benefit in terms of **locality** and **leverage**, a before/after diagram, and a strength badge. Automatic mode records the same reasoning as text, with source evidence, preserved behaviour, and the smallest adequate alternative.
 
 | Badge | What it means for you |
 | --- | --- |
-| `Strong` | The deletion test passes clearly and the friction is real. Take these seriously. |
-| `Worth exploring` | Plausible deepening, but the payoff depends on where the code is going next. |
-| `Speculative` | Included for completeness. You can ignore most of these. |
+| `Strong` | A present design problem is demonstrated, and the proposed change reduces caller knowledge or duplicated invariants, or improves a seam, locality, or leverage. It preserves consumer behaviour and beats the smallest adequate alternative. |
+| `Worth exploring` | The improvement depends on unresolved facts or a consequential tradeoff. |
+| `Speculative` | The benefit depends on a hypothetical future need. |
 
-The report ends with a **Top recommendation**, the candidate it would do first. Then the skill stops and asks which candidate you want to explore. At that point you have decided nothing, and no code has changed.
+The interactive report ends with a **Top recommendation**, the candidate it would do first. Then the skill stops and asks which candidate you want to explore. At that point you have decided nothing, and no code has changed. A strength badge does not decide for you or authorize work.
 
-## What happens after you pick one
+## What happens after you pick one in interactive mode
 
 When you pick a candidate, a [grilling](https://aihero.dev/skills-grilling) session starts on it. It covers the constraints, what goes behind the seam, which tests survive, and what the deepened interface should look like. The output of that session is a decision, not a diff. From there the normal flow applies: take the decision into [to-spec](https://aihero.dev/skills-to-spec), then [to-tickets](https://aihero.dev/skills-to-tickets), then [implement](https://aihero.dev/skills-implement).
+
+## Automatic deep refactoring after review
+
+Automatic mode assesses the clean candidate and implements every eligible Strong recommendation within the assigned behavioural surface. A file changed by the task can still contain adjacent code outside that surface. Wider ideas stay proposals for their actual owner, and consequential unresolved choices return to the person who holds them.
+
+The refactor preserves affected passing consumer assertions and invariants. Any implementation or correction that needs RED and GREEN uses [tdd](https://aihero.dev/skills-tdd), including quick cleanup after each stage. Changed code or relevant evidence inputs require fresh verification and review.
+
+An implemented recommendation is not yet a completed refactor. The final candidate and the assessment receive independent review together. If the selected reviewer reads Git HEAD, the owning implementation coordinator checkpoints the task-owned refactor first and does the same for later corrections. A clean result must cover that final checkpoint; local committing grants no publication authority. Even an assessment that finds no eligible Strong work needs a clean independent review before it establishes a completed baseline.
+
+That baseline records the covered scope, final candidate, assessment, verification inputs and results, and independent review. The owner records it before handling the refactor's own clean-review event, so that event finds an unchanged, already assessed scope and skips another run. Missing or uncertain evidence cannot justify a skip. A new nontrivial implementation or fix invalidates a skip based on the old baseline.
 
 ## Common questions
 
 **It grilled me for an hour about one idea instead of showing me options. Can I turn that off?**
 
-Yes. Say so when you invoke it ("don't grill me, just show the report"). This is the most common complaint about the skill. One user liked it as "a convenient way to get a thorough analysis of improvements," but after the grilling loop was added, found it "borderline unusable." In their sessions it proposed a single solution and then asked "10's or 100's of questions." The design intent is that the report comes first, and the grilling starts only on a candidate you chose. But weaker [models](https://www.aihero.dev/ai-coding-dictionary/model) skip straight to an interview about the first idea they had. Results in that thread vary a lot by model. It is an open issue, and the skill does not yet have a documented no-grill mode.
+Interactive mode presents the report before asking which candidate to discuss. You can ask for the report alone. Automatic mode is the non-interactive route for bounded implementation after a clean review: it uses textual evidence, implements eligible Strong recommendations, and opens no interview or HTML report. It returns a consequential unresolved choice to its actual owner instead of choosing for them.
 
 **The report opened as unstyled raw HTML with no diagrams. What happened?**
 
@@ -67,7 +85,9 @@ The report loads Tailwind and Mermaid from CDNs, so it needs network access when
 
 **It gave me twelve candidates. Do I work through them in the same session or start a new one?**
 
-Use one candidate per session. If you work through several in one conversation, the [context window](https://www.aihero.dev/ai-coding-dictionary/context-window) fills with the report, the grilling, the domain-model edits and the code changes all at once. The report is only a temp file, so carry the candidate forward, not the file. Pick one, grill it, and take the decision into `/to-spec`. Turn the rest into [tickets](https://www.aihero.dev/ai-coding-dictionary/ticket) that you can pick up separately later. Put the chosen improvement into a spec instead of going straight to implementation. People ask this often, and the skill itself documents no workflow for it.
+For an interactive survey, choose one candidate to develop at a time. A fresh [session](https://www.aihero.dev/ai-coding-dictionary/session) keeps the report, decisions, and implementation from filling the same [context window](https://www.aihero.dev/ai-coding-dictionary/context-window). Carry the chosen candidate and decisions forward rather than relying on a temporary HTML file.
+
+Automatic mode implements all eligible in-scope Strong recommendations. It returns the others as proposals with their evidence and unresolved choices; it does not enlarge the task to finish a list.
 
 **How should I prompt it?**
 
@@ -81,13 +101,13 @@ Partly. It works well on big existing codebases that lack consistent structure, 
 
 `/codebase-design` is a reference, not a session driver. It supplies the vocabulary (module, interface, depth, seam, adapter, leverage, locality), and this skill uses it. If you give a fresh agent `/codebase-design` as the task, it fails in a known way. It has no process of its own to follow, so the agent invents one, explores the code again, and runs for a very long time before it asks you anything. Run this skill, and let it use that one.
 
-**Will it ever tell me the codebase is fine?**
+**Will it ever say there is nothing to refactor?**
 
-Rarely, so know that before you start. The skill exists to output findings, so it tends to produce candidates instead of concluding that nothing is wrong. Use the strength badges to correct for this. If every candidate in a report is `Speculative`, the skill found nothing.
+Yes. The assessment must say when there is no eligible Strong recommendation. A list of speculative possibilities does not justify code changes. In automatic mode, independent review of the no-op assessment is still required before it becomes a completed baseline; the author's own declaration is not enough.
 
 **Does it work in Codex or another harness?**
 
-Partly. The exploration step names Claude Code's `Agent` tool with `subagent_type=Explore` directly. A [harness](https://www.aihero.dev/ai-coding-dictionary/harness) without that tool may skip the parallel exploration instead of using its own equivalent. The skill still runs, but the scan is less thorough. Someone has proposed a harness-neutral rewrite, but it is not merged.
+The exploration instructions use a fresh-context sub-agent without requiring a named harness tool. Automatic mode returns textual evidence rather than opening an HTML report. The chosen harness still needs to support the task's implementation and independent review workflow; an instruction-level procedure does not establish that runtime support.
 
 **How do I actually implement deep modules in TypeScript?**
 
@@ -95,19 +115,19 @@ The skill does not ship a good answer. People often ask for a `TYPESCRIPT.md` wi
 
 ## It's working if
 
-- The candidates name your domain's concepts, not invented class names: "the Order intake module," not "the FooBarHandler."
-- The candidates are in files you edited recently, not in parts of the repo nobody touches.
-- No code changed during the run. The only new file is the HTML report in your temp directory.
-- It stops after the report and asks which candidate you want. It does not continue on its own.
-- Each card explains the payoff as locality or leverage, and says which tests get simpler, not just "this is cleaner."
-- When you reject a candidate for a lasting reason, it offers to record an ADR, so the next run does not suggest it again.
+- The candidates name your domain's concepts and cite present friction, rather than offering generic cleanup.
+- Each Strong recommendation explains the improvement in caller knowledge, duplicated invariants, a seam, locality, or leverage, and compares a smaller alternative.
+- Interactive mode presents the report before asking you to choose, and leaves code implementation to the subsequent build.
+- Automatic mode stays within the assigned behavioural surface and produces no HTML, browser interaction, or routine selection interview.
+- Implemented Strong recommendations have passing verification and a separate independent review of the final candidate and assessment.
+- A no-op has an independently reviewed assessment; a skipped repeat names the verified completed baseline and unchanged scope.
+- New nontrivial code changes invalidate an old skip, while the refactor's own clean review does not start the same work again.
 
 ## Where it fits
 
-`improve-codebase-architecture` is **periodic maintenance**. You run it every few days, outside any chain, to queue up work, not to do it. Its neighbours:
+`improve-codebase-architecture` serves two places in the workflow:
 
-- [codebase-design](https://aihero.dev/skills-codebase-design) owns the depth-and-seam vocabulary that every candidate uses.
-- [grilling](https://aihero.dev/skills-grilling) walks the decision tree after you choose a candidate.
-- [domain-modeling](https://aihero.dev/skills-domain-modeling) keeps `GLOSSARY.md` and the ADRs current as you make the decision.
+- **Periodic maintenance:** interactive mode surveys the codebase and develops a chosen idea with [grilling](https://aihero.dev/skills-grilling) and [domain-modeling](https://aihero.dev/skills-domain-modeling). The decision goes into the normal build flow.
+- **After a clean review:** automatic mode assesses the assigned work, implements eligible Strong recommendations, and returns verified changes and an independently reviewed assessment to the owning implementation coordinator.
 
-Its output is an idea, which goes back into the main build flow at [grill-with-docs](https://aihero.dev/skills-grill-with-docs) or [to-spec](https://aihero.dev/skills-to-spec). Its counterpart at the end of the main flow is [retro](https://aihero.dev/skills-retro). This skill improves the code the agent works in, and `retro` improves the environment around it (checks, standards, steering files) after a build. For which skill fits a situation, [ask-matt](https://aihero.dev/skills-ask-matt) is the router over the whole set.
+[codebase-design](https://aihero.dev/skills-codebase-design) supplies the shared vocabulary, [tdd](https://aihero.dev/skills-tdd) supplies the RED/GREEN and quick-refactor discipline, and [code-review](https://aihero.dev/skills-code-review) supplies the review handoff. [ask-matt](https://aihero.dev/skills-ask-matt) routes across the set.
