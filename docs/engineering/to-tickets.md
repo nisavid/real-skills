@@ -41,6 +41,8 @@ The edges are the point of the artifact. They work in two ways, depending on the
 
 The edges live in the ticket either way. The tracker only decides whether anything can act on them in parallel. `to-tickets` produces the artifact; running it (one session at a time, or a fleet) is your job, not the skill's.
 
+The source issue itself stays as it was. `to-tickets` never closes it, and the one change it makes there is to release a claim it holds on it once the first ticket is published beneath it, because under [issue-composition](https://aihero.dev/skills-issue-composition) an issue with open children holds no claim.
+
 ## The wide-refactor exception
 
 One shape breaks the tracer-bullet rule. A **wide refactor** is a single mechanical change (rename a column, retype a shared symbol) whose **blast radius** covers the whole codebase. One edit breaks thousands of call sites, so no vertical slice can land green.
