@@ -2,7 +2,7 @@
 
 `tdd` builds a feature or fixes a bug test-first: one failing test, a quick refactor, just enough code to pass the test, and another quick refactor before the next behaviour. It carries the standards that make that loop produce tests worth keeping: what a good test is, where tests go, what mocks are for, and the three anti-patterns that make a suite worthless.
 
-Before writing a test, the agent identifies the public consumer boundary, the behavior the test should prove, and what the observation cannot establish. It reuses decisions already made and asks you when a consequential choice remains unresolved or an intended effect lacks authority. Routine boundary choices do not require your approval. `tdd` is also a **reference**, not a driver. It contains the rules of the loop, and something else (you, or [implement](https://aihero.dev/skills-implement)) runs the [session](https://www.aihero.dev/ai-coding-dictionary/session) that applies them.
+Before writing a test, the agent identifies the public consumer boundary, the behavior the test should prove, and what the observation cannot establish. Testing effort is finite, so it prefers the highest existing public boundary and spends that effort on the critical paths and complex logic instead of on every edge case. It reuses decisions already made and asks you when a consequential choice remains unresolved or an intended effect lacks authority. Routine boundary choices do not require your approval. `tdd` is also a **reference**, not a driver. It contains the rules of the loop, and something else (you, or [implement](https://aihero.dev/skills-implement)) runs the [session](https://www.aihero.dev/ai-coding-dictionary/session) that applies them.
 
 ## When to reach for it
 
@@ -32,7 +32,7 @@ The skill rests on three terms.
 
 **Vertical slice.** Write one test at one seam, then the minimal implementation, then repeat. The first cycle is a **tracer bullet** that proves a single path end to end. The opposite is horizontal slicing: all the tests first, then all the code. Tests written in bulk verify *imagined* behaviour. They check the shape of things rather than what a user does, and they commit you to a test structure before you understand the implementation.
 
-**Consumer boundary.** A seam is the public boundary where a test observes behaviour without reaching inside. The agent records the consumer, intended outcome, supported inputs, and what the observation proves and misses. It reuses applicable decisions in a spec or request, chooses routine seams itself, and brings you consequential unresolved choices or effects that need authority.
+**Consumer boundary.** A seam is the public boundary where a test observes behaviour without reaching inside. The agent records the consumer, intended outcome, supported inputs, and what the observation proves and misses. It reuses applicable decisions in the request, the ticket, or its parent spec, chooses routine seams itself, and brings you consequential unresolved choices or effects that need authority.
 
 The three anti-patterns it is written to prevent:
 
