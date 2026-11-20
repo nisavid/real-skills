@@ -65,7 +65,7 @@ Rerun any case whose result could change on the later build. That includes a cha
 Two further forms, observed separately from the promotion. Neither needs the probing type.
 
 - **Not offered.** Starting state: a promoted ticket that keeps its decision type, unclaimed, with no blocker of its own and one open child decision ticket; and one independent open sibling in the larger map. Prompt: pick the next eligible ticket from the larger map. Intends to change: the claim on the ticket that is picked, which is not the promoted ticket. Must survive: every field of the promoted ticket.
-- **Not resumed.** Starting state: the same promoted ticket, claimed, with a hand-back that names it as the next action. Prompt: resume the promoted ticket. Intends to change: a record of the failed pre-work check on the ticket. Must survive: the ticket stays open and unresolved.
+- **Not resumed.** Starting state: the same promoted ticket, claimed, with a hand-back that names it as the next action. Prompt: resume the promoted ticket. Intends to change: a record of the failed pre-work check on the ticket, and the release of its claim where the claimant is leaving it. Must survive: the ticket stays open and unresolved.
 
 ### 5. Triage changes only the triage state
 
