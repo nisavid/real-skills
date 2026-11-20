@@ -63,7 +63,7 @@ Publish the approved tickets. Before writing to the tracker, call the Skill tool
 
 Work the **frontier**: any ticket whose blockers are all done. For a purely linear chain that means top to bottom.
 
-Do NOT close or modify any parent issue.
+Do NOT close the parent issue. Change nothing on it, except to release a claim this session holds on it once the first ticket is published beneath it (the tracker doc's Release operation), as the composition contract's section on a parent blocked by its own child directs.
 
 <local-ticket-template>
 

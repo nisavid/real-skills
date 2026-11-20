@@ -55,11 +55,11 @@ Record the confirmed host and project in `docs/agents/issue-tracker.md`, and spe
 
 **Section B: Triage label vocabulary.** Skip this section entirely if the `triage` skill isn't installed (exploration told you), since an uninstalled skill needs no labels.
 
-If it is installed, ask exactly one question:
+If it is installed, ask this question, plus the post-triage status question below when native statuses apply:
 
 > Do you want to keep the default triage labels? (recommended: **yes**)
 
-The defaults are the two category roles, `bug` and `enhancement`, and the five state roles, `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`, each label string equal to its name and with no native status. On **yes**, write them as-is. Only if the user says no, usually because their tracker already uses other names (e.g. `bug:triage` for `needs-triage`) or a native status such as Linear's Triage already represents a state, collect the overrides so `triage` applies existing labels instead of creating duplicates.
+The defaults are the two category roles, `bug` and `enhancement`, and the five state roles, `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`, each label string equal to its name and with no native status. On **yes**, write them as-is, apart from what native statuses change below. Only if the user says no, usually because their tracker already uses other names (e.g. `bug:triage` for `needs-triage`), collect the overrides so `triage` applies existing labels instead of creating duplicates. Whatever the answer, when the tracker that is the authority for triage state represents some of those states with native statuses, as Linear does when it owns intake, fill the native status column as [triage-labels.md](./triage-labels.md) directs, under the composition contract's Linear mapping (the `issue-composition` skill), and ask for the team's post-triage status, the one accepted issues move to, before writing the file.
 
 **Section C: Domain docs.** Default to **single-context** (one `GLOSSARY.md` + `docs/adr/` at the repo root). This fits almost every repo; write it without asking.
 

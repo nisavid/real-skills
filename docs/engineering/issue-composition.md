@@ -25,17 +25,25 @@ If that section is missing, or silent on a question, the skills first follow any
 | Map structure | Whether this issue is a Wayfinder map | `wayfinder` |
 | Decision type | How a decision [ticket](https://www.aihero.dev/ai-coding-dictionary/ticket)'s question gets resolved | `wayfinder` |
 
-An issue carries only the axes that apply to it. A skill changes only the axes it owns; a skill that creates an issue may set starting values where its own workflow provides for that and the project's policy allows it. Claims, blockers, parent membership, holds, and authority are not axes at all, so no classification change moves them.
+An issue carries only the axes that apply to it. A skill changes only the axes it owns; a skill that creates an issue may set starting values where its own workflow provides for that and the project's policy allows it. Claims, blockers, parent membership, provenance, holds, and authority are not axes at all, so no classification change moves them.
 
 When the project's policy forbids a combination, the skill writes nothing and hands the conflict to whoever owns the policy. It does not invent an exception for the one issue in front of it.
 
-## Authority and projection
+## Authority and narrow writes
 
 Many teams keep the same issues in two trackers, such as GitHub issues mirrored into Linear. The contract treats each fact as living in one place, its authority. The copy in the other tracker is a **projection**: useful to read, but not where the fact is decided. A blocker that the mirror lost is a projection gap, not a cleared blocker. Where Linear owns intake, its native Triage status is the triage state, and nothing adds a `needs-triage` label to say the same thing twice.
 
-## Narrow writes
-
 A label change reads the affected fields first, adds or removes only the one value it owns, and reads back. It never replaces the whole label set. If the decision's basis changed underneath it, for example someone closed the issue as `wontfix` while a `ready-for-agent` write was pending, it drops the write and reassesses. An issue body has one writer at a time, because two writers that each submit the whole body can erase each other's sections.
+
+## Parents, provenance, and closed issues
+
+An issue with children of its own, such as a map, a promoted ticket, or a spec with tickets beneath it, is **blocked** while any of those children is open, whatever the child's type or labels. Nothing picks it up, resumes it, resolves it, or closes it until every child is closed or moved out from under it; closing a child as out of scope, or moving it out, is the parent's planning owner's call.
+
+A parent with an open child also holds no **claim**. The session that gives a ticket its first child releases its own claim on it in the same step, so claims sit only on work someone can do now. When the last child closes, the parent goes back to its planning owner, which reassesses it and then closes it, adds what is still missing, or, where it still owns a decision, leaves it open for pickup.
+
+Besides membership and blockers, an issue can carry one more kind of link: **provenance**. It is a single line near the top of a new issue's body that names the issue it was `Discovered from:`, `Follows:`, or `Supersedes:`. The skill that creates the issue writes the line as it creates it. An issue created under the issue it came from needs no line, because its membership already records that. The line never blocks anything, and the older issue's body is left alone.
+
+A closed issue is treated as a record. A skill reopens one only when the closure was wrong at the time, for example when it was closed by mistake. When a decision simply no longer holds, the old issue stays closed and a new one supersedes it.
 
 ## Common questions
 
@@ -45,12 +53,21 @@ Wayfinder allowed only its own labels on a map, while triage required a work kin
 **An issue ended up with two triage states. Which skill is wrong?**
 Often neither skill. One observed cause is an unattended automation that adds a label without reading the ones already there. The owning workflow keeps its own axis to one value, and when it finds a genuine conflict it surfaces it to the maintainer and pauses rather than picking one.
 
+**A map's open children carry no `wayfinder:` label. Do they still keep it open?**
+Yes. Any open child blocks its parent, whatever its labels, so a map cannot close over build tickets that are still open. A child that no longer belongs is closed as out of scope, or moved out from under the map, before the map closes.
+
+**A decision we closed last month no longer holds. Should the skill reopen it?**
+No. The closure was right when it was made, so the ticket stays closed as the record of that decision. The skill creates a new ticket whose opening lines say `Supersedes:` and name the old one. Reopening is for a closure that was wrong, such as a ticket closed by mistake.
+
 ## It's working if
 
 - Running `wayfinder` and then `triage` on the same issue leaves both skills' classifications, plus its claim and blockers, intact.
 - Where Linear owns intake, an issue in its native Triage never gains a duplicate `needs-triage` label from a skill.
 - When your tracker policy forbids a combination, the run reports the conflict and the tracker shows no change.
 - A label change shows up as one added or removed label, not a rewritten label set.
+- A map or promoted ticket stays open, and holds no claim, while any child beneath it is open.
+- A ticket that came from a ticket other than its own parent names that ticket on a provenance line, and the older ticket's body is unchanged.
+- A decision that no longer holds stays closed, and the ticket that replaces it says `Supersedes:`.
 
 ## Where it fits
 

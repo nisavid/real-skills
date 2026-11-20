@@ -35,11 +35,11 @@ The **map** is an issue labelled `wayfinder:map`, with decision tickets as its c
 - **Not yet specified** holds the **fog of war**: in-scope questions that cannot yet be phrased sharply.
 - **Out of scope** records work beyond the destination.
 
-A sharp question can become a ticket even while blocked. Fog graduates only when the question becomes clear, and then leaves the fog section. A later change can invalidate part of the route; Wayfinder refreshes that part instead of treating the whole map as either permanently correct or wholly obsolete.
+A sharp question can become a ticket even while blocked. Fog graduates only when the question becomes clear, and then leaves the fog section. A later change can invalidate part of the route; Wayfinder refreshes that part instead of treating the whole map as either permanently correct or wholly obsolete. A decision that no longer holds stays closed, and a new ticket supersedes it; a ticket is reopened only when its closure was wrong.
 
-The **frontier** is the open, unblocked, unclaimed children in map order. A session checks live state and claims a ticket before resolving it. A named ticket still needs that check: another worker's claim, an unresolved blocker, an unknown prerequisite state, or a genuine hold keeps it from being eligible.
+The **frontier** is the open, unblocked, unclaimed children in map order. A ticket with an open child of its own counts as blocked. A session checks live state and claims a ticket before resolving it. A named ticket still needs that check: another worker's claim, an unresolved blocker, an unknown prerequisite state, or a genuine hold keeps it from being eligible.
 
-Native relationships make the route visible in the tracker's own UI. Membership and blocking are separate capabilities, so a fallback for one does not require abandoning the other. When the project uses a body convention, that text is the fallback representation; it is not evidence that a native relationship was created.
+Native relationships make the route visible in the tracker's own UI. Membership and blocking are separate capabilities, so a fallback for one does not require abandoning the other. When the project uses a body convention, that text is the fallback representation; it is not evidence that a native relationship was created. Provenance is a third kind of link: one line in a new ticket's or map's body that names the issue it was discovered from, follows, or supersedes. It never blocks.
 
 ## Decisions, classification, and continuation
 
@@ -54,7 +54,7 @@ Each decision ticket has one applicable Wayfinder type:
 
 That type is the ticket's **decision type**, and whether an issue is a map is its **map structure**. Wayfinder owns those two classifications; [triage](https://aihero.dev/skills-triage) owns work kind and triage state. Before it writes to the tracker, Wayfinder loads [issue-composition](https://aihero.dev/skills-issue-composition), the shared contract that lets those classifications sit on one issue without either skill overwriting the other's. A map can be followed by triage: knowing the route does not settle an incoming issue's classification or readiness.
 
-A decision ticket whose question needs a route of its own is **promoted** to a map in place. It keeps its identity, its place in the larger map, its claim, and its blockers, and it keeps its decision type while it still owns that decision, for example when a person must still choose after its children report. While a decision ticket or map beneath it is open, a promoted ticket is blocked, whatever else the tracker shows. A session that leaves a blocked parent it claimed releases the claim, so the parent returns to the frontier when its last blocking child closes.
+A decision ticket whose question needs a route of its own is **promoted** to a map in place. It keeps its identity, its place in the larger map, and its blockers, and it keeps its decision type while it still owns that decision, for example when a person must still choose after its children report. While any child beneath it is open, a promoted ticket is blocked, whatever else the tracker shows, and it holds no claim: the session that creates its first child releases its own claim in the same step. When its last child closes, its planning owner reassesses it and closes it, adds what is missing, or, where it still owns a decision, leaves it on the frontier for pickup.
 
 An assessment stays fresh until something it depends on changes; age alone does not make it stale, unless time is itself the input, such as an authorization that expires. Before work starts, the check looks at the current blockers too, so a prerequisite added since the assessment is not missed.
 
@@ -92,7 +92,8 @@ It became `wayfinder` in v1.1. The map still consists of decision tickets: quest
 - Worker and supplier returns change only the parts of the route their evidence affects.
 - You can identify the next eligible decision, or see who owns the hold and exactly what permits work to resume.
 - Independent classifications coexist where your policy permits them, a Wayfinder write never removes a triage label, and where Linear owns intake, its native Triage is not duplicated by a label.
-- A promoted ticket keeps its number, its claim, and its blockers.
+- A promoted ticket keeps its number and its blockers. It holds no claim while a child of its own is open.
+- A ticket or map that replaces or continues earlier work names it on a provenance line, and the earlier issue stays closed and unedited.
 - Fog becomes precise questions as evidence arrives; unresolved human choices stay open.
 - A cleared map hands off to an authorized workflow, and the next session receives a current frontier.
 
