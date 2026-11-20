@@ -20,7 +20,7 @@ When changing the manual archive builder or its tests, install pytest and PyYAML
 
 ## Build
 
-Run the following Bash block from the checkout containing the reviewed procedure and builder. Supply the five environment variables named below. `OUTPUT_DIR` must name a new directory outside the checkout; keep the source commit available in this checkout's Git object database. Set `SOURCE_SHA256` from the retained, independently identified source tar, rather than deriving it inside this invocation. If preparing that tar for the first time, generate it with the same Git archive and gzip command, record its hash and source provenance, and use those fixed bytes for verification.
+Run the following Bash block from the checkout containing the reviewed procedure and builder. Supply the six environment variables named below. `OUTPUT_DIR` must name a new directory outside the checkout; keep the source commit available in this checkout's Git object database. `DISTRIBUTION_DIR` names the operator's existing distribution folder; this repository names no path for it and sets no default. Put `OUTPUT_DIR` on the same filesystem as that folder, because a clone does not cross filesystems. Set `SOURCE_SHA256` from the retained, independently identified source tar, rather than deriving it inside this invocation. If preparing that tar for the first time, generate it with the same Git archive and gzip command, record its hash and source provenance, and use those fixed bytes for verification.
 
 ```bash
 set -euo pipefail
@@ -29,6 +29,7 @@ set -euo pipefail
 : "${BASE_VERSION:?base version required}"
 : "${RELEASE_VERSION:?release version required}"
 : "${OUTPUT_DIR:?new output directory required}"
+: "${DISTRIBUTION_DIR:?distribution folder required}"
 test "$(git rev-parse --verify "${SOURCE_COMMIT}^{commit}")" = "$SOURCE_COMMIT"
 procedure_revision=$(git rev-parse HEAD)
 builder="$PWD/scripts/build-release-archives.py"
@@ -74,9 +75,28 @@ done
 cmp -- "$output/first/report.json" "$output/second/report.json"
 (cd -- "$output" && sha256sum source.tar.gz first/*.zip > SHA256SUMS)
 (cd -- "$output" && sha256sum --check SHA256SUMS)
+depositor="$PWD/scripts/deposit-release-archives.py"
+for tool in "$depositor" "$PWD/scripts/verify_release_archive.py"; do
+  git cat-file blob "${procedure_revision}:scripts/${tool##*/}" | cmp - "$tool"
+done
+deposit=()
+while read -r digest path; do
+  case $path in first/*.zip) deposit+=(--archive "$digest" "$output/$path") ;; esac
+done < "$output/SHA256SUMS"
+python3 "$depositor" --folder "$DISTRIBUTION_DIR" "${deposit[@]}" | tee "$output/deposit.txt"
 ```
 
 Each run starts a separate Python process from the same immutable input. Require both to succeed and their ZIPs and reports to match byte for byte. The builder's own repeated encoding check is additional evidence, not the second build. A hash mismatch or any validation failure stops this candidate; resolve the input or projection issue before rebuilding.
+
+The block ends with the deposit, which runs only after `sha256sum --check` passes. It takes the archives the block just verified, with the digests in `SHA256SUMS`, and clones each one into `DISTRIBUTION_DIR` under the builder's name. The deposit tool clones with the Linux `FICLONE` ioctl and has no code path that copies bytes. It prints one result per archive with its SHA-256, which the block keeps in `deposit.txt`:
+
+- **deposited:** the name was free, the clone succeeded, and the deposited bytes hash to the verified digest;
+- **already present:** a regular file with the same SHA-256 is at that name, and it is left as it is;
+- **not made**, with the reason: a different file at that name (both digests are reported, and the file is left untouched), an entry at that name that is not a regular file (a symbolic link is not followed), a refused clone (nothing is left at that name), a name that is not `<plugin>-<version>-<claude|agent-plugins>.zip` for a known plugin, or a folder that is missing or is not a directory (refused before anything is written).
+
+The tool creates each name exclusively, so an entry that appears there before its write is judged, never overwritten. It never creates the folder, and never replaces, renames, or deletes anything in it except a file it created in the same call and could not complete. The two archives are handled independently, and nothing is rolled back. The tool exits zero only when every archive is deposited or already present. A filesystem that cannot reflink, or an output directory on another filesystem, refuses the clone; the result reports it, and nothing works around it with a copy. A deposit that is not made leaves the verified archives and their evidence as they are, and makes the block exit nonzero after the build has passed its checks. The deposit stays owed until its reason is resolved.
+
+A deposited archive is a copy that has left the build tree, so the version identity rule applies to it: the version is bound to its source revision and to the bytes of each archive, and conflicting reuse is refused. Refusing to overwrite a different file applies that rule at the folder. When allocating a release version, count a version that has been deposited as exposed. A snapshot's record exists before its deposit and names the distribution folder among its channels, by kind. Rebuilding the same source with the same builder gives the same bytes, so its deposit changes nothing.
 
 ## Verify against Git
 
@@ -93,7 +113,7 @@ Generated manifest and provenance files have mode `0644`. Review the generated m
 
 ## Evidence and gates
 
-Retain the source commit and tar hash, reviewed procedure revision and builder hash, dependency versions, both independent build results, direct Git comparison, reports, and verified checksums. The link scanner checks only its supported inline Markdown links outside recognized fenced blocks, and only relative file or directory existence. It does not establish complete Markdown-link coverage, fragment validity, external URL reachability, or general security. Review relocation-sensitive links beyond that coverage when the selected inputs need it. Package checks establish neither license clearance beyond preserving the source license nor harness behavior.
+Retain the source commit and tar hash, reviewed procedure revision and builder hash, dependency versions, both independent build results, direct Git comparison, reports, verified checksums, and the deposit result for each archive: deposited, already present, or not made with its reason. The link scanner checks only its supported inline Markdown links outside recognized fenced blocks, and only relative file or directory existence. It does not establish complete Markdown-link coverage, fragment validity, external URL reachability, or general security. Review relocation-sensitive links beyond that coverage when the selected inputs need it. Package checks establish neither license clearance beyond preserving the source license nor harness behavior.
 
 Before publication, complete the native procedure's applicable source checks and the repository's independent review on the final procedure and candidate inputs. Record review evidence for the release artifacts and rerun affected checks whenever inputs, builder bytes, or relevant dependencies change. Before claiming discovery or qualifying an installation, exercise discovery for the selected ZIP through its intended harness route: compare observed names with the promoted inventory, confirm non-promoted names are absent, and record harness versions and observed invocation controls. Before qualifying an edition for a harness, compare the edition's skill names with that harness's built-in names, and record the result under [Harness built-in names](#harness-built-in-names). Source metadata alone does not establish runtime enforcement. Unavailable or failed required review or direct verification blocks the affected release. Unavailable or failed discovery blocks the corresponding consumer qualification.
 
@@ -127,6 +147,13 @@ python scripts/check-release-archive-provenance.py build \
 ```
 
 The runner executes the pinned archive builder in two separate Python processes. Its independent verifier derives both expected ZIPs' contents from the source Git tree. It checks the complete layouts, selected bytes and modes, generated manifests, provenance, and declared icon bytes. It checks Wayfinder asset derivation when the source declares the Wayfinder SVG. To check one existing ZIP against the same source binding, use the `verify` subcommand with `--format agent-plugins` or `--format claude` and `--archive PATH` in place of `--output`.
+
+A local provenance run ends with the same deposit as the Build block, made after `receipt.json` exists, from the archives and digests that receipt records. Supply the operator's existing distribution folder as `DISTRIBUTION_DIR`, which has no default, and put `OUTPUT_DIR` on that folder's filesystem. Keep the deposit output with the receipt; the results, exit status, and owed deposit follow the Build section. The hosted job makes no deposit.
+
+```sh
+python scripts/deposit-release-archives.py \
+  --folder "$DISTRIBUTION_DIR" --receipt "$OUTPUT_DIR/receipt.json"
+```
 
 Use a new output directory per attempt. Keep the receipt with the reviewed pilot checkout commit for a local run, or the workflow run URL and its head commit for a hosted run. Match the receipt’s runner and verifier hashes to the corresponding Git blobs in that commit. The receipt fields `procedure_revision` and `procedure_sha256` identify the separately pinned builder procedure. The receipt also binds the source, toolchain, builder, archive digests, and cleanup. A nonzero exit or missing receipt leaves the run failed or incomplete. Check the logs and reconcile the original attempt before issuing another. The hosted runner disposes of its workspace after the job. The job qualifies archive repeatability and Git correspondence. Appearance checks, provider rendering, discovery, installation, and invocation require their own evidence.
 
