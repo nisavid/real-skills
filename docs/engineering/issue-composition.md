@@ -39,9 +39,9 @@ A label change reads the affected fields first, adds or removes only the one val
 
 An issue with children of its own, such as a map, a promoted ticket, or a spec with tickets beneath it, is **blocked** while any of those children is open, whatever the child's type or labels. Nothing picks it up, resumes it, resolves it, or closes it until every child is closed or moved out from under it; closing a child as out of scope, or moving it out, is the parent's planning owner's call.
 
-A parent with an open child also holds no **claim**. The session that gives a ticket its first child releases its own claim on it in the same step, so claims sit only on work someone can do now. When the last child closes, the parent goes back to its planning owner, which reassesses it and then closes it, adds what is still missing, or leaves it open for pickup.
+A parent with an open child also holds no **claim**. The session that gives a ticket its first child releases its own claim on it in the same step, so claims sit only on work someone can do now. When the last child closes, the parent goes back to its planning owner, which reassesses it and then closes it, adds what is still missing, or leaves it open for pickup where it still owns a decision.
 
-Besides membership and blockers, an issue can carry one more kind of link: **provenance**. It is a single line near the top of a new issue's body that names the issue it was `Discovered from:`, `Follows:`, or `Supersedes:`. The skill that creates the issue writes the line as it creates it. The line never blocks anything, and the older issue's body is left alone.
+Besides membership and blockers, an issue can carry one more kind of link: **provenance**. It is a single line near the top of a new issue's body that names the issue it was `Discovered from:`, `Follows:`, or `Supersedes:`. The skill that creates the issue writes the line as it creates it. An issue created under the issue it came from needs no line, because its membership already records that. The line never blocks anything, and the older issue's body is left alone.
 
 A closed issue is treated as a record. A skill reopens one only when the closure was wrong at the time, for example when it was closed by mistake. When a decision simply no longer holds, the old issue stays closed and a new one supersedes it.
 
@@ -66,7 +66,7 @@ No. The closure was right when it was made, so the ticket stays closed as the re
 - When your tracker policy forbids a combination, the run reports the conflict and the tracker shows no change.
 - A label change shows up as one added or removed label, not a rewritten label set.
 - A map or promoted ticket stays open, and holds no claim, while any child beneath it is open.
-- A ticket created because of another ticket names it on a provenance line, and the older ticket's body is unchanged.
+- A ticket that came from a ticket other than its own parent names that ticket on a provenance line, and the older ticket's body is unchanged.
 - A decision that no longer holds stays closed, and the ticket that replaces it says `Supersedes:`.
 
 ## Where it fits
