@@ -39,7 +39,7 @@ A label change reads the affected fields first, adds or removes only the one val
 
 An issue with children of its own, such as a map, a promoted ticket, or a spec with tickets beneath it, is **blocked** while any of those children is open, whatever the child's type or labels. Nothing picks it up, resumes it, resolves it, or closes it until every child is closed or moved out from under it; closing a child as out of scope, or moving it out, is the parent's planning owner's call.
 
-A parent with an open child also holds no **claim**. The session that gives a ticket its first child releases its own claim on it in the same step, so claims sit only on work someone can do now. When the last child closes, the parent goes back to its planning owner, which reassesses it and then closes it, adds what is still missing, or leaves it open for pickup where it still owns a decision.
+A parent with an open child also holds no **claim**. The session that gives a ticket its first child releases its own claim on it in the same step, so claims sit only on work someone can do now. When the last child closes, the parent goes back to its planning owner, which reassesses it and then closes it, adds what is still missing, or, where it still owns a decision, leaves it open for pickup.
 
 Besides membership and blockers, an issue can carry one more kind of link: **provenance**. It is a single line near the top of a new issue's body that names the issue it was `Discovered from:`, `Follows:`, or `Supersedes:`. The skill that creates the issue writes the line as it creates it. An issue created under the issue it came from needs no line, because its membership already records that. The line never blocks anything, and the older issue's body is left alone.
 
