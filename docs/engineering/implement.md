@@ -42,7 +42,7 @@ One run covers one ticket. The tickets [to-tickets](https://aihero.dev/skills-to
 
 ## Consumer boundaries
 
-A **seam** is the public boundary where tests observe behaviour without reaching inside. The agent uses applicable decisions in the spec or request, selects routine boundaries in the context of the consumer, and records what each test proves and misses. It asks you when a consequential boundary decision remains unresolved or an intended effect needs authority. Tests at public boundaries can survive an implementation rewrite.
+A **seam** is the public boundary where tests observe behaviour without reaching inside. The agent uses applicable decisions in the request, the ticket, and its parent spec, selects routine boundaries in the context of the consumer, and records what each test proves and misses. It asks you when a consequential boundary decision remains unresolved or an intended effect needs authority. Tests at public boundaries can survive an implementation rewrite.
 
 ## Common questions
 

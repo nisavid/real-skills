@@ -31,7 +31,7 @@ The spec records settled product and design decisions in your project's own voca
 
 Before writing the spec, `to-spec` identifies the public consumer boundaries where the feature can be tested, using the discussion and codebase. It prefers existing seams and describes what each observation proves and misses. Routine test boundaries do not need your approval; consequential unresolved choices return for your direction.
 
-Other skills use those testing decisions later. [tdd](https://aihero.dev/skills-tdd) selects public consumer boundaries and states what its tests establish; [code-review](https://aihero.dev/skills-code-review) reviews the resulting diff against the applicable spec and standards. An implementation agent can refine a routine boundary as it learns, while preserving settled decisions.
+Other skills use those testing decisions later. [tdd](https://aihero.dev/skills-tdd) selects public consumer boundaries and states what its tests establish; [code-review](https://aihero.dev/skills-code-review) reviews the resulting diff against the applicable spec and standards.
 
 ## Common questions
 
@@ -65,7 +65,7 @@ A tracker issue may not return a very large spec in full, and there is no local 
 ## It's working if
 
 - It starts writing instead of asking you a new round of questions.
-- It records consumer boundaries, marks each as settled (with its source), routine, or open, and states what the proposed observations can and cannot establish.
+- It records consumer boundaries and states what the proposed observations can and cannot establish.
 - It uses your project's nouns, not generic product-management boilerplate.
 - It preserves your product and design decisions, explains routine test boundaries, and leaves consequential unresolved choices open. Apart from routine test boundaries, it invented nothing to fill a section.
 - The out-of-scope section lists real things. The things you refused are usually the most useful lines on the page.
