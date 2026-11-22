@@ -2,6 +2,8 @@
 
 Skills I use daily for code work.
 
+The skill summaries on this page are upstream's. Where the `implement` and `implement-spec` summaries close out with `/code-review`, this fork's skills call this collection's own `code-review` skill. Where it was installed as a plugin, they use the plugin-qualified name the skill was loaded under (`<plugin>:code-review`), because a harness built-in that shares the bare name is a different review.
+
 ## Skills
 
 You or the agent can invoke these skills when the task fits. Invocation does not grant permission for their effects.

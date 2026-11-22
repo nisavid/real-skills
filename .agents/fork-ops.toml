@@ -74,3 +74,39 @@ kind = "doc"
 path = "docs/agents/domain.md"
 domain = "domain documentation discovery"
 portability_hint = "fork-specific"
+
+[[local_surfaces]]
+kind = "config"
+path = ".github/wayfinder-label-repair-control.json"
+domain = "disabled label-repair authority"
+portability_hint = "fork-specific"
+
+[[local_surfaces]]
+kind = "config"
+path = ".github/workflows/wayfinder-label-repair.yml"
+domain = "disabled label-repair automation"
+portability_hint = "fork-specific"
+
+[[local_surfaces]]
+kind = "script"
+path = "scripts/reconcile-wayfinder-labels.mjs"
+domain = "conditional label reconciliation"
+portability_hint = "fork-specific"
+
+[[local_surfaces]]
+kind = "script"
+path = "tests/reconcile-wayfinder-labels.test.mjs"
+domain = "offline label-repair verification"
+portability_hint = "fork-specific"
+
+[[local_surfaces]]
+kind = "other"
+path = "tests/fixtures/wayfinder-label-repair/operator-evidence.json"
+domain = "synthetic label-repair evidence specimen"
+portability_hint = "fork-specific"
+
+[[local_surfaces]]
+kind = "doc"
+path = "docs/agents/issue-label-repair.md"
+domain = "label-repair operating procedure"
+portability_hint = "fork-specific"
