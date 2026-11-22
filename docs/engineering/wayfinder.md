@@ -14,7 +14,7 @@ Type `/wayfinder`, or let the agent invoke it on new intake, before work, and wh
 | A child issue whose parent has been assessed | Check that the parent assessment covers this child's scope and dependencies; membership alone is not enough. |
 | A large effort with unresolved decisions | Chart a map and work its decision tickets. |
 | A changed input, worker return, or supplier blocker | Refresh the affected assessment and select the next eligible frontier, or record a hold. |
-| An unresolved human decision | Use [grilling](https://aihero.dev/skills-grilling), with [domain-modeling](https://aihero.dev/skills-domain-modeling) when the model needs work. |
+| An unresolved human decision | Use [grilling](https://aihero.dev/skills-grilling) and [domain-modeling](https://aihero.dev/skills-domain-modeling). |
 | A cleared route to a multi-session build | Hand the decisions to [to-spec](https://aihero.dev/skills-to-spec), then [to-tickets](https://aihero.dev/skills-to-tickets), within the separately authorized workflow. |
 
 A small task does not need a submap, and its progress does not wait for an assessment of the whole backlog. [grill-with-docs](https://aihero.dev/skills-grill-with-docs) remains useful when a bounded planning conversation needs a glossary and durable decisions.

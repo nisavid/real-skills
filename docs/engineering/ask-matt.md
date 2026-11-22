@@ -78,7 +78,7 @@ Check the changelog for a rename before assuming it is gone. `writing-great-skil
 
 ## It's working if
 
-- It ends by naming what to type and stops there, instead of starting the work itself.
+- It ends by naming the next skill or step to take, after any Wayfinder assessment or probe it calls, rather than starting the build itself.
 - The route it gives back mentions where to clear or compact context and where you are expected to review, not just a list of skill names.
 - Where two skills are close, it says which one and why the other is wrong for you.
 - Any claim it makes about another skill's behaviour shows up in the trace as it reading that skill's `SKILL.md`.

@@ -107,7 +107,7 @@ No. It diffs `<fixed-point>...HEAD`. The three-dot form measures from the merge-
 - The closing summary gives a worst issue per axis and declines to pick an overall winner.
 - With no spec available, the Spec block says so instead of listing requirements it inferred from the code.
 - Review corrections show quick cleanup after each RED and GREEN, or explain why none was warranted.
-- A clean review leads to an automatic deep-refactor result or a verified unchanged completed baseline, with implemented work distinguished from independently reviewed work.
+- When an implementation coordinator owns the reviewed work, a clean review leads to an automatic deep-refactor result or a verified unchanged completed baseline, with implemented work distinguished from independently reviewed work; a review you run on your own returns the clean result to you.
 - Leaf reviewers return their reports without launching refactors or further reviews.
 
 ## Where it fits
@@ -118,6 +118,6 @@ No. It diffs `<fixed-point>...HEAD`. The three-dot form measures from the merge-
 - [retro](https://aihero.dev/skills-retro) comes after it and tunes it. When a session shows the review missing a class of mistake, `retro` proposes the check or the `CODING_STANDARDS.md` rule the Standards axis then reads.
 - [pr](https://aihero.dev/skills-pr) writes the pull request body once the reviewed work goes up.
 - [to-spec](https://aihero.dev/skills-to-spec) and [to-tickets](https://aihero.dev/skills-to-tickets) produce the document the Spec axis checks against, so a vague spec makes that axis vague.
-- [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) runs the automatic deep-refactor follow-up on the assigned scope after a clean review. Its interactive mode remains available for a wider architectural survey.
+- [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) runs the automatic deep-refactor follow-up on the assigned scope after a clean review of work that an implementation coordinator owns. Its interactive mode remains available for a wider architectural survey.
 
 [ask-matt](https://aihero.dev/skills-ask-matt) routes across the whole set when you are unsure which skill the situation wants.
