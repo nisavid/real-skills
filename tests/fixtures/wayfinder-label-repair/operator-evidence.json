@@ -1,0 +1,35 @@
+{
+  "purpose": "Synthetic input specimen. This is not live evidence or authorization.",
+  "schema_version": 1,
+  "repository": "nisavid/real-skills",
+  "interval_id": "synthetic-qualification-interval",
+  "authority_generation": 1,
+  "attested_by": "synthetic-author",
+  "attestation_record": "synthetic:qualified-interval-record",
+  "transition": {
+    "owner": "synthetic-owner-session",
+    "accepted": true,
+    "ownership_record": "synthetic:accepted-owner-record",
+    "phase": "paused",
+    "contenders": [],
+    "admission": {
+      "automatic": "closed",
+      "manual": "closed",
+      "record": "synthetic:admission-closure-record"
+    },
+    "change_verified": false,
+    "authority_readback_commit": null
+  },
+  "manual_sessions": [],
+  "history": {
+    "complete": true,
+    "boundary": {
+      "proved": true,
+      "at": null,
+      "record": "synthetic:inception-record",
+      "covered_automatic_attempts": []
+    },
+    "manual_inventory_record": "synthetic:all-manual-sessions-record",
+    "executors": []
+  }
+}
