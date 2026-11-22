@@ -4,7 +4,7 @@
 
 The skill never merges or re-ranks the two axes. The report ends with a worst issue *per axis* and declines to name a single winner across them. A change can pass one axis and fail the other. Code that follows every convention but implements the wrong thing passes Standards and fails Spec. Code that does exactly what the [ticket](https://www.aihero.dev/ai-coding-dictionary/ticket) asked but breaks the repo's conventions does the reverse. A blended verdict lets the passing axis hide the failing one.
 
-A completed clean review also triggers automatic deep refactoring through the owning implementation coordinator. The reviewers return evidence; that owner handles the follow-up within the assigned scope. A read-only review does not grant permission to edit.
+A completed clean review also triggers automatic deep refactoring through the owning implementation coordinator, when one owns the reviewed work. The reviewers return evidence; that owner handles the follow-up within the assigned scope. A read-only review does not grant permission to edit.
 
 ## When to reach for it
 
@@ -49,9 +49,9 @@ The **smell baseline** sits under the repo's standards. It is twelve code smells
 
 ## Corrections and the clean-review follow-up
 
-Review corrections use [tdd](https://aihero.dev/skills-tdd), including a quick refactor after each RED and each GREEN. RED cleanup keeps the unmet requirement and prior passing behaviour intact; changed relevant inputs require another observed RED. GREEN cleanup preserves passing behaviour and reruns affected assertions. Either stage can conclude that nothing warrants cleanup.
+Review corrections use [tdd](https://aihero.dev/skills-tdd), including its quick refactor after each RED and each GREEN; either stage can conclude that nothing warrants cleanup.
 
-After every clean code review, the owning implementation coordinator invokes [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) in automatic mode. It assesses the clean candidate, implements all eligible in-scope Strong recommendations, verifies the result, and obtains independent review of the final candidate together with the assessment. Strong means a demonstrated present design problem with a concrete improvement, supported by a comparison with the smallest adequate alternative. Wider changes and reserved decisions go back to their actual owners.
+After every clean code review, the owning implementation coordinator invokes [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) in automatic mode. It assesses the clean candidate, implements all eligible in-scope Strong recommendations, verifies the result, and obtains independent review of the final candidate together with the assessment. Strong means a demonstrated present design problem with a concrete improvement, supported by a comparison with the smallest adequate alternative. Wider changes and reserved decisions go back to their actual owners. When no implementation coordinator owns the reviewed work, as in a review you run on your own, the clean result comes back to you instead of starting that follow-up.
 
 The completed baseline and its single skip exception belong to [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture), which also defines what invalidates a baseline.
 
@@ -92,7 +92,7 @@ Not without checking. Sub-agent output is a hypothesis, not evidence. One team r
 
 Each fix adds code to review, and smell findings remain judgement calls. Check them against the cited evidence and resolve them under the repo's review policy. A loop that repeats the same cause needs that cause reported; a round count does not make an unresolved result clean.
 
-The automatic deep refactor has a specific safeguard against repeating itself. Its owner records the completed, independently reviewed baseline before handling that refactor's own clean-review event. The unchanged scope then meets the existing skip condition. Overlapping review events are reconciled against the candidate and scope, while new nontrivial fixes require a fresh assessment.
+The automatic deep refactor does not repeat unchanged work; [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) defines its completed-baseline exception.
 
 **Does it review my uncommitted work?**
 
