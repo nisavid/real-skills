@@ -21,7 +21,7 @@ A small task does not need a submap, and its progress does not wait for an asses
 
 ## Prerequisites
 
-Map and ticket operations follow the project's tracker instructions, reached through its `AGENTS.md` or `CLAUDE.md` pointer. The tracker policy decides where issues live and how to create, classify, claim, relate, and resolve them. [setup-matt-pocock-skills](https://aihero.dev/skills-setup-matt-pocock-skills) can establish those instructions when the human invokes it.
+Map and ticket operations follow the project's tracker instructions, reached through its `AGENTS.md` or `CLAUDE.md` pointer. The tracker policy decides where issues live and how to create, classify, claim, relate, and resolve them. [setup-matt-pocock-skills](https://aihero.dev/skills-setup-matt-pocock-skills) can establish those instructions when governing instructions let the agent invoke it, or when you invoke it.
 
 If that policy is missing, Wayfinder can return an assessment or map draft and identify the missing setup. Local markdown is an option when the project or human selects it, not an automatic substitute for an unconfigured tracker. Tracker writes and research-branch pushes also need an applicable grant for the operation and target.
 

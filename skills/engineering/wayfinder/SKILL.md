@@ -47,7 +47,7 @@ The map is a single issue on the project's issue tracker, labelled `wayfinder:ma
 
 The map is an **index**, not a store. It lists the decisions made and points at the tickets that hold their detail; a decision lives in exactly one place, its ticket, so the map never restates it, only gists it and links.
 
-**Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** Resolve the tracker instructions through the project's `AGENTS.md` or `CLAUDE.md` pointer and read the "Wayfinding operations" section before ticket operations. Follow project policy for creation, labels, assignees, state, and relationships. If setup is missing, return the draft and identify the missing policy; where applicable, ask the human to run `setup-matt-pocock-skills`. A local-markdown tracker is an available representation only when the project or human has selected it, not permission to choose a new destination.
+**Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** Resolve the tracker instructions through the project's `AGENTS.md` or `CLAUDE.md` pointer and read the "Wayfinding operations" section before ticket operations. Follow project policy for creation, labels, assignees, state, and relationships. If setup is missing, return the draft and identify the missing policy; call the Skill tool with "setup-matt-pocock-skills" when governing instructions permit, otherwise tell the user to run `/setup-matt-pocock-skills`. A local-markdown tracker is an available representation only when the project or human has selected it, not permission to choose a new destination.
 
 ### The map body
 
