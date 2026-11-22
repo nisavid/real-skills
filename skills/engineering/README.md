@@ -2,7 +2,7 @@
 
 Skills I use daily for code work.
 
-The skill summaries on this page are upstream's, except that the `ask-matt` summary drops the word "user-invoked", because every skill listed here is agent-reachable. The `improve-codebase-architecture`, `implement`, `wayfinder`, `probing`, and `tdd` summaries are this fork's. Where the `implement-spec` summary closes out with `/code-review`, this fork's skills call this collection's own `code-review` skill. Where it was installed as a plugin, they use the plugin-qualified name the skill was loaded under (`<plugin>:code-review`), because a harness built-in that shares the bare name is a different review.
+The skill summaries on this page are upstream's, except that the `ask-matt` summary drops the word "user-invoked", because every skill listed here is agent-reachable. The `improve-codebase-architecture`, `implement`, `wayfinder`, and `tdd` summaries are this fork's, and `probing` is a skill this fork adds. Where the `implement-spec` summary closes out with `/code-review`, this fork's skills call this collection's own `code-review` skill. Where it was installed as a plugin, they use the plugin-qualified name the skill was loaded under (`<plugin>:code-review`), because a harness built-in that shares the bare name is a different review.
 
 ## Skills
 
