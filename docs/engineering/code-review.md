@@ -53,7 +53,7 @@ Review corrections use [tdd](https://aihero.dev/skills-tdd), including a quick r
 
 After every clean code review, the owning implementation coordinator invokes [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) in automatic mode. It assesses the clean candidate, implements all eligible in-scope Strong recommendations, verifies the result, and obtains independent review of the final candidate together with the assessment. Strong means a demonstrated present design problem with a concrete improvement, supported by a comparison with the smallest adequate alternative. Wider changes and reserved decisions go back to their actual owners.
 
-A completed baseline records what scope and candidate were assessed, what was verified, and which independent review passed. The only skip is a verified absence of nontrivial code changes since a completed baseline covering this scope. Missing evidence cannot justify it, and a new nontrivial implementation or fix invalidates it. A no-op assessment establishes a baseline only after independent clean review.
+The completed baseline and its single skip exception belong to [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture), which also defines what invalidates a baseline.
 
 ## Common questions
 

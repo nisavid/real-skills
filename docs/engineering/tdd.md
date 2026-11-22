@@ -52,7 +52,7 @@ The evidence belongs to the consumer's contract. The agent states what real beha
 
 After every RED and every GREEN, including review corrections. These are quick cleanups within the behaviour being built, such as removing duplication or clarifying a name. They preserve what that stage proves; the assertion never gets weaker to make cleanup pass.
 
-Deeper work follows every completed clean code review. The owning implementation coordinator invokes [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) in automatic mode, implements eligible Strong recommendations, and gets the final candidate and assessment independently reviewed. It skips only when a verified completed baseline covers the same scope and no nontrivial code has changed since it. A new nontrivial implementation or fix makes that old skip unavailable.
+Deeper work follows every completed clean code review. The owning implementation coordinator invokes [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) in automatic mode, implements eligible Strong recommendations, and gets the final candidate and assessment independently reviewed. Its verified completed-baseline exception, defined in that skill, keeps it from repeating unchanged work.
 
 **It asked me to choose a test seam and I had no idea which to pick.**
 
