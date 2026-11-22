@@ -6,7 +6,7 @@ It reads the tickets as a **task graph**, not a list. Blocking edges decide what
 
 ## When to reach for it
 
-Type `/implement-spec`, or the agent can invoke it when the task fits.
+Type `/implement-spec`, or the agent can invoke it when the task fits. Pushing, opening or readying a PR, and closing tickets require authority for the operation and target; without it, the agent stops at the local integration branch and reports the pending operations.
 
 | Your situation | Reach for |
 | --- | --- |
