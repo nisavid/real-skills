@@ -20,7 +20,7 @@ Use a gzip-compressed Git tar with root `mattpocock-skills-<full SHA>/` and `tar
 
 Treat manifests, skills, supporting files, and license text as data. Execute only the reviewed builder and verification tools. Preserve upstream skill bytes and invocation settings.
 
-When changing the builder or its tests, install pytest and PyYAML and run `python3 -m pytest -q tests/release_archive`; a failure blocks use.
+When changing the manual archive builder or its tests, install pytest and PyYAML and run the relevant builder tests in `tests/release_archive`; a failure blocks use of that changed builder.
 
 ## Build
 
@@ -99,6 +99,39 @@ Generated manifest and provenance files have mode `0644`. Review the generated m
 
 Retain the source commit and tar hash, reviewed procedure revision and builder hash, dependency versions, both independent build results, direct Git comparison, reports, and verified checksums. The link scanner checks only its supported inline Markdown links outside recognized fenced blocks, and only relative file or directory existence. It does not establish complete Markdown-link coverage, fragment validity, external URL reachability, or general security. Review relocation-sensitive links beyond that coverage when the selected inputs need it. Package checks establish neither license clearance beyond preserving the source license nor harness behavior.
 
-Before publication, complete the native procedure's applicable source checks and the repository's independent review on the final procedure and candidate inputs. Record review evidence for the release artifacts and rerun affected checks whenever inputs, builder bytes, or relevant dependencies change. Before claiming discovery or qualifying an installation, exercise discovery for the selected ZIP through its intended harness route: compare observed names with the promoted inventory, confirm non-promoted names are absent, and record harness versions and observed invocation controls. Source metadata alone does not establish runtime enforcement. Unavailable or failed required review or direct verification blocks the affected release. Unavailable or failed discovery blocks the corresponding consumer qualification.
+Before publication, complete the native procedure's applicable source checks and the repository's independent review on the final procedure and candidate inputs. Record review evidence for the release artifacts and rerun affected checks whenever inputs, builder bytes, or relevant dependencies change. Before claiming discovery or qualifying an installation, exercise discovery for the selected ZIP through its intended harness route: compare observed names with the promoted inventory, confirm non-promoted names are absent, and record harness versions and observed invocation controls. Before qualifying an edition for a harness, compare the edition's skill names with that harness's built-in names, and record the result under [Harness built-in names](#harness-built-in-names). Source metadata alone does not establish runtime enforcement. Unavailable or failed required review or direct verification blocks the affected release. Unavailable or failed discovery blocks the corresponding consumer qualification.
 
 Follow the standing Git publication workflow for authorized repository changes. Release upload or publication, final installation, host configuration changes, and official-directory submission each retain their own authorization and acceptance requirements. Archive construction and discovery do not complete those actions. Consumers load the reviewed procedure revision and verify its required evidence before dependent use; useful corrections return to this maintained procedure and its builder.
+
+## Harness built-in names
+
+A harness built-in that shares a skill's bare name can take that name, so a bare call can reach the built-in instead of this collection's skill. Record each comparison here with the harness, the shared names, and the source. Only a reservation observed on a supported harness and recorded here makes a sibling call to that name plugin-qualified. A name that was reported but not observed is a lead to check, and sibling calls to it keep the bare name until the reservation is observed. Every other sibling call keeps its bare name.
+
+Known so far:
+
+- **Claude Code:** `code-review`. Observed on 2026-11-18: with every other provider removed, the profile listed the built-in under the bare name beside the plugin's qualified skill.
+- **Claude Code:** `prototype`, from an upstream report ([mattpocock/skills#1019](https://github.com/mattpocock/skills/issues/1019)). This fork has not observed it.
+- **Claude Code:** `pr`, present in the 2.1.327 bundled-skill list (static inspection). Not observed in a profile listing by this fork.
+- **Claude Code, standalone copy** (not a supported install route): whether the bare `code-review` reaches the copy or the built-in has not been checked.
+- **Copilot CLI:** `research`, from an upstream report ([mattpocock/skills#857](https://github.com/mattpocock/skills/issues/857)). This fork has not observed it.
+- **ChatGPT upload route** ([the install block](../../.agents/install-block.md)): not checked. Whether it reserves any of these names, or resolves a plugin-qualified skill name, has not been observed.
+- **Codex:** not checked. Whether Codex reserves any of these names, or resolves a plugin-qualified skill name, has not been observed.
+
+## Check provenance in CI
+
+The provenance job supports `real-skills-leashed` and `real-skills-unleashed`. Run **Release archive provenance** manually on the default branch for one reviewed, repository-reachable release source. Supply its full commit ID, independently retained source-tar SHA-256, the verified upstream release commit and base version, and the already allocated release version. Verify upstream tag resolution and account for the fork changes before dispatch. The job checks ancestry and version consistency using those inputs. The job has read-only repository access and requires no provider credentials. It runs one candidate at a time on Linux with a ten-minute timeout.
+
+For a local run from a reviewed checkout, use a Python interpreter with PyYAML installed. Use that interpreter for preflight and the provenance command. Make the pinned builder commit available in the selected Git object database. Obtain its full commit ID with `python scripts/check-release-archive-provenance.py --builder-revision`. If the object is absent, fetch that exact commit from the fork's trusted GitHub origin. The runner verifies the builder and procedure digests before executing the builder. To check changes to the automation, complete that preflight, install pytest in the same interpreter, and run `python -m pytest -q tests/release_archive`. A failed suite blocks the changed automation. For a local provenance run, use the same release inputs:
+
+```sh
+python scripts/check-release-archive-provenance.py build \
+  --repo . --source "$SOURCE_COMMIT" --source-sha256 "$SOURCE_SHA256" \
+  --upstream "$UPSTREAM_COMMIT" --base "$BASE_VERSION" \
+  --release "$RELEASE_VERSION" --output "$OUTPUT_DIR"
+```
+
+The runner executes the pinned archive builder in two separate Python processes. Its independent verifier derives both expected ZIPs' contents from the source Git tree. It checks the complete layouts, selected bytes and modes, generated manifests, provenance, and declared icon bytes. It checks Wayfinder asset derivation when the source declares the Wayfinder SVG. To check one existing ZIP against the same source binding, use the `verify` subcommand with `--format agent-plugins` or `--format claude` and `--archive PATH` in place of `--output`.
+
+Use a new output directory per attempt. Keep the receipt with the reviewed pilot checkout commit for a local run, or the workflow run URL and its head commit for a hosted run. Match the receipt’s runner and verifier hashes to the corresponding Git blobs in that commit. The receipt fields `procedure_revision` and `procedure_sha256` identify the separately pinned builder procedure. The receipt also binds the source, toolchain, builder, archive digests, and cleanup. A nonzero exit or missing receipt leaves the run failed or incomplete. Check the logs and reconcile the original attempt before issuing another. The hosted runner disposes of its workspace after the job. The job qualifies archive repeatability and Git correspondence. Appearance checks, provider rendering, discovery, installation, and invocation require their own evidence.
+
+For a hosted replay before merge, create the dedicated `nisavid/archive-provenance-replay` branch once at the reviewed workflow commit. Branch creation exercises the push entry with the fixed historical Leashed source, which predates the Wayfinder icon. Subsequent pushes skip the job. A passing replay supplies evidence for that exact historical source and push entry. Observe a default-branch manual dispatch separately before claiming it works. Current Leashed releases still require the Wayfinder icon and its appearance checks. The manual release can proceed under its applicable checks independently of the provenance job.
