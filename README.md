@@ -32,9 +32,9 @@ When a Real Skills [Leashed] release is available, download the archive for your
 2. Choose **Add**, then **Upload plugin**.
 3. Select the Claude ZIP and choose **Upload**.
 
-If you already have an earlier installation, keep it until you have verified the replacement. During verification, disable other active providers of the same skills if the provider supports it; overlapping providers can make it unclear which instructions were used. This release uses a different plugin identity, and update or coexistence behavior depends on the provider.
+If you already have an earlier installation, keep it until you have verified the replacement. During verification, disable other active providers of the same skills if the provider supports it; overlapping providers can make it unclear which instructions were used. Each harness needs one selected provider for these skill names at all times, not only during verification, because the skills call each other by bare name. Otherwise a chain can continue in another provider's version of a skill, or be refused by it. This release uses a different plugin identity, and update or coexistence behavior depends on the provider.
 
-The sections below retain Matt's introduction, installation guidance, and descriptions of the original collection. First-person references in that material refer to Matt. The installation commands are for upstream, not this fork.
+The sections below retain Matt's introduction, installation guidance, and descriptions of the original collection. First-person references in that material refer to Matt. The installation commands are for upstream, not this fork. The skill descriptions below are upstream's too, except that the `ask-matt` description drops the word "user-invoked" and the Reference introduction and its ungrouped lists describe this variant's invocation, because every promoted skill here is agent-reachable. The `improve-codebase-architecture`, `implement`, `wayfinder`, and `tdd` descriptions are this fork's, and `probing` is a skill this fork adds. Where the `implement-spec` summary closes out with `/code-review`, this fork's skills call this collection's own `code-review` skill. Where it was installed as a plugin, they use the plugin-qualified name the skill was loaded under (`<plugin>:code-review`), because a harness built-in that shares the bare name is a different review.
 
 ## The original collection
 
@@ -259,7 +259,6 @@ Skills I use daily for code work.
 - **[implement-spec](./skills/engineering/implement-spec/SKILL.md)**: Implement a whole spec on one integration branch. Works the tickets as a task graph, running implementer subagents across the ready frontier for maximum concurrency, then closes out with `/code-review`.
 - **[wayfinder](./skills/engineering/wayfinder/SKILL.md)**: Assess intake and keep the route current before work and after changes or returns; chart a shared decision map where warranted.
 - **[retro](./skills/engineering/retro/SKILL.md)**: Suggest improvements to the coding agent's environment (navigation, automated checks, coding standards, steering files, tooling) after a session, most severe first.
-
 - **[prototype](./skills/engineering/prototype/SKILL.md)**: Build a throwaway prototype to answer a design question, either a single shareable HTML file for state/logic questions, or several radically different UI variations toggleable from one route.
 - **[probing](./skills/engineering/probing/SKILL.md)**: Settle a named factual uncertainty with the smallest adequate evidence and apply the result to discovery, design, or TDD.
 - **[diagnosing-bugs](./skills/engineering/diagnosing-bugs/SKILL.md)**: Disciplined diagnosis loop for hard bugs and performance regressions: build a feedback loop that goes red on this bug → minimise → hypothesise → instrument → fix → regression-test.
@@ -281,6 +280,5 @@ General workflow tools, not code-specific.
 - **[teach](./skills/productivity/teach/SKILL.md)**: Teach the user a new skill or concept over multiple sessions, using the current directory as a stateful teaching workspace.
 - **[to-questionnaire](./skills/productivity/to-questionnaire/SKILL.md)**: Turn a decision you can't answer alone into a Markdown questionnaire for the one person who can, filled in async, or together over a meeting. It grills you about the send (who it's for, what you need back), not the subject.
 - **[wait-what](./skills/productivity/wait-what/SKILL.md)**: Fire this the moment a message doesn't land. The agent re-pitches it with the context you're missing, in plain English, using your `GLOSSARY.md` vocabulary.
-
 - **[grilling](./skills/productivity/grilling/SKILL.md)**: Interview the user relentlessly about a plan, decision, or idea until every branch of the design tree is resolved. The reusable interview primitive behind `grill-me`, `grill-with-docs`, `triage`, `wayfinder` and `improve-codebase-architecture`.
 - **[writing-for-agents](./skills/productivity/writing-for-agents/SKILL.md)**: Writing documents for agents: skills, AGENTS.md/CLAUDE.md, and any doc an agent reaches by a pointer.

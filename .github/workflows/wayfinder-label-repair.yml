@@ -1,0 +1,43 @@
+name: Wayfinder label repair
+
+# Inspect-only receiving candidate. Publication and workflow enablement require
+# separate trial approval. This stage supplies no apply authorization.
+on:
+  issues:
+    types: [opened, labeled, unlabeled, reopened]
+  workflow_run:
+    workflows: [Triage label, Close needs-info]
+    types: [completed]
+  schedule:
+    - cron: "17,47 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      issues: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - name: Inspect current state
+        run: node scripts/reconcile-wayfinder-labels.mjs inspect --executor automatic > report.json
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Retain every attempt report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: wayfinder-label-repair-${{ github.run_id }}-${{ github.run_attempt }}
+          path: report.json
+          if-no-files-found: error
+          retention-days: 90
