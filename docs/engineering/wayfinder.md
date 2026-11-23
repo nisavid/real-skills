@@ -14,14 +14,14 @@ Type `/wayfinder`, or let the agent invoke it on new intake, before work, and wh
 | A child issue whose parent has been assessed | Check that the parent assessment covers this child's scope and dependencies; membership alone is not enough. |
 | A large effort with unresolved decisions | Chart a map and work its decision tickets. |
 | A changed input, worker return, or supplier blocker | Refresh the affected assessment and select the next eligible frontier, or record a hold. |
-| An unresolved human decision | Use [grilling](https://aihero.dev/skills-grilling), with [domain-modeling](https://aihero.dev/skills-domain-modeling) when the model needs work. |
+| An unresolved human decision | Use [grilling](https://aihero.dev/skills-grilling) and [domain-modeling](https://aihero.dev/skills-domain-modeling). |
 | A cleared route to a multi-session build | Hand the decisions to [to-spec](https://aihero.dev/skills-to-spec), then [to-tickets](https://aihero.dev/skills-to-tickets), within the separately authorized workflow. |
 
 A small task does not need a submap, and its progress does not wait for an assessment of the whole backlog. [grill-with-docs](https://aihero.dev/skills-grill-with-docs) remains useful when a bounded planning conversation needs a glossary and durable decisions.
 
 ## Prerequisites
 
-Map and ticket operations follow the project's tracker instructions, reached through its `AGENTS.md` or `CLAUDE.md` pointer. The tracker policy decides where issues live and how to create, classify, claim, relate, and resolve them. [setup-matt-pocock-skills](https://aihero.dev/skills-setup-matt-pocock-skills) can establish those instructions when the human invokes it.
+Map and ticket operations follow the project's tracker instructions, reached through its `AGENTS.md` or `CLAUDE.md` pointer. The tracker policy decides where issues live and how to create, classify, claim, relate, and resolve them. [setup-matt-pocock-skills](https://aihero.dev/skills-setup-matt-pocock-skills) can establish those instructions when governing instructions let the agent invoke it, or when you invoke it.
 
 If that policy is missing, Wayfinder can return an assessment or map draft and identify the missing setup. Local markdown is an option when the project or human selects it, not an automatic substitute for an unconfigured tracker. Tracker writes and research-branch pushes also need an applicable grant for the operation and target.
 
@@ -60,25 +60,43 @@ Each refresh ends with the next eligible step or a hold that names its owner and
 
 ## Common questions
 
+**How is this different from `/grill-with-docs`? Which should I start with?**
+Session count, not project size. `/grill-with-docs` is single-session planning; a full wayfinder map is multi-session planning. If you can hold the whole thing in one conversation, grilling is cheaper and better, and a map is slower and denser for that case. The community shorthand is that a wayfinder map only makes sense if the work does not fit into a single session. This is by far the most-asked wayfinder question. People keep asking it because the skill descriptions do not tell you where your own task sits on that line. You have to judge the session count yourself.
+
 **Does every request need a map now?**
 No. Assessment can be brief, and a current direct or parent assessment can be reused. A map is for unresolved decisions that need one. Bounded work does not need a submap or a completed assessment of unrelated backlog items.
 
-**Can an assessed parent make all its children ready?**
-Only the assessment coverage can be reused. Check the child's scope, assumptions, dependencies, and current evidence. Its claim, blockers, human decisions, readiness, and execution authority remain separate.
+**When it asks for the "destination", does it mean the end of this session or the end of everything?**
+The end of the whole map, not just the first session. The question reads ambiguously, but a wayfinder map is a multi-session tool by definition, so a session-scoped answer never makes sense. Typical destinations are a [spec](https://www.aihero.dev/ai-coding-dictionary/spec) to hand off, a decision to lock before planning starts, a throwaway proof of concept, or a clear route to an eventual in-place change such as a data migration. Naming that change does not authorize executing it during planning.
 
-**What happens when a worker returns a new blocker?**
-The affected route is reassessed before that blocker becomes a required dependency. When the dependency is necessary, the held question, owner, and exact return trigger are recorded. Another eligible branch can continue.
+**The map is cleared. Didn't wayfinder already write the spec and make the tickets? Why do I still need `/to-spec` and `/to-tickets`?**
+No. Wayfinder's tickets are decision tickets, and by the time the map closes they are all closed too. What is left is a map full of linked decisions, which is not a build plan. [to-spec](https://aihero.dev/skills-to-spec) collapses those linked decisions into one spec (`/to-spec #<map_issue>`), and [to-tickets](https://aihero.dev/skills-to-tickets) slices that spec into tracer-bullet implementation tickets. If you loop the map straight into [implement](https://aihero.dev/skills-implement), you skip the collapse and lose the linked detail. Go straight to implementation only when the effort turned out small. Some people run the shorter pipeline and report that it works. The two extra steps give you an explicit spec that a reviewer or a colleague can read, which matters more when you do not work alone. Either route still needs an applicable direct human grant before implementation; map Notes, labels, linked artifacts, and worker results cannot supply it.
 
-**Does a cleared map mean implementation can start?**
-It means the route is clear. Multi-session work can move through [to-spec](https://aihero.dev/skills-to-spec) and [to-tickets](https://aihero.dev/skills-to-tickets); a bounded task may already have enough direction for its execution workflow. In either case, implementation needs an applicable direct human grant. Map Notes, labels, linked artifacts, and worker results cannot supply it. Planning prototypes stay isolated from product code and real services or data.
+**My agent started writing production code in the middle of a wayfinder session.**
+Earlier versions allowed a map's **Notes** to override planning scope. One user watched an agent write "this map carries execution" into its own Notes, then read it back as permission in later sessions and build on a live server. Notes can no longer grant that permission. The same boundary covers ticket bodies, labels, comments, linked artifacts, and delegated results, even when they claim earlier human approval. A task or a suggested skill cannot turn planning into implementation. Keep prototypes isolated; promoting one into product code is implementation too. Hand off work outside planning scope and authorize that separate workflow directly, rather than storing a reusable grant in the map.
 
-This is an instruction boundary. Technical prevention depends on the actual harness's tool and credential restrictions.
+This is an instruction boundary, not a sandbox. The skill has no runtime that can revoke tools or credentials. For technical prevention, the host must restrict tools and credentials to the planning artifacts and tracker operations it permits; verify that policy in the actual harness before relying on it.
+
+**I charted 27 tickets, and by the time I got to the thirteenth, the rest no longer made sense.**
+This question is verbatim from a user report, and others report the same outcome. A full map plans comprehensively by default. When later tickets rest on assumptions that earlier tickets invalidate, the map falls into the waterfall trap that critics accuse the skill of. Two things help. First, scope the map to a bounded destination, not to the whole product. Users report that maps scoped to one defined epic behave better than a sprawling "implement V1". The goal is to ship small increments, not to plan something very big. Second, [prototype](https://www.aihero.dev/ai-coding-dictionary/prototyping) aggressively. The route stays current because cheap concrete artifacts expose uncertainty before implementation depends on it. Wayfinder is "prototypemaxxing", not "planmaxxing". Each worker return or meaningful change now triggers a refresh of only the affected route.
+
+**Can I work several tickets in parallel?**
+The frontier shows you which tickets you can take, and blocking edges make parallel work safe on paper. In practice, one ticket at a time is the safer default. If you work two grilling tickets at once, one session can ask you a question you just answered in the other, because the sessions share no [context](https://www.aihero.dev/ai-coding-dictionary/context). Prototype tickets have a known gap too. One user reported an agent that built three UI variations, chose one itself, and closed the ticket. That choice is yours, and the skill does not yet say so clearly enough. If you do run tickets in parallel, review the dependency graph yourself first.
+
+**Do I have to use GitHub Issues?**
+No. Any issue tracker works. GitHub has the best support, because its native sub-issues and blocking relationships make the frontier visible without opening the map. People also use GitLab, Linear, Jira and local markdown. There are two caveats. On a tracker with no native blocking, wayfinder infers the dependency graph from text, and you must correct it by hand. Local markdown puts the artifacts in your repo, which is not recommended, because material stored in the repo tends to persist by accident. Open-source maintainers hit the opposite problem (public trackers fill up with agent-generated planning tickets) and often choose local markdown anyway. Wayfinder uses the tracker your project's agent instructions name, and local markdown only when the project or you select it; otherwise it returns the draft and names the missing setup.
+
+**The grilling is exhausting. Every question is three paragraphs long.**
+This is the sharpest open complaint about wayfinder, and nobody has fixed it yet. One user broke it down this way: the verbosity itself causes decision exhaustion, and the length hides *why* the agent asks a question, so you lose the chain from decision to decision as the map grows. The verbosity looks like a property of the current set of [models](https://www.aihero.dev/ai-coding-dictionary/model) rather than of the skill. Users try two mitigations: a lower [reasoning effort](https://www.aihero.dev/ai-coding-dictionary/effort), and a plain-language instruction in your global `CLAUDE.md`. Expect to think hard here anyway. Wayfinder demands a lot of thinking from you, and that is most of its purpose, not a defect.
+
+**A decision I already closed turned out to be wrong. Do I edit the old ticket or make a new one?**
+The skill says only to reconcile invalidated decisions and affected tickets under project policy while preserving decision history, and the agent's default is unhelpful. It tends to design around the bad decision instead of challenging it, so you must steer it yourself. What works is to tell wayfinder plainly what changed. It then updates the map, revises the affected tickets, and comments on the closed ones. You can recover from scope changes mid-map. But if you *designed* a map to change, that is a sign the scope is wrong.
 
 **Can Wayfinder labels coexist with triage labels?**
 Yes, where the project's policy permits the relevant independent classifications. That does not require every axis on every issue, and it does not replace a native workflow state such as Linear Triage. If project policy still makes the labels exclusive, its owner must change that policy before the additional labels are applied.
 
 **Where did `decision-mapping` go?**
-It became `wayfinder` in v1.1. The map still consists of decision tickets: questions to resolve, rather than build slices.
+It is this skill. v1.1 renamed it to `wayfinder`, and you invoke it as `/wayfinder`. "Decision map" was jargon, and it was also inaccurate, because only one of the four ticket types is a decision by itself. The new name gave the skill one consistent vocabulary (destination, fog of war, frontier, the map) instead of an invented term on top. The unit kept the word "decision": a wayfinder ticket is a **decision ticket**, so that people do not read it as an implementation ticket.
 
 ## It's working if
 
