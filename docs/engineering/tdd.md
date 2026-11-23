@@ -52,7 +52,7 @@ The evidence belongs to the consumer's contract. The agent states what real beha
 
 After every RED and every GREEN, including review corrections. These are quick cleanups within the behaviour being built, such as removing duplication or clarifying a name. They preserve what that stage proves; the assertion never gets weaker to make cleanup pass.
 
-Deeper work follows every completed clean code review. The owning implementation coordinator invokes [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) in automatic mode, implements eligible Strong recommendations, and gets the final candidate and assessment independently reviewed. It skips only when a verified completed baseline covers the same scope and no nontrivial code has changed since it. A new nontrivial implementation or fix makes that old skip unavailable.
+After every completed clean code review of work an implementation coordinator owns, that coordinator invokes [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) in automatic mode, implements eligible Strong recommendations, and gets the final candidate and assessment independently reviewed. Its verified completed-baseline exception, defined in that skill, keeps it from repeating unchanged work.
 
 **It asked me to choose a test seam and I had no idea which to pick.**
 
@@ -72,7 +72,7 @@ No. `/tdd` documents the methodology; `/implement` is a simple work→feedback�
 
 **Where did the deep-modules and interface-design guidance go?**
 
-[codebase-design](https://aihero.dev/skills-codebase-design) supplies the shared vocabulary. `tdd` owns the quick cleanup at each RED and GREEN stage. [code-review](https://aihero.dev/skills-code-review) checks the resulting diff and carries the Fowler smell baseline; a clean review triggers the automatic deeper assessment.
+[codebase-design](https://aihero.dev/skills-codebase-design) supplies the shared vocabulary. `tdd` owns the quick cleanup at each RED and GREEN stage. [code-review](https://aihero.dev/skills-code-review) checks the resulting diff and carries the Fowler smell baseline; a clean review of coordinator-owned work triggers the automatic deeper assessment.
 
 **Does it know about my other tickets?**
 
@@ -97,4 +97,4 @@ No. Run against one ticket, it can propose work that belongs to a sibling ticket
 grill-with-docs → to-spec → to-tickets → implement → code-review → retro
 ```
 
-[to-spec](https://aihero.dev/skills-to-spec) records relevant consumer boundaries and testing decisions, [implement](https://aihero.dev/skills-implement) drives `tdd` per ticket, and [code-review](https://aihero.dev/skills-code-review) checks the resulting diff. Every clean review sends the owning implementation coordinator to [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) for automatic deep refactoring, subject to its verified completed-baseline exception. Its other neighbour is [codebase-design](https://aihero.dev/skills-codebase-design), the shared source of the seam and deep-module vocabulary that `tdd` uses. You can also reach for it on its own, whenever there is a concrete behaviour to build and no full spec in play. When you are unsure which skill fits your situation, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.
+[to-spec](https://aihero.dev/skills-to-spec) records relevant consumer boundaries and testing decisions, [implement](https://aihero.dev/skills-implement) drives `tdd` per ticket, and [code-review](https://aihero.dev/skills-code-review) checks the resulting diff. Every clean review of coordinator-owned work sends the owning implementation coordinator to [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) for automatic deep refactoring, subject to its verified completed-baseline exception. Its other neighbour is [codebase-design](https://aihero.dev/skills-codebase-design), the shared source of the seam and deep-module vocabulary that `tdd` uses. You can also reach for it on its own, whenever there is a concrete behaviour to build and no full spec in play. When you are unsure which skill fits your situation, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.

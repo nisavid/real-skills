@@ -2,7 +2,7 @@
 
 ## Fork changes
 
-- [`65b50e0`](https://github.com/nisavid/real-skills/commit/65b50e0bcd27a4d11650846dc5c01b66aae1d1fc) Thanks [@nisavid](https://github.com/nisavid)! - Bound `code-review` delegation to one coordinator and at most two leaf reviewers. Require both worker prompts to prohibit recursive review and indirect delegation, keep re-entry in a reviewer role on its assigned axis, and document the distinction between instruction guards and harness-enforced limits.
+- [`65b50e0`](https://github.com/nisavid/real-skills/commit/65b50e0bcd27a4d11650846dc5c01b66aae1d1fc) Thanks [@nisavid](https://github.com/nisavid)! - Bound `code-review` to one coordinator and at most one leaf reviewer per axis. Standards and Spec reviewers perform their assigned reviews directly and never delegate, even when no recursion has occurred. An agent from another workflow may still coordinate a review when it is not one of its leaf reviewers. Harness restrictions can enforce this role rule; the skill itself does not set runtime tool permissions.
 
 - [`475c92d`](https://github.com/nisavid/real-skills/commit/475c92d98a0c60640bbaff229c5047c1a4b0c969) Thanks [@nisavid](https://github.com/nisavid)! - Make the optional Claude Code Git guardrail fail closed on invalid input and runtime errors. Recognize prohibited literal Git operations across quoting, whitespace, and global options, and require explicit user review for every other Bash command, including wrappers and indirect Git execution. Document Python 3, failure-blocking hook configuration, and updating installed copies.
 

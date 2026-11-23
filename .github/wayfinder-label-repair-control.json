@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "generation": 1,
+  "mode": "inspect",
+  "workflow_id": null,
+  "writer_coverage": "unqualified",
+  "policy": [
+    {
+      "path": "docs/agents/issue-tracker.md",
+      "sha256": "18016d0e813d69d5393e5e40bc812ddb2a5f0153986fd57a1bc1f050ad9a5e5c"
+    },
+    {
+      "path": "docs/agents/triage-labels.md",
+      "sha256": "4485f69166d55bdec0c9f5dfc5df44d7fd5225a346b9c85365a22c5ce45a87da"
+    }
+  ],
+  "authorized_implementations": [],
+  "fixture_issue_numbers": [],
+  "operating_interval": null
+}

@@ -4,11 +4,11 @@
 
 The skill never merges or re-ranks the two axes. The report ends with a worst issue *per axis* and declines to name a single winner across them. A change can pass one axis and fail the other. Code that follows every convention but implements the wrong thing passes Standards and fails Spec. Code that does exactly what the [ticket](https://www.aihero.dev/ai-coding-dictionary/ticket) asked but breaks the repo's conventions does the reverse. A blended verdict lets the passing axis hide the failing one.
 
-A completed clean review also triggers automatic deep refactoring through the owning implementation coordinator. The reviewers return evidence; that owner handles the follow-up within the assigned scope. A read-only review does not grant permission to edit.
+A completed clean review also triggers automatic deep refactoring through the owning implementation coordinator, when one owns the reviewed work. The reviewers return evidence; that owner handles the follow-up within the assigned scope. A read-only review does not grant permission to edit.
 
 ## When to reach for it
 
-Type `/code-review`, or the agent reaches for it automatically when you ask to review a branch, a PR, work in progress, or anything "since X".
+Type its plugin-qualified name, such as `/real-skills-leashed:code-review`, or the agent reaches for it automatically when you ask to review a branch, a PR, work in progress, or anything "since X". The bare `/code-review` can reach a different, built-in review instead (see the name clash below).
 
 | Your situation | Reach for |
 | --- | --- |
@@ -49,22 +49,26 @@ The **smell baseline** sits under the repo's standards. It is twelve code smells
 
 ## Corrections and the clean-review follow-up
 
-Review corrections use [tdd](https://aihero.dev/skills-tdd), including a quick refactor after each RED and each GREEN. RED cleanup keeps the unmet requirement and prior passing behaviour intact; changed relevant inputs require another observed RED. GREEN cleanup preserves passing behaviour and reruns affected assertions. Either stage can conclude that nothing warrants cleanup.
+Review corrections use [tdd](https://aihero.dev/skills-tdd), including its quick refactor after each RED and each GREEN; either stage can conclude that nothing warrants cleanup.
 
-After every clean code review, the owning implementation coordinator invokes [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) in automatic mode. It assesses the clean candidate, implements all eligible in-scope Strong recommendations, verifies the result, and obtains independent review of the final candidate together with the assessment. Strong means a demonstrated present design problem with a concrete improvement, supported by a comparison with the smallest adequate alternative. Wider changes and reserved decisions go back to their actual owners.
+After every clean code review, the owning implementation coordinator invokes [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) in automatic mode. It assesses the clean candidate, implements all eligible in-scope Strong recommendations, verifies the result, and obtains independent review of the final candidate together with the assessment. Strong means a demonstrated present design problem with a concrete improvement, supported by a comparison with the smallest adequate alternative. Wider changes and reserved decisions go back to their actual owners. When no implementation coordinator owns the reviewed work, as in a review you run on your own, the clean result comes back to you instead of starting that follow-up.
 
-A completed baseline records what scope and candidate were assessed, what was verified, and which independent review passed. The only skip is a verified absence of nontrivial code changes since a completed baseline covering this scope. Missing evidence cannot justify it, and a new nontrivial implementation or fix invalidates it. A no-op assessment establishes a baseline only after independent clean review.
+The completed baseline and its single skip exception belong to [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture), which also defines what invalidates a baseline.
 
 ## Common questions
 
 **It collides with Claude Code's own `/code-review`. What do I do?**
 
-This is the most reported problem with the skill, and it is not fixed. Claude Code ships its own `/code-review`, which does something different: it hunts bugs in the diff, where this one checks spec compliance and repo standards. When you install this library, one of them wins, and which one depends on how you installed:
+Reach this skill by its plugin-qualified name: `/real-skills-leashed:code-review` for Real Skills [Leashed], or `/real-skills-unleashed:code-review` for Real Skills [Unleashed]. Claude Code ships its own built-in `code-review`, a different review. On a Claude Code profile with this fork's plugin installed and every other provider of these skills removed, the bare name was observed listing the built-in beside the plugin's qualified skill. A skill cannot depend on how each host has configured its built-ins. That is why [implement](https://aihero.dev/skills-implement) and [implement-spec](https://aihero.dev/skills-implement-spec) call this skill by its plugin-qualified name, not by the bare one. With a standalone copy instead of the plugin, use the name your copy has.
 
-- **Plugin marketplace.** Every skill gets a `mattpocock-skills:` prefix, and the built-in becomes hard to reach at the unqualified name.
-- **Plain skills install.** The local file wins, and this skill shadows the built-in.
+The rest of this answer is upstream's text, written for its own `mattpocock-skills` plugin. The observation above contradicts its plugin-install claim that the built-in becomes hard to reach at the unqualified name. Its suggestion to remove Claude Code's built-in skills is upstream's, not this fork's recommendation. This fork has not checked its plain-install claim.
 
-One answer is to remove Claude Code's built-in skills entirely. That saves a lot of [context](https://www.aihero.dev/ai-coding-dictionary/context), and the collision stops mattering. The shadowing itself is arguably a Claude Code [harness](https://www.aihero.dev/ai-coding-dictionary/harness) bug (a skill author should be free to name a skill anything), so the other answer is to rename the local copy. `npx skills update` undoes an edit to the frontmatter or a renamed directory. The durable workaround users report is to fork the skill to a new name and drop `code-review` from the managed set. Keep a note of the commit you forked from so you can re-sync by hand.
+> This is the most reported problem with the skill, and it is not fixed. Claude Code ships its own `/code-review`, which does something different: it hunts bugs in the diff, where this one checks spec compliance and repo standards. When you install this library, one of them wins, and which one depends on how you installed:
+>
+> - **Plugin marketplace.** Every skill gets a `mattpocock-skills:` prefix, and the built-in becomes hard to reach at the unqualified name.
+> - **Plain skills install.** The local file wins, and this skill shadows the built-in.
+>
+> One answer is to remove Claude Code's built-in skills entirely. That saves a lot of [context](https://www.aihero.dev/ai-coding-dictionary/context), and the collision stops mattering. The shadowing itself is arguably a Claude Code [harness](https://www.aihero.dev/ai-coding-dictionary/harness) bug (a skill author should be free to name a skill anything), so the other answer is to rename the local copy. `npx skills update` undoes an edit to the frontmatter or a renamed directory. The durable workaround users report is to fork the skill to a new name and drop `code-review` from the managed set. Keep a note of the commit you forked from so you can re-sync by hand.
 
 **Its sub-agents keep invoking `/code-review` again and spawn more agents.**
 
@@ -74,7 +78,7 @@ These are instruction-level guards. Where your harness supports nondelegating wo
 
 **Should I run it in the same [session](https://www.aihero.dev/ai-coding-dictionary/session) that wrote the code?**
 
-Prefer a fresh one. As one reader put it: "Same context reviewing itself isn't review, it's confirmation bias with a slash command." An agent that reviews in the authoring session has every assumption that shaped the code in its context. An independent reviewer would not have that context. This is also why people ask for [implement](https://aihero.dev/skills-implement) without its built-in review step, because that step runs the review inside the session that just wrote the diff. The independent version is to invoke `/code-review` yourself from a clean session.
+Prefer a fresh one. As one reader put it: "Same context reviewing itself isn't review, it's confirmation bias with a slash command." An agent that reviews in the authoring session has every assumption that shaped the code in its context. An independent reviewer would not have that context. This is also why people ask for [implement](https://aihero.dev/skills-implement) without its built-in review step, because that step runs the review inside the session that just wrote the diff. The independent version is to invoke this skill yourself, by its plugin-qualified name, from a clean session.
 
 **After every ticket, or once at the end?**
 
@@ -88,7 +92,7 @@ Not without checking. Sub-agent output is a hypothesis, not evidence. One team r
 
 Each fix adds code to review, and smell findings remain judgement calls. Check them against the cited evidence and resolve them under the repo's review policy. A loop that repeats the same cause needs that cause reported; a round count does not make an unresolved result clean.
 
-The automatic deep refactor has a specific safeguard against repeating itself. Its owner records the completed, independently reviewed baseline before handling that refactor's own clean-review event. The unchanged scope then meets the existing skip condition. Overlapping review events are reconciled against the candidate and scope, while new nontrivial fixes require a fresh assessment.
+The automatic deep refactor does not repeat unchanged work; [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) defines its completed-baseline exception.
 
 **Does it review my uncommitted work?**
 
@@ -103,7 +107,7 @@ No. It diffs `<fixed-point>...HEAD`. The three-dot form measures from the merge-
 - The closing summary gives a worst issue per axis and declines to pick an overall winner.
 - With no spec available, the Spec block says so instead of listing requirements it inferred from the code.
 - Review corrections show quick cleanup after each RED and GREEN, or explain why none was warranted.
-- A clean review leads to an automatic deep-refactor result or a verified unchanged completed baseline, with implemented work distinguished from independently reviewed work.
+- When an implementation coordinator owns the reviewed work, a clean review leads to an automatic deep-refactor result or a verified unchanged completed baseline, with implemented work distinguished from independently reviewed work; a review you run on your own returns the clean result to you.
 - Leaf reviewers return their reports without launching refactors or further reviews.
 
 ## Where it fits
@@ -114,6 +118,6 @@ No. It diffs `<fixed-point>...HEAD`. The three-dot form measures from the merge-
 - [retro](https://aihero.dev/skills-retro) comes after it and tunes it. When a session shows the review missing a class of mistake, `retro` proposes the check or the `CODING_STANDARDS.md` rule the Standards axis then reads.
 - [pr](https://aihero.dev/skills-pr) writes the pull request body once the reviewed work goes up.
 - [to-spec](https://aihero.dev/skills-to-spec) and [to-tickets](https://aihero.dev/skills-to-tickets) produce the document the Spec axis checks against, so a vague spec makes that axis vague.
-- [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) runs the automatic deep-refactor follow-up on the assigned scope after a clean review. Its interactive mode remains available for a wider architectural survey.
+- [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) runs the automatic deep-refactor follow-up on the assigned scope after a clean review of work that an implementation coordinator owns. Its interactive mode remains available for a wider architectural survey.
 
 [ask-matt](https://aihero.dev/skills-ask-matt) routes across the whole set when you are unsure which skill the situation wants.

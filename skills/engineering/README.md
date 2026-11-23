@@ -2,6 +2,8 @@
 
 Skills I use daily for code work.
 
+The skill summaries on this page are upstream's, except that the `ask-matt` summary drops the word "user-invoked", because every skill listed here is agent-reachable. The `improve-codebase-architecture`, `implement`, `wayfinder`, and `tdd` summaries are this fork's, and `probing` is a skill this fork adds. Where the `implement-spec` summary closes out with `/code-review`, this fork's skills call this collection's own `code-review` skill. Where it was installed as a plugin, they use the plugin-qualified name the skill was loaded under (`<plugin>:code-review`), because a harness built-in that shares the bare name is a different review.
+
 ## Skills
 
 You or the agent can invoke these skills when the task fits. Invocation does not grant permission for their effects.
@@ -17,11 +19,8 @@ You or the agent can invoke these skills when the task fits. Invocation does not
 - **[implement-spec](./implement-spec/SKILL.md)**: Implement a whole spec on one integration branch. Works the tickets as a task graph, running implementer subagents across the ready frontier for maximum concurrency, then closes out with `/code-review`.
 - **[wayfinder](./wayfinder/SKILL.md)**: Assess intake and keep the route current before work and after changes or returns; chart a shared decision map where warranted.
 - **[retro](./retro/SKILL.md)**: Suggest improvements to the coding agent's environment (navigation, automated checks, coding standards, steering files, tooling) after a session, most severe first.
-
-
 - **[prototype](./prototype/SKILL.md)**: Build a throwaway prototype to answer a design question: a single shareable HTML file for state/logic, or several toggleable UI variations.
 - **[probing](./probing/SKILL.md)**: Settle a named factual uncertainty with the smallest adequate evidence and apply the result to discovery, design, or TDD.
-
 - **[diagnosing-bugs](./diagnosing-bugs/SKILL.md)**: Disciplined diagnosis loop for hard bugs and performance regressions: build a feedback loop that goes red on this bug → minimise → hypothesise → instrument → fix → regression-test.
 - **[research](./research/SKILL.md)**: Investigate a question against high-trust primary sources and capture the findings as a cited Markdown file in the repo, run as a background agent.
 - **[tdd](./tdd/SKILL.md)**: Build one test-first vertical slice at a time, with a quick refactor after each RED and each GREEN.

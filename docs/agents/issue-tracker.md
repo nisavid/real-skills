@@ -14,6 +14,8 @@ Use the canonical triage vocabulary in `docs/agents/triage-labels.md` for implem
 
 A map is a GitHub issue labelled `wayfinder:map`. Decision tickets are native sub-issues labelled with exactly their applicable `wayfinder:research`, `wayfinder:prototype`, `wayfinder:grilling`, or `wayfinder:task` type. Create missing labels with those exact names. Wayfinder issues carry no triage labels.
 
+For Wayfinder label conflicts, repair health or fallback, and changes that end eligibility or alter repair authority, read [Issue-label repair](issue-label-repair.md) before acting.
+
 Claim a decision ticket before working it by assigning it to `nisavid`. Record the active worker and owning chat in its coordination note so concurrent sessions can distinguish claims made through the shared account.
 
 Use GitHub's native blocking dependencies. Create issues first, then add sub-issue and blocking relationships using their observed IDs. If a native relationship is unavailable, record that missing capability and use the corresponding body convention below. Choose membership and dependency representations separately; one unavailable relationship does not disable the other native relationship.
