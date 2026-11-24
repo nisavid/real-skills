@@ -49,7 +49,7 @@ The **smell baseline** sits under the repo's standards. It is twelve code smells
 
 ## Corrections and the clean-review follow-up
 
-Review corrections use [tdd](https://aihero.dev/skills-tdd), including its quick refactor after each RED and each GREEN; either stage can conclude that nothing warrants cleanup.
+Review corrections use [tdd](https://aihero.dev/skills-tdd) where possible, at pre-agreed seams, including its quick refactor after each RED and each GREEN; either stage can conclude that nothing warrants cleanup.
 
 After every clean code review, the owning implementation coordinator invokes [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) in automatic mode. It assesses the clean candidate, implements all eligible in-scope Strong recommendations, verifies the result, and obtains independent review of the final candidate together with the assessment. Strong means a demonstrated present design problem with a concrete improvement, supported by a comparison with the smallest adequate alternative. Wider changes and reserved decisions go back to their actual owners. When no implementation coordinator owns the reviewed work, as in a review you run on your own, the clean result comes back to you instead of starting that follow-up.
 
