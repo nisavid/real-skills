@@ -49,10 +49,10 @@ Rerun any case whose result could change on the later build. That includes a cha
 
 ### 3. A bug that is also a map
 
-- **Starting state.** On the fixture GitHub repository, whose policy permits a bug to be a map, an Issue triaged as `bug` with a triage state.
+- **Starting state.** On the fixture GitHub repository, whose policy permits a bug to be a map, an Issue triaged as `bug` with a triage state and a claim that the run under test holds.
 - **Prompt.** Chart this bug's route as a Wayfinder map.
-- **Intends to change.** Map structure: the map label and the map body, and any children Wayfinder creates.
-- **Must survive.** The work kind `bug` and the triage state, the Issue's claim, blockers, and parent membership.
+- **Intends to change.** Map structure: the map label and the map body, and any children Wayfinder creates; and the release of the run's claim on the Issue, in the step that creates its first child.
+- **Must survive.** The work kind `bug` and the triage state, blockers, and parent membership.
 
 ### 4. A decision ticket promoted in place to a map
 
