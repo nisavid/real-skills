@@ -5,6 +5,8 @@ description: "Implement a piece of work based on a spec or set of tickets. Use w
 
 Implement the work described by the user in the spec or tickets.
 
+Invocation grants no authority, so reuse an applicable user grant to fetch the ticket or spec, edit code and tests in this checkout, run project checks, and dispatch reviewers with their inputs, reporting any uncovered operation and its target and asking before acting.
+
 If the user passes a ticket reference, fetch it from the issue tracker and state its title before starting. If the reference is ambiguous, ask.
 
 Call the Skill tool with "tdd" where possible, at pre-agreed seams.

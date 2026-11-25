@@ -1,6 +1,6 @@
 ## What it does
 
-`implement` builds work that has already been decided. You point it at a [ticket](https://www.aihero.dev/ai-coding-dictionary/ticket), a [spec](https://www.aihero.dev/ai-coding-dictionary/spec), or the plan you just agreed in the conversation, and it writes the code, drives [tdd](https://aihero.dev/skills-tdd) at the seams, typechecks as it goes, and runs [code-review](https://aihero.dev/skills-code-review) at the end.
+`implement` builds work that has already been decided. You point it at a [ticket](https://www.aihero.dev/ai-coding-dictionary/ticket), a [spec](https://www.aihero.dev/ai-coding-dictionary/spec), or the plan you just agreed in the conversation, and it uses your existing grant to fetch the source, write the code, drive [tdd](https://aihero.dev/skills-tdd) at the seams, typecheck as it goes, and run [code-review](https://aihero.dev/skills-code-review) with its reviewers at the end, reporting any uncovered operation and target and asking before it proceeds.
 
 It never reopens the plan. There is no interview, no clarifying round, no proposal of a different approach. Whatever was settled upstream is the input, and the skill's whole job is to implement that work. That is what separates it from typing "build this" at a fresh [agent](https://www.aihero.dev/ai-coding-dictionary/agent), which often redesigns the work while it builds it.
 
@@ -50,7 +50,7 @@ The "pre-agreed" part matters, and it is also the skill's weakest point. Nothing
 
 **It finished, but my ticket is still open and the acceptance criteria are still unchecked.**
 
-Correct, and expected. `implement` has no completion step. It leaves the work item open. This is the same on GitHub Issues and on the local markdown tracker, so it is not a tracker integration problem. It also does not act on the findings `code-review` produced, and does not tick the `- [ ]` boxes on the originating issue. Close the ticket and reconcile the criteria yourself. This matters most on a dependency chain, because `to-tickets` defines the frontier as tickets whose blockers are all closed. If nothing gets closed, nothing ever becomes visibly unblocked.
+Correct, and expected. `implement` has no completion step. It leaves the work item open. This is the same on GitHub Issues and on the local markdown tracker, so it is not a tracker integration problem. It also does not act on the findings `code-review` produced, and does not tick the `- [ ]` boxes on the originating issue. Keep the ticket open while the commit from step 5 is pending, and reconcile the criteria and close it yourself once the work is committed. This matters most on a dependency chain, because `to-tickets` defines the frontier as tickets whose blockers are all closed. If nothing gets closed, nothing ever becomes visibly unblocked.
 
 **Can I point it at all my tickets at once, or run several in parallel?**
 
@@ -72,7 +72,7 @@ Probably not. The ticket is more likely too big. A run does codebase exploration
 
 **`/implement #2` in a fresh session worked on something completely unrelated.**
 
-The agent resolved `#2` against another numbered list in context, such as a todo file or checklist, rather than the configured tracker. `implement` now fetches a passed reference from the issue tracker and states its title before starting, and asks when the reference is ambiguous. Check that title matches the ticket you meant; passing the issue URL or `owner/repo#2` removes the ambiguity entirely.
+The agent resolved `#2` against another numbered list in context, such as a todo file or checklist, rather than the configured tracker. `implement` uses the tracker access covered by your grant to fetch a passed reference and states its title before starting, and asks when the reference is ambiguous. Check that title matches the ticket you meant; passing the issue URL or `owner/repo#2` removes the ambiguity entirely.
 
 ## It's working if
 
