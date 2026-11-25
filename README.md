@@ -23,13 +23,13 @@
   <a href="https://github.com/nisavid/real-skills/issues/30"><img alt="Unleashed is in qualification" src="https://img.shields.io/badge/Unleashed-In%20qualification-88500d"></a>
 </p>
 
-Real Skills is an independent fork of [Matt Pocock's Skills for Real Engineers](https://github.com/mattpocock/skills). We package his workflows in two editions and make focused fixes, including clearer limits on review delegation. Each release names its upstream version, and the collection retains its [MIT license](LICENSE).
+Real Skills is an independent fork of [Matt Pocock's Skills for Real Engineers](https://github.com/mattpocock/skills). We package his workflows in two editions, make focused fixes, and add skills that fill gaps in the existing workflows. One recent source addition is [probing](https://github.com/nisavid/real-skills/blob/81c8f1d9bd4095de01e18a639b5c5befb1ba5882/docs/engineering/probing.md), which helps you check an assumption before you build on it. Each release names its upstream version, and the collection retains its [MIT license](LICENSE).
 
 ## Choose an edition
 
 **<picture><source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/wake/windflower.dark.svg"><img alt="" src="assets/real-skills-editions/wake/windflower.light.svg" width="18" height="18"></picture>&nbsp;Leashed** packages the familiar workflows with Matt's invocation rules and the fork's fixes. Call `grill-with-docs` yourself when you're ready to pressure-test a design.
 
-**<picture><source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/wake/nested-bloom.dark.svg"><img alt="" src="assets/real-skills-editions/wake/nested-bloom.light.svg" width="18" height="18"></picture>&nbsp;Unleashed** lets your agent select any active skill during a task. Describe a design problem and the agent can pick up `grill-with-docs` to work through open questions with you.
+**<picture><source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/wake/nested-bloom.dark.svg"><img alt="" src="assets/real-skills-editions/wake/nested-bloom.light.svg" width="18" height="18"></picture>&nbsp;Unleashed** lets your agent select any active skill during a task. We're also refining how its planning and triage skills track decisions and next steps, so another session can see what to pick up.
 
 Human decisions and approvals stay with you in both editions.
 
