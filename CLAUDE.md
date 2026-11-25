@@ -44,7 +44,7 @@ This repo has one domain context. Read `GLOSSARY.md` and relevant ADRs under `.a
 
 This fork distributes Matt Pocock's promoted engineering and productivity skills. Preserve attribution, the MIT license, and upstream skill bytes. Keep `AGENTS.md` as a symlink to this file.
 
-A skill that exists only in this fork has no page on aihero.dev. Link to it by the absolute URL of its docs page in this repository, `https://github.com/nisavid/real-skills/blob/main/docs/<bucket>/<skill-name>.md`, and do not write an `aihero.dev` link for it.
+A skill that exists only in this fork has no page on aihero.dev. When linking to its docs page, use the absolute URL in this repository, `https://github.com/nisavid/real-skills/blob/main/docs/<bucket>/<skill-name>.md`, and do not write an `aihero.dev` link for it. Bucket README entries still link the skill name to its `SKILL.md`. A skill in a non-promoted bucket has no docs page.
 
 Use `fork-ops` before upstream assessment, synchronization, or changes to fork operating policy. Read `.agents/fork-ops.toml` when present; when it is missing, prepare and review the initial configuration before dependent operations. Treat its capability report as evidence only for the named implemented operation.
 
