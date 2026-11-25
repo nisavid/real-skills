@@ -1,6 +1,6 @@
 ## What it does
 
-`triage` works through the issues on your project's tracker. It moves each one through a small state machine of **triage roles** (a category role and a state role). Each issue ends as an agent-ready brief, a specific question for the reporter, or a closed issue with a recorded reason.
+`triage` works through the issues on your project's tracker. It reuses the permission you gave for the issue or PR and asks before taking any uncovered action, returning its recommendation or draft. With permission to apply the outcome, it moves the item through **triage roles** (a category and a state) to an agent-ready brief, a specific question for the reporter, or closure with a recorded reason.
 
 It is only for issues **you didn't create**. That means raw bug reports, incoming feature requests, or an external pull request that arrived unannounced: work that came into the tracker from outside, in whatever shape the reporter left it. [Tickets](https://www.aihero.dev/ai-coding-dictionary/ticket) from [to-tickets](https://aihero.dev/skills-to-tickets) are already agent-ready, so if you run `triage` over them, you waste the work. The rule is simple: `/triage` is only for incoming issues, not for issues you created yourself.
 
@@ -28,7 +28,7 @@ Executing a PR or a reporter's reproduction requires a disposable sandbox with n
 
 ## The state machine
 
-Every triaged item ends with exactly one category role and one state role. There are two categories: `bug` (something is broken) and `enhancement` (new feature or improvement). There are five states:
+A fully applied outcome gives the item exactly one category role and one state role. There are two categories: `bug` (something is broken) and `enhancement` (new feature or improvement). There are five states:
 
 | State | Means |
 | --- | --- |
@@ -40,7 +40,7 @@ Every triaged item ends with exactly one category role and one state role. There
 
 That is the whole vocabulary. The rule of exactly one state role per item keeps the queries simple. The states are also the most-requested area of the [skill](https://www.aihero.dev/ai-coding-dictionary/skill). Users have asked for a state for work that is specified but blocked on another issue, a `deferred` state for work that waits on a future trigger, and a terminal `implemented` state. None of those has shipped. See the questions below.
 
-`wontfix` has three cases. The difference matters because only one of them writes to the knowledge base:
+`wontfix` has three cases. The difference matters because only one calls for a knowledge-base write, which needs to be covered along with the comment and closure:
 
 | Why you're closing it | What happens |
 | --- | --- |
@@ -52,18 +52,18 @@ That is the whole vocabulary. The rule of exactly one state role per item keeps 
 
 ## Verify before you brief
 
-Before any [grilling](https://www.aihero.dev/ai-coding-dictionary/grilling), `triage` reviews the claim statically. When suitable isolation is available, it reproduces a bug or checks out the exact reviewed PR revision and runs reviewed tests inside that boundary. Git hooks, checkout filters, and automatic dependency install scripts stay disabled. Then it reports one of four results:
+Before any [grilling](https://www.aihero.dev/ai-coding-dictionary/grilling), `triage` reviews the claim statically. When your request covers execution and suitable isolation is available, it reproduces a bug or checks out the exact reviewed PR revision and runs reviewed tests inside that boundary. Git hooks, checkout filters, and automatic dependency install scripts stay disabled. Then it reports one of four results:
 
 - Confirmed, with the code path.
 - Failed to reproduce.
 - Not enough detail to try. This is the strongest `needs-info` signal there is.
-- Not run because suitable isolation is unavailable. This does not mean the claim failed.
+- Not run because execution is outside the request or suitable isolation is unavailable. This does not mean the claim failed.
 
 The notes and agent brief distinguish static conclusions from executed results and carry the exact revisions, commands, isolation, and skipped checks. The same boundary follows delegated diagnosis and implementation work. A temporary worktree alone does not protect maintainer credentials, files, or network access.
 
-In the same pass, it runs two more checks against the codebase. The **redundancy** check asks if the feature is already implemented, and searches by domain concept, not by the reporter's wording. The **prior rejection** check asks if `.out-of-scope/` already says no. Both checks are cheap, and a hit on either produces a `wontfix`.
+In the same pass, it runs two more checks against the codebase. The **redundancy** check asks if the feature is already implemented, and searches by domain concept, not by the reporter's wording. The **prior rejection** check asks if `.out-of-scope/` already says no. Both checks are cheap, and a hit on either supports a `wontfix` recommendation.
 
-All of this work makes one artifact good: the **agent brief**. This is the structured comment that `triage` posts when an issue moves to `ready-for-agent`. After `triage` posts it, the brief is the contract and the original report is only context. Briefs are **durable** rather than precise, because an issue can sit in `ready-for-agent` for weeks while the code changes. So a brief names types, signatures and behavioural contracts, and never file paths or line numbers. A confirmed reproduction makes a much stronger brief than a guess.
+All of this work makes one artifact good: the **agent brief**. This is the structured comment that `triage` posts with your permission when an issue moves to `ready-for-agent`. After `triage` posts it, the brief is the contract and the original report is only context. Briefs are **durable** rather than precise, because an issue can sit in `ready-for-agent` for weeks while the code changes. So a brief names types, signatures and behavioural contracts, and never file paths or line numbers. A confirmed reproduction makes a much stronger brief than a guess.
 
 ## A PR is an issue with attached code
 
@@ -102,7 +102,7 @@ Yes. The tracker is config, not a hard-coded assumption. People run it against L
 
 ## It's working if
 
-- Every item it touches ends with exactly one category role and one state role, never zero, and never two conflicting states.
+- Every item whose labels it was authorized to apply ends with exactly one category role and one state role, never zero, and never two conflicting states.
 - It gives you a recommendation with reasoning and stops. It does not relabel the issue and move on.
 - It distinguishes static review from reproduction or PR tests, records the tested revision and isolation, and clearly marks any checks that could not run.
 - The briefs it writes name types and behaviours, and contain no file paths and no line numbers.
@@ -111,4 +111,4 @@ Yes. The tracker is config, not a hard-coded assumption. People run it against L
 
 ## Where it fits
 
-`triage` is an **on-ramp**, not a step in the main chain. The main flow starts from an idea you had (grill, spec, tickets, implement, review). `triage` is the parallel lane for work that came from someone else. Both lanes end at the same place: an issue labelled `ready-for-agent` with a brief on it. [implement](https://aihero.dev/skills-implement) picks that up the same way it picks up a ticket from [to-tickets](https://aihero.dev/skills-to-tickets). When a request needs more detail before `triage` can brief it, `triage` runs [grilling](https://aihero.dev/skills-grilling) and [domain-modeling](https://aihero.dev/skills-domain-modeling) together, one round of questions at a time, so it records decisions in `GLOSSARY.md` and the ADRs as you make them. When you're not sure which lane you are in, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.
+`triage` is an **on-ramp**, not a step in the main chain. The main flow starts from an idea you had (grill, spec, tickets, implement, review). `triage` is the parallel lane for work that came from someone else. Both lanes end at the same place: an issue labelled `ready-for-agent` with a brief on it. [implement](https://aihero.dev/skills-implement) picks that up the same way it picks up a ticket from [to-tickets](https://aihero.dev/skills-to-tickets). When a request needs more detail before `triage` can brief it, `triage` runs [grilling](https://aihero.dev/skills-grilling) and [domain-modeling](https://aihero.dev/skills-domain-modeling) together, one round of questions at a time, so it can record settled terms and decisions in `GLOSSARY.md` and ADRs where you have authorized those writes. When you're not sure which lane you are in, [ask-matt](https://aihero.dev/skills-ask-matt) routes you.
