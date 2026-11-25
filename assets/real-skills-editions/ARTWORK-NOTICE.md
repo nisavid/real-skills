@@ -1,0 +1,11 @@
+# License for the Real Skills edition artwork
+
+I offer the 12 Nocturne and Wake SVGs of **Windflower** (Real Skills Leashed) and **Nested Bloom** (Real Skills Unleashed), and the preview showing both editions, under the **Creative Commons Attribution 4.0 International** license. This grant covers the rights I hold in the drawings, including their component shapes as depicted. You may copy, recolor, animate, redistribute, and sell the artwork, including in open-source and commercial projects. [Original SVG downloads](https://github.com/nisavid/real-skills/issues/79) · [Edition preview](https://github.com/user-attachments/assets/3824b19e-7d96-4f93-9b9f-539f1ac1d4b9) · [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+
+The SVGs are the files listed in `real-skills-icons-20261125.zip`, SHA-256 `1b7ad8d57686e13f30ffb7d2f5b6bbd8e12a0551012b3bce56dfd473d5f6ef34`. [Dated artwork handoff](https://github.com/nisavid/real-skills/issues/79#issuecomment-7169399487)
+
+Credit **Ivan D Vasin (Icon Workshop)**. When sharing, retain the supplied credit, copyright and warranty notices, license link, and indications of earlier changes. Link the source where reasonably practicable and indicate your own changes. A credits page can suit an icon used in a small interface. For example, “[Windflower](https://github.com/nisavid/real-skills/issues/79), Ivan D Vasin (Icon Workshop), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Colors adapted.” You may also use the artwork under any earlier license that applies. [Attribution terms](https://creativecommons.org/licenses/by/4.0/legalcode.en#s3a)
+
+The upstream skills are by Matt Pocock and contributors. The software, code examples, and associated project documentation retain their existing MIT or third-party terms. [Project license](https://github.com/nisavid/real-skills/blob/main/LICENSE)
+
+**Identifying the project.** You are welcome to show these marks when referring to the editions, including in documentation, screenshots, compatibility lists, and upstream credits. When you publish a fork or a product of your own, make the publisher clear wherever the name or artwork might suggest that the official Real Skills project supplied or endorsed it. The artwork license grants no trademark rights. This guidance leaves artistic reuse, lawful descriptions, and independent branding available.

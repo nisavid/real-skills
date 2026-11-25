@@ -25,6 +25,8 @@
 
 Real Skills packages [Matt Pocock's Skills for Real Engineers](https://github.com/mattpocock/skills) as a plugin in two editions. This fork credits Matt's original skills and workflows and preserves the collection's [MIT license](LICENSE).
 
+Windflower and Nested Bloom are by **Ivan D Vasin (Icon Workshop)**. See the [CC BY 4.0 artwork notice](assets/real-skills-editions/ARTWORK-NOTICE.md) for credit and reuse terms.
+
 ## Choose an edition
 
 Matt's collection draws a line between skills an agent may invoke on its own and skills that run only when you select them. The editions differ in how they treat that second, reserved group.
