@@ -1,8 +1,29 @@
-# Real Skills
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/nocturne/windflower.dark.svg">
+    <img alt="" src="assets/real-skills-editions/nocturne/windflower.light.svg" width="88" height="88">
+  </picture>
+  &nbsp;
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/nocturne/nested-bloom.dark.svg">
+    <img alt="" src="assets/real-skills-editions/nocturne/nested-bloom.light.svg" width="88" height="88">
+  </picture>
+</p>
 
-Real Skills is a fork of [Matt Pocock's Skills for Real Engineers](https://github.com/mattpocock/skills), a collection of agent skills for planning, building, debugging, reviewing, and documenting software. The skills and the engineering workflows in them are Matt's. This fork preserves his attribution and the collection's [MIT license](LICENSE).
+<h1 align="center">Real Skills</h1>
 
-The fork packages the collection as a plugin for engineering teams. It comes in two editions, Real Skills [Leashed] and Real Skills [Unleashed], which differ in who can start a skill.
+<p align="center">
+  <strong>Engineering workflows for coding agents.</strong><br>
+  Choose when your agent can start a skill.
+</p>
+
+<p align="center">
+  <a href="https://github.com/nisavid/real-skills/releases/tag/v1.3.4%2Bfrom.1.3.2"><img alt="Leashed available for ChatGPT and Claude" src="https://img.shields.io/badge/Leashed-ChatGPT%20%2B%20Claude-24664a"></a>
+  &nbsp;
+  <a href="https://github.com/nisavid/real-skills/issues/30"><img alt="Unleashed is in qualification" src="https://img.shields.io/badge/Unleashed-In%20qualification-88500d"></a>
+</p>
+
+Real Skills packages [Matt Pocock's Skills for Real Engineers](https://github.com/mattpocock/skills) as a plugin in two editions. This fork credits Matt's original skills and workflows and preserves the collection's [MIT license](LICENSE).
 
 ## Choose an edition
 
