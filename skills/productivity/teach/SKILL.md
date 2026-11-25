@@ -6,6 +6,8 @@ argument-hint: "What would you like to learn about?"
 
 The user has asked you to teach them something. This is a stateful request - they intend to learn the topic over multiple sessions.
 
+Invocation grants no authority, so reuse an applicable user grant to write course files in this workspace, consult outside sources about resources or communities with the proposed query, or open a local lesson, and report any operation and target outside that grant and ask before acting.
+
 ## Teaching Workspace
 
 Treat the current directory as a teaching workspace. Workspace paths (`./lessons/` and the rest) resolve from the directory `/teach` was run in; only the `*-FORMAT.md` links resolve from this skill's folder. The state of their learning is captured in this directory in several files:

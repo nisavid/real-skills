@@ -1,8 +1,8 @@
 ## What it does
 
-`teach` turns the directory you run it in into a standing teaching workspace and teaches you one topic across many [sessions](https://www.aihero.dev/ai-coding-dictionary/session), in short self-contained HTML lessons.
+`teach` teaches you one topic across many [sessions](https://www.aihero.dev/ai-coding-dictionary/session) in short, self-contained HTML lessons, reusing your permission to keep course files in the current directory, consult outside sources, or open a lesson, and asking before any of those actions your request leaves pending.
 
-It does not teach from what the [model](https://www.aihero.dev/ai-coding-dictionary/model) already knows. It treats [parametric knowledge](https://www.aihero.dev/ai-coding-dictionary/parametric-knowledge) as untrusted. Before it teaches, it finds high-trust resources, records them in `RESOURCES.md`, and cites them inside every lesson. It is also [stateful](https://www.aihero.dev/ai-coding-dictionary/stateful). The mission, the resources, the lessons and the record of what you have learned all live as files in the directory, so the next session continues from those files, not from what is left of the last conversation.
+It does not teach from what the [model](https://www.aihero.dev/ai-coding-dictionary/model) already knows. It treats [parametric knowledge](https://www.aihero.dev/ai-coding-dictionary/parametric-knowledge) as untrusted. Before it teaches, it uses those permissions to find high-trust resources, record them in `RESOURCES.md`, and cite them inside every lesson. It is also [stateful](https://www.aihero.dev/ai-coding-dictionary/stateful). The mission, the resources, the lessons and the record of what you have learned all live as files in the directory, so the next session continues from those files, not from what is left of the last conversation.
 
 ## When to reach for it
 
@@ -21,13 +21,13 @@ Reach for it when the learning is the project: a language, a framework, a codeba
 
 ## Prerequisites
 
-`teach` builds a directory rather than producing a file, and the skill assumes one mission per workspace, so run it somewhere you are happy to give over to a single topic. Keep it out of the project you are working in. A separate repo is the best home, better than a global `~/.learnings/` folder or the working project itself. A dedicated repo also lets you commit the lessons, which is how teams have shared them.
+Give the skill a directory you are happy to use for the course files described above, since it assumes one mission per workspace. Keep it out of the project you are working in. A separate repo is the best home, better than a global `~/.learnings/` folder or the working project itself. A dedicated repo also lets you commit the lessons, which is how teams have shared them.
 
 What accumulates in that directory:
 
 | Path | What it holds |
 | --- | --- |
-| `MISSION.md` | Why you are learning this. Every other file depends on it. If it is missing, the first thing `teach` does is interview you until it isn't |
+| `MISSION.md` | Why you are learning this. Every other file depends on it. If it is missing, `teach` interviews you and saves the mission within the workspace permission above |
 | `RESOURCES.md` | The vetted sources it teaches from, split into Knowledge and Wisdom (communities) |
 | `lessons/*.html` | The numbered lessons: the primary unit of teaching |
 | `reference/*.html` | Compressed cheat-sheets, algorithms, glossaries: the documents you return to |
@@ -35,7 +35,7 @@ What accumulates in that directory:
 | `assets/*` | Reusable components, starting with a shared stylesheet, so the lessons look like one course |
 | `NOTES.md` | Your stated teaching preferences |
 
-Two notes on that list. A glossary suits most topics, but the skill ships a `GLOSSARY-FORMAT.md` that `SKILL.md` no longer links to, so you only get one if you ask ([issue #559](https://github.com/mattpocock/skills/issues/559)). All of it lands in the directory you ran `/teach` in.
+Two notes on that list. A glossary suits most topics, but the skill ships a `GLOSSARY-FORMAT.md` that `SKILL.md` no longer links to, so you only get one if you ask ([issue #559](https://github.com/mattpocock/skills/issues/559)). Course files go in the directory you authorized for the workspace.
 
 ## Storage strength, not fluency
 
@@ -51,12 +51,12 @@ A **lesson** is one self-contained HTML file, short enough to finish in a sittin
 
 You rarely go back to a lesson, but you do go back to reference documents. So the short form of a lesson (the syntax table, the algorithm, the pose sequence, the glossary) belongs in `reference/`, not buried in the lesson that introduced it.
 
-Lessons are built from **components** in `assets/`: stylesheets, quiz widgets, simulators, diagram helpers. Reuse is the default. The agent reads `assets/` before authoring a lesson and builds from what is there. It writes anything new that a second lesson could use as a component, not inline. The shared stylesheet is the first component in every workspace, and it makes the lessons look like one course instead of many unrelated pages.
+Lessons are built from **components** in `assets/`: stylesheets, quiz widgets, simulators, diagram helpers. Reuse is the default. The agent reads `assets/` before authoring a lesson and builds from what is there. With workspace write permission, it saves anything new that a second lesson could use as a component, not inline. The shared stylesheet is the first component in every workspace, and it makes the lessons look like one course instead of many unrelated pages.
 
 ## Common questions
 
 **Where does it put the files? Mine ended up in `~/.claude/skills`.**
-In the directory you ran `/teach` in ([#377](https://github.com/mattpocock/skills/issues/377)).
+In the directory you ran `/teach` in, if you authorized it as the teaching workspace ([#377](https://github.com/mattpocock/skills/issues/377)).
 
 **Do I stay in one session, or start a new one per lesson?**
 All three approaches work: staying in the same session, re-invoking `/teach` in a new session, or opening a new session in the same folder. Each lesson is its own invocation. The course state lives in the folder, not in the conversation. Common practice is to open a fresh session in the workspace and say `/teach next lesson for <topic>`.
@@ -68,7 +68,7 @@ You don't, on the skill's word alone. You read the primary sources. `teach` is n
 Several people have confirmed this on Sonnet, Opus and GLM, and it is still unfixed. `SKILL.md` now requires every answer to be the same number of words. That removes a different clue (the correct answer used to be the only fully-reasoned one), but says nothing about position. One contributor tested an instruction-level fix for position, and the correct answer still landed in slot A 33 times out of 33 across nine lessons ([#335](https://github.com/mattpocock/skills/issues/335)). So the real fix is a quiz component in `assets/` that shuffles the answers, not better wording. Until that ships, ignore answer position. Your `assets/` directory is yours to change, so you can ask for a component that shuffles at render time as a local fix.
 
 **It assumed I already knew things, and used terms it never defined.**
-This is the most common real complaint. There is no assessment step. `teach` infers your level from the mission and the learning records, and in session one there are no learning records. One user running it inside a wayfinder pipeline put it plainly: "It never did grilling to establish my starting point so it made lots of assumptions of what I already knew." Another reported lessons that used undefined jargon, and a lesson about their hardware that covered what the hardware could do but never said what it couldn't. Two things help: state your prior knowledge and your gaps in the first message, and correct the level out loud when a lesson misses, because the correction becomes a learning record and steers the next one. An explicit knowledge-assessment step is a standing feature request ([#725](https://github.com/mattpocock/skills/issues/725)), not shipped behaviour.
+This is the most common real complaint. There is no assessment step. `teach` infers your level from the mission and the learning records, and in session one there are no learning records. One user running it inside a wayfinder pipeline put it plainly: "It never did grilling to establish my starting point so it made lots of assumptions of what I already knew." Another reported lessons that used undefined jargon, and a lesson about their hardware that covered what the hardware could do but never said what it couldn't. Two things help: state your prior knowledge and your gaps in the first message, and correct the level out loud when a lesson misses, so the agent can record the correction within the workspace permission above and use it to steer the next lesson. An explicit knowledge-assessment step is a standing feature request ([#725](https://github.com/mattpocock/skills/issues/725)), not shipped behaviour.
 
 **Does it do spaced repetition, and does it know when to stop teaching?**
 No to the first, and not reliably to the second. The skill designs lessons around spacing and interleaving, but nothing schedules a review, and there is no Anki or calendar integration. Users ask for both often. A related gap is exit criteria. As one user put it, `teach` "is good at making the next lesson, but not as good at knowing when to stop and switch to review or real practice." If you want review or drilling instead of new material, ask for it; the skill will not propose the switch on its own.
