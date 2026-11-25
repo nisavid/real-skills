@@ -6,7 +6,7 @@ It plans and does not build. Every ticket asks a question, and the answer is a d
 
 ## When to reach for it
 
-Type `/wayfinder`, or the agent can invoke it when the task fits. Tracker writes and research-branch pushes require an applicable grant for the operation and target; without one, the agent returns the draft or artifact and proposed target.
+Type `/wayfinder`, or the agent can invoke it when the task fits. The agent reuses your grant for hosted reads, tracker writes, workers and their inputs, planning files, isolated prototype builds, research or prototype branches and commits, research pushes, and prototype delivery, and returns the draft, artifact, or proposed operation with its target for your approval wherever that grant falls short.
 
 It is the heaviest flow in the set, so the trigger is narrow. The effort must be larger than one agent session can hold, and the route to the destination must be unclear. The split is session count: `/grill-with-docs` for single-session planning, `/wayfinder` for multi-session planning.
 
@@ -47,9 +47,9 @@ Every ticket carries a `wayfinder:<type>` label. Each ticket is either **[HITL](
 | --- | --- | --- | --- |
 | `grilling` | HITL | The default. The question can be settled by talking it through. | [grilling](https://aihero.dev/skills-grilling) plus [domain-modeling](https://aihero.dev/skills-domain-modeling), in a fresh session |
 | `prototype` | HITL | "How should this look" or "how should this behave": a question talking cannot settle. | [prototype](https://aihero.dev/skills-prototype), with a link from the ticket to the built artifact |
-| `research` | AFK | A fact outside the working directory is blocking a decision. | A [research](https://aihero.dev/skills-research) [subagent](https://www.aihero.dev/ai-coding-dictionary/subagent), started when you chart the map and run in parallel on a `research/<name>` branch |
+| `research` | AFK | A fact outside the working directory is blocking a decision. | A [research](https://aihero.dev/skills-research) [subagent](https://www.aihero.dev/ai-coding-dictionary/subagent), started under your grant when you chart the map and run in parallel on a `research/<name>` branch |
 | `task` | Either | Prerequisite work blocks a decision. | The agent within planning scope; service signup, provisioning, and real-data changes are handed to a separately authorized workflow or to the human |
-| `probing` | AFK | One bounded observation would itself answer the question, such as whether an assumed contract or behavior holds. | A [probing](https://github.com/nisavid/real-skills/blob/main/docs/engineering/probing.md) subagent in a fresh [context window](https://www.aihero.dev/ai-coding-dictionary/context-window), started for unblocked probing tickets when you chart the map, with the charting session recording each result on its ticket; independent probes can run in parallel once you have checked that they do not share or disturb the same resources |
+| `probing` | AFK | One bounded observation would itself answer the question, such as whether an assumed contract or behavior holds. | A [probing](https://github.com/nisavid/real-skills/blob/main/docs/engineering/probing.md) subagent in a fresh [context window](https://www.aihero.dev/ai-coding-dictionary/context-window), started under your grant for unblocked probing tickets when you chart the map, with the charting session recording each result on its ticket; independent probes can run in parallel once you have checked that they do not share or disturb the same resources |
 
 `task` belongs on the map only because it unblocks a decision, never because it delivers part of the destination. The label and AFK mode grant no additional permission. Planning artifacts, decision documents, tracker updates, isolated research, throwaway prototypes, and bounded probe observations remain part of Wayfinder. Product implementation and live-service or real-data changes require a separate workflow authorized directly by the human. A prerequisite ticket stays open until its completion is observed.
 
