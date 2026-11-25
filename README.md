@@ -29,42 +29,13 @@ Windflower and Nested Bloom are by **Ivan D Vasin**. See the [CC BY 4.0 artwork 
 
 ## Choose an edition
 
-Matt's collection draws a line between skills an agent may invoke on its own and skills that run only when you select them. The editions differ in how they treat that second, reserved group.
+**<picture><source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/nocturne/windflower.dark.svg"><img alt="" src="assets/real-skills-editions/nocturne/windflower.light.svg" width="24" height="24"></picture>&nbsp; Leashed** keeps Matt's invocation rules and adds packaging, safety, and reliability fixes. You start the skills upstream reserves for you.
 
-### Real Skills [Leashed]
+**<picture><source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/nocturne/nested-bloom.dark.svg"><img alt="" src="assets/real-skills-editions/nocturne/nested-bloom.light.svg" width="24" height="24"></picture>&nbsp; Unleashed** lets your agent start any active skill when it fits the task. That's the reason this fork is maintained.
 
-<p>
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/nocturne/windflower.dark.svg">
-    <img alt="" src="assets/real-skills-editions/nocturne/windflower.light.svg" height="96">
-  </picture>
-</p>
+Human decisions and approvals stay with you in both editions.
 
-Leashed is the upstream-faithful edition. It keeps the line where Matt drew it and adds this fork's focused packaging, safety, and reliability fixes. Choose Leashed when you want the collection to behave as upstream documents it, or when your team wants a person to start the reserved workflows.
-
-### Real Skills [Unleashed]
-
-<p>
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/nocturne/nested-bloom.dark.svg">
-    <img alt="" src="assets/real-skills-editions/nocturne/nested-bloom.light.svg" height="96">
-  </picture>
-</p>
-
-Unleashed opens the reserved skills to the agent as well, and it is the reason this fork is maintained. The agent can reach for any active skill in the collection without you naming it, so a skill you did not ask for can start partway through a task. Choose Unleashed when you want the agent to apply the workflows on its own initiative, without you having to know which skill fits.
-
-### Side by side
-
-| | Real Skills [Leashed] | Real Skills [Unleashed] |
-| --- | --- | --- |
-| Skills upstream reserves for you | Run when you select them | The agent may invoke them too |
-| Skills upstream lets an agent invoke | The agent may invoke them | The agent may invoke them |
-| Decisions and approvals that require a person | Stay with the person | Stay with the person |
-| Package ID | `real-skills-leashed` | `real-skills-unleashed` |
-
-Use one edition per harness (the agent app or CLI that loads the skills). The skills call each other by bare name, so each harness needs a single provider for those names. With two providers active, a chain of skills can continue in the other provider's version of a skill or be refused by it.
-
-Choosing an edition here does not change an installation you already have. The editions are separate packages defined under one marketplace name, `real-skills`, so the package ID is what tells you which edition an installation is.
+In the shared `real-skills` marketplace, the package IDs are `real-skills-leashed` and `real-skills-unleashed`. Keep one edition active per harness so skills that call each other by name stay with the same provider.
 
 ## Install
 
