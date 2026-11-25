@@ -23,7 +23,7 @@
   <a href="https://github.com/nisavid/real-skills/issues/30"><img alt="Unleashed is in qualification" src="https://img.shields.io/badge/Unleashed-In%20qualification-88500d"></a>
 </p>
 
-Real Skills is an independent fork of [Matt Pocock's Skills for Real Engineers](https://github.com/mattpocock/skills). We package his workflows in two editions, make focused fixes, and add skills that fill gaps in the existing workflows. One recent source addition is [probing](https://github.com/nisavid/real-skills/blob/81c8f1d9bd4095de01e18a639b5c5befb1ba5882/docs/engineering/probing.md), which helps you check an assumption before you build on it. Each release names its upstream version, and the collection retains its [MIT license](LICENSE).
+Real Skills is an independent fork of [Matt Pocock's Skills for Real Engineers](https://github.com/mattpocock/skills), which we keep packaged and installable. Beyond that, we're adding workflows where the collection has gaps and refining how they fit together as your agent takes a task from first question through planning, implementation, and follow-up. You keep the decisions that matter, and the collection keeps its [MIT license](LICENSE).
 
 ## Choose an edition
 
@@ -31,7 +31,7 @@ Real Skills is an independent fork of [Matt Pocock's Skills for Real Engineers](
 
 **<picture><source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/wake/nested-bloom.dark.svg"><img alt="" src="assets/real-skills-editions/wake/nested-bloom.light.svg" width="18" height="18"></picture>&nbsp;Unleashed** lets your agent select any active skill during a task. We're also refining how its planning and triage skills track decisions and next steps, so another session can see what to pick up.
 
-Human decisions and approvals stay with you in both editions.
+The [changelog](https://github.com/nisavid/real-skills/blob/main/CHANGELOG.md) tracks the fork’s changes by release.
 
 The edition IDs are `real-skills-leashed` and `real-skills-unleashed`. Skills call each other by name, so keep one provider active for this collection in each harness, including any standalone copies.
 
@@ -74,7 +74,7 @@ If you want to keep up with changes to these skills, and any new ones I create, 
 
 [Sign Up To The Newsletter](https://www.aihero.dev/s/skills-newsletter)
 
-The installation instructions below install Matt Pocock's upstream [Skills for Real Engineers](https://github.com/mattpocock/skills). The release notes describe qualification of any available Real Skills [Leashed] release.
+The installation instructions below install Matt Pocock's upstream [Skills for Real Engineers](https://github.com/mattpocock/skills). See [Matt's skill documentation](https://www.aihero.dev/skills) for guides to the original workflows. The release notes describe qualification of any available Real Skills [Leashed] release.
 
 ## Installation (30-second setup)
 
