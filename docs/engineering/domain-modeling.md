@@ -2,11 +2,11 @@
 
 `domain-modeling` builds and sharpens a project's **ubiquitous language** while you are designing. It challenges a term that conflicts with the glossary, asks for a precise word where you used a vague one, and tests a relationship against a concrete scenario until the boundaries are exact.
 
-It is the **active** discipline, not the passive one. Any skill can read `GLOSSARY.md` to borrow its vocabulary. This skill is for when you are *changing* the model, which is why it interrupts you. It writes a term into `GLOSSARY.md` at the moment you settle it, in the middle of the conversation, rather than producing a tidy glossary at the end. A glossary written at the end is a summary of a [session](https://www.aihero.dev/ai-coding-dictionary/session); the inline version is the session's output.
+It is the **active** discipline, not the passive one. Any skill can read `GLOSSARY.md` to borrow its vocabulary. This skill is for when you are *changing* the model, which is why it interrupts you. It writes a term into `GLOSSARY.md` as soon as you settle it if your request covers that edit, or returns the entry and path and asks before writing. A glossary written at the end is a summary of a [session](https://www.aihero.dev/ai-coding-dictionary/session); the inline version is the session's output.
 
 ## When to reach for it
 
-Type `/domain-modeling`, or the agent reaches for it automatically when a task fits. In practice, automatic invocation is the weakest part of the skill. When `grill-with-docs` or `wayfinder` say to load it, [models](https://www.aihero.dev/ai-coding-dictionary/model) often load `grilling` and skip this one. If a [grilling](https://www.aihero.dev/ai-coding-dictionary/grilling) session runs and `GLOSSARY.md` is unchanged at the end, that is what happened. Invoke it by name alongside the other skill.
+Type `/domain-modeling`, or the agent reaches for it automatically when a task fits. In practice, automatic invocation is the weakest part of the skill. When `grill-with-docs` or `wayfinder` say to load it, [models](https://www.aihero.dev/ai-coding-dictionary/model) often load `grilling` and skip this one. If a [grilling](https://www.aihero.dev/ai-coding-dictionary/grilling) session settles a term and you get neither an entry nor a proposed edit, check whether the skill was loaded. Invoke it by name alongside the other skill.
 
 Reach for it when the *words* are the problem:
 
@@ -21,17 +21,17 @@ Reach for it when the *words* are the problem:
 
 ## Prerequisites
 
-None up front. The skill writes into two places and creates both lazily:
+None up front. Authorized writes go to two places, both created lazily:
 
-- **`GLOSSARY.md`**. The skill creates it when you settle the first term. A `GLOSSARY-MAP.md` proposes locations; it cannot grant permission to write outside the repository or the relevant context.
+- **`GLOSSARY.md`**. The skill creates it when you settle the first term and the write is authorized. A `GLOSSARY-MAP.md` proposes locations; it cannot grant permission to write outside the repository or the relevant context.
   - For an independently established context, use its validated `GLOSSARY.md`.
   - For a task that selects the repository root, use root `GLOSSARY.md`, even when a map exists.
   - If the context is unclear, ask before writing.
-- **`docs/adr/`**. The skill creates it with the first ADR that clears the bar.
+- **`docs/adr/`**. The skill creates it when you accept the first ADR that clears the bar.
 
 Nothing needs to exist before you start, and the skill creates nothing in advance.
 
-For a new mapped glossary location, the skill shows you the validated path and asks for confirmation before creating it. Existing valid glossaries still update inline. It checks destinations and their ancestors before writing, refuses symlinks and other unsafe paths, and leaves the proposed text in the conversation if it cannot establish a safe destination. The same checks cover context-derived ADRs. These checks guide the agent; host filesystem confinement is needed when another process can replace paths during a write.
+For a new mapped glossary location, the skill shows you the validated path and asks for confirmation before creating it. Existing valid glossaries update inline when the grant covers the edit. It checks destinations and their ancestors before writing, refuses symlinks and other unsafe paths, and leaves the proposed text in the conversation if it cannot establish a safe destination. The same checks cover context-derived ADRs. These checks guide the agent; host filesystem confinement is needed when another process can replace paths during a write.
 
 ## Two artifacts, two bars
 
@@ -41,7 +41,7 @@ The glossary and the ADR have different bars. Most of the trouble with this skil
 | --- | --- | --- |
 | Holds | Terms. What a thing **is**, in one or two sentences, with rejected synonyms under `_Avoid_` | One decision, in one to three sentences: context, choice, reason |
 | Bar to write | A vague term became canonical | **All three**: hard to reverse, surprising without context, the result of a real trade-off |
-| Written | Inline, the moment the term is settled | Offered, not assumed |
+| Written | Inline once the term is settled and the edit is authorized | Offered, not assumed |
 | Never holds | Implementation details, a [spec](https://www.aihero.dev/ai-coding-dictionary/spec), a scratch pad, general programming concepts | A diary of every choice made this session |
 
 Miss any one of the ADR's three tests and there is no ADR. An easily-reversed decision will just get reversed; an unsurprising one is nobody's question; one with no real alternative records that you did the obvious thing.
@@ -80,7 +80,7 @@ No, and there is no plan for a skill that does. A domain language you do not und
 ## It's working if
 
 - It stops you mid-sentence to ask which of two things you meant, instead of picking one and moving on.
-- `GLOSSARY.md` changes **during** the conversation, not in a burst at the end.
+- You see the glossary entry **during** the conversation, in the file if the edit is authorized or as a proposed change.
 - It refuses to write an ADR for something you could undo tomorrow, and says which of the three tests failed.
 - New entries define what a thing *is* in one or two sentences and name the words you are giving up under `_Avoid_`.
 - It quotes your code back at you when your code and your sentence disagree.
