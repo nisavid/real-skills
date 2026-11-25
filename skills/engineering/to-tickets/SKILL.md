@@ -7,6 +7,8 @@ description: "Break a plan, spec, or the current conversation into a set of trac
 
 Break a plan, spec, or conversation into a set of **tickets**: tracer-bullet vertical slices, each declaring the tickets that **block** it.
 
+Invocation grants no authority to fetch a hosted spec or its comments, so reuse an applicable user grant for the reference and its network or account access, working from the conversation and asking before fetching anything outside that grant.
+
 The issue tracker and triage label vocabulary should have been provided to you. If not, call the Skill tool with "setup-matt-pocock-skills" when governing instructions permit; otherwise tell the user to run `/setup-matt-pocock-skills`.
 
 ## Process
