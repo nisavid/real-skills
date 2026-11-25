@@ -1,12 +1,12 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/nocturne/windflower.dark.svg">
-    <img alt="" src="assets/real-skills-editions/nocturne/windflower.light.svg" width="88" height="88">
+    <img alt="" src="assets/real-skills-editions/nocturne/windflower.light.svg" width="120" height="120">
   </picture>
   &nbsp;
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/nocturne/nested-bloom.dark.svg">
-    <img alt="" src="assets/real-skills-editions/nocturne/nested-bloom.light.svg" width="88" height="88">
+    <img alt="" src="assets/real-skills-editions/nocturne/nested-bloom.light.svg" width="120" height="120">
   </picture>
 </p>
 
