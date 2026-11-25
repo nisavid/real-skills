@@ -32,6 +32,7 @@
     "./skills/engineering/implement",
     "./skills/engineering/implement-spec",
     "./skills/engineering/prototype",
+    "./skills/engineering/probing",
     "./skills/engineering/research",
     "./skills/engineering/domain-modeling",
     "./skills/engineering/codebase-design",
