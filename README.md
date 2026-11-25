@@ -13,8 +13,8 @@
 <h1 align="center">Real Skills</h1>
 
 <p align="center">
-  <strong>Engineering workflows for coding agents.</strong><br>
-  Choose when your agent can start a skill.
+  <strong>A maintained package of Matt Pocock's skills.</strong><br>
+  Call a workflow by name, or let your agent pick it up mid-task.
 </p>
 
 <p align="center">
@@ -23,17 +23,17 @@
   <a href="https://github.com/nisavid/real-skills/issues/30"><img alt="Unleashed is in qualification" src="https://img.shields.io/badge/Unleashed-In%20qualification-88500d"></a>
 </p>
 
-Real Skills packages [Matt Pocock's Skills for Real Engineers](https://github.com/mattpocock/skills) as a plugin in two editions. This fork credits Matt's original skills and workflows and preserves the collection's [MIT license](LICENSE).
+Real Skills is an independent fork of [Matt Pocock's Skills for Real Engineers](https://github.com/mattpocock/skills). We package his workflows in two editions and make focused fixes, including clearer limits on review delegation. Each release names its upstream version, and the collection retains its [MIT license](LICENSE).
 
 ## Choose an edition
 
-**<picture><source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/wake/windflower.dark.svg"><img alt="" src="assets/real-skills-editions/wake/windflower.light.svg" width="18" height="18"></picture>&nbsp;Leashed** keeps Matt's invocation rules and adds packaging, safety, and reliability fixes. You start the skills upstream reserves for you.
+**<picture><source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/wake/windflower.dark.svg"><img alt="" src="assets/real-skills-editions/wake/windflower.light.svg" width="18" height="18"></picture>&nbsp;Leashed** packages the familiar workflows with Matt's invocation rules and the fork's fixes. Call `grill-with-docs` yourself when you're ready to pressure-test a design.
 
-**<picture><source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/wake/nested-bloom.dark.svg"><img alt="" src="assets/real-skills-editions/wake/nested-bloom.light.svg" width="18" height="18"></picture>&nbsp;Unleashed** lets your agent start any active skill when it fits the task. That's the reason this fork is maintained.
+**<picture><source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/wake/nested-bloom.dark.svg"><img alt="" src="assets/real-skills-editions/wake/nested-bloom.light.svg" width="18" height="18"></picture>&nbsp;Unleashed** lets your agent select any active skill during a task. Describe a design problem and the agent can pick up `grill-with-docs` to work through open questions with you.
 
 Human decisions and approvals stay with you in both editions.
 
-In the shared `real-skills` marketplace, the package IDs are `real-skills-leashed` and `real-skills-unleashed`. Keep one edition active per harness so skills that call each other by name stay with the same provider.
+The edition IDs are `real-skills-leashed` and `real-skills-unleashed`. Skills call each other by name, so keep one provider active for this collection in each harness, including any standalone copies.
 
 ## Install
 
