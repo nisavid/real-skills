@@ -1,8 +1,8 @@
 ## What it does
 
-`grill-with-docs` interviews you about a plan or design until you and the [agent](https://www.aihero.dev/ai-coding-dictionary/agent) share one understanding of it, and writes the vocabulary and the hard decisions into your repo while it does. It is the same interview [grill-me](https://aihero.dev/skills-grill-me) runs (a round of questions, then wait, then the next round), pointed at a codebase.
+`grill-with-docs` interviews you about a plan or design until you and the [agent](https://www.aihero.dev/ai-coding-dictionary/agent) share one understanding of it, and uses any permission you already gave to write the vocabulary and accepted decisions into your repo, otherwise returning drafts and asking before writing. It is the same interview [grill-me](https://aihero.dev/skills-grill-me) runs (a round of questions, then wait, then the next round), pointed at a codebase.
 
-It is **[stateful](https://www.aihero.dev/ai-coding-dictionary/stateful)**. Every other grilling skill leaves the [session](https://www.aihero.dev/ai-coding-dictionary/session) in your head; this one leaves files on disk. When a term resolves, the skill writes it to `GLOSSARY.md` at once, not in a batch at the end. When a decision passes three gates, the skill writes it as an ADR. That is the whole difference, and it also causes most of the trouble people have with the skill. The artifacts are real files in a real repo, so they can be missing when you expected them, and they can drift when more than one person writes them.
+It is **[stateful](https://www.aihero.dev/ai-coding-dictionary/stateful)**. Every other grilling skill leaves the [session](https://www.aihero.dev/ai-coding-dictionary/session) in your head; this one can leave files on disk. With write permission, the skill adds each settled term to `GLOSSARY.md` at once, not in a batch at the end. When a decision passes three gates, the skill offers to record it as an ADR. That is the whole difference, and it also causes most of the trouble people have with the skill. The artifacts are real files in a real repo, so they can be missing when you expected them, and they can drift when more than one person writes them.
 
 ## When to reach for it
 
@@ -22,7 +22,7 @@ The wayfinder split comes down to session count: `/grill-with-docs` for single-s
 
 ## Prerequisites
 
-The skill writes into your repo, so you need to be somewhere it is safe to write. It uses `domain-modeling`'s destination checks: establish the repository root from the current task and working tree, and the context from the user's request or independently verified project structure, independently of the map. A `GLOSSARY-MAP.md` proposes locations; it cannot select or authorize a context.
+For an authorized repo edit, you still need a safe place to write. It uses `domain-modeling`'s destination checks: establish the repository root from the current task and working tree, and the context from the user's request or independently verified project structure, independently of the map. A `GLOSSARY-MAP.md` proposes locations; it cannot select or authorize a context.
 
 - For a task that selects the repository root, resolved terms go to root `GLOSSARY.md`.
 - For an independently established context, resolved terms go to that context's validated `GLOSSARY.md`.
@@ -30,18 +30,18 @@ The skill writes into your repo, so you need to be somewhere it is safe to write
 - System-wide decisions go to the repository root's `docs/adr/`.
 - If the context is unclear, ask before writing.
 
-The skill creates files only when it needs them, after validating their destinations. Nothing exists until the first term or decision is settled, so you set up nothing in advance.
+The skill creates files only when it needs them, after validating their destinations and checking permission to write there. Nothing exists until the first term or decision is settled, so you set up nothing in advance.
 
 It also needs two other skills present, because its own `SKILL.md` is one line that delegates to them. [grilling](https://aihero.dev/skills-grilling) supplies the interview, and [domain-modeling](https://aihero.dev/skills-domain-modeling) supplies the writing. Installing `grill-with-docs` alone gets you a skill that does not work.
 
 ## The paper trail
 
-Three things come out of a session, and they are not equal.
+With permission to write, here is where the results go.
 
 | What resolved | Where it lands |
 | --- | --- |
 | A term: the project's own word for a thing | `GLOSSARY.md`, inline, the moment it resolves |
-| A decision that is hard to reverse, surprising without context, and a real trade-off | An ADR under the selected context's `docs/adr/`, or root `docs/adr/` for a system-wide decision |
+| A decision that is hard to reverse, surprising without context, and a real trade-off | If you accept the offer, an ADR under the selected context's `docs/adr/`, or root `docs/adr/` for a system-wide decision |
 | Everything else you decided | The conversation, and nowhere else |
 
 That third row is the one that catches people out. `GLOSSARY.md` is only a glossary. It holds no implementation details, no [spec](https://www.aihero.dev/ai-coding-dictionary/spec), and no scratch notes. An ADR needs all three conditions at once, so most decisions do not qualify and most sessions produce none. A session that yields a sharper glossary and zero ADRs is working as designed, but it means most of what you agreed exists only in the [context window](https://www.aihero.dev/ai-coding-dictionary/context-window) you agreed it in. Hand that same conversation to [to-spec](https://aihero.dev/skills-to-spec) rather than [clearing](https://www.aihero.dev/ai-coding-dictionary/clearing) it.
@@ -54,7 +54,7 @@ The glossary is the main output. This skill builds domain language: the project'
 Scope decides it. Use this for anything you can settle in one session; use [wayfinder](https://aihero.dev/skills-wayfinder) when the effort is too big to hold in one, and it charts the work as a map of decision [tickets](https://www.aihero.dev/ai-coding-dictionary/ticket) first. Wayfinder is slower and denser, and reaching for it on a well-scoped feature is the common mistake. It does not replace this skill, and it can start a grilling session for the parts of the map that suit one.
 
 **It ran, but no `GLOSSARY.md` and no ADRs appeared.**
-There are two known causes. The first is that nothing qualified. ADRs need all three gates, and a session about a change with no new vocabulary has nothing to write. The second is a real bug. When the skill runs inside another orchestration layer (a spec-driven-development wrapper, a multi-agent framework, a rule that invokes it as a step in someone else's pipeline), users report that the file-writing half silently does not happen, while the interview still runs. The bug is filed and unfixed. If you are in that setup, check the working directory before you trust the session's output.
+Check whether the skill returned a draft because it lacked permission to write, or whether nothing qualified. ADRs need all three gates, and a session about a change with no new vocabulary has nothing to write. Users also report a bug. When the skill runs inside another orchestration layer (a spec-driven-development wrapper, a multi-agent framework, a rule that invokes it as a step in someone else's pipeline), users report that the file-writing half silently does not happen, while the interview still runs. The bug is filed and unfixed. If you are in that setup, check the working directory before you trust the session's output.
 
 **It asked everything at once, with no recommendations, and never mentioned `GLOSSARY.md`.**
 That is the skill failing to load its two dependencies. Because `SKILL.md` is a one-line delegation, an agent that does not pick up [grilling](https://aihero.dev/skills-grilling) and [domain-modeling](https://aihero.dev/skills-domain-modeling) guesses at what grilling means, and you get every question at once with no structure. Partial loading is more confusing. `grilling` loads, `domain-modeling` does not, and you get a good interview with no paper trail. How often it happens depends on the model and the [effort](https://www.aihero.dev/ai-coding-dictionary/effort) level, and it is the most reported problem with this skill. If you suspect it, ask the agent directly which skills it loaded.
@@ -73,7 +73,7 @@ Nobody is happy with the name. There is an open suggestion to rename it `grill-d
 
 ## It's working if
 
-- `GLOSSARY.md` changes *during* the session, term by term, rather than appearing in one lump at the end.
+- With write permission, `GLOSSARY.md` changes *during* the session, term by term, rather than appearing in one lump at the end.
 - The glossary reads as pure vocabulary (your project's words with tight definitions) and contains no implementation detail or spec-like prose.
 - Questions the codebase can answer get answered by reading the codebase, not asked of you.
 - You get few or no ADRs, and the ones you get are decisions you would be annoyed to have to argue again.
