@@ -23,7 +23,7 @@ Type `/implement-spec`, or the agent can invoke it when the task fits. Pushing, 
 
 ## The integration branch
 
-Everything lands on one branch. Each implementer:
+Everything lands on one branch. The orchestrator points each implementer to your `implement-spec` request, which authorizes it to commit its ticket to its own branch. Each implementer:
 
 1. confirms its worktree is based on the integration branch before it starts,
 2. builds its ticket with [tdd](https://aihero.dev/skills-tdd), red-green one slice at a time,
