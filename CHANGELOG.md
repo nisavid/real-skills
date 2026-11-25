@@ -2,7 +2,7 @@
 
 ## Fork releases
 
-Ivan D Vasin authored the Real Skills changes unless an entry credits another contributor.
+[@nisavid](https://github.com/nisavid) authored the Real Skills changes unless an entry credits another contributor.
 
 ### Unreleased
 
