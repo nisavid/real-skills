@@ -5,6 +5,8 @@ description: "Turn a decision you can't fully answer into a questionnaire for so
 
 Turn something the user can't answer alone into a **questionnaire**: a Markdown document they hand to one person to fill in async, or fill out together over a meeting. The recipient holds knowledge the user lacks; the questionnaire pulls it out of them.
 
+Invocation grants no file-write authority, so reuse an applicable user grant to save the questionnaire at the proposed path or return the draft and ask before writing there.
+
 **Grill the send, not the subject.** Interview the user only about the _send_, which they can always answer: who it goes to, and what they need back. The questions in the document then target the **gap** between what the recipient knows and what the user needs.
 
 
