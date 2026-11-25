@@ -25,13 +25,11 @@
 
 Real Skills packages [Matt Pocock's Skills for Real Engineers](https://github.com/mattpocock/skills) as a plugin in two editions. This fork credits Matt's original skills and workflows and preserves the collection's [MIT license](LICENSE).
 
-Windflower and Nested Bloom are by **Ivan D Vasin**. See the [CC BY 4.0 artwork notice](assets/real-skills-editions/ARTWORK-NOTICE.md) for credit and reuse terms.
-
 ## Choose an edition
 
-**<picture><source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/nocturne/windflower.dark.svg"><img alt="" src="assets/real-skills-editions/nocturne/windflower.light.svg" width="24" height="24"></picture>&nbsp; Leashed** keeps Matt's invocation rules and adds packaging, safety, and reliability fixes. You start the skills upstream reserves for you.
+**<picture><source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/wake/windflower.dark.svg"><img alt="" src="assets/real-skills-editions/wake/windflower.light.svg" width="18" height="18"></picture>&nbsp;Leashed** keeps Matt's invocation rules and adds packaging, safety, and reliability fixes. You start the skills upstream reserves for you.
 
-**<picture><source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/nocturne/nested-bloom.dark.svg"><img alt="" src="assets/real-skills-editions/nocturne/nested-bloom.light.svg" width="24" height="24"></picture>&nbsp; Unleashed** lets your agent start any active skill when it fits the task. That's the reason this fork is maintained.
+**<picture><source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/wake/nested-bloom.dark.svg"><img alt="" src="assets/real-skills-editions/wake/nested-bloom.light.svg" width="18" height="18"></picture>&nbsp;Unleashed** lets your agent start any active skill when it fits the task. That's the reason this fork is maintained.
 
 Human decisions and approvals stay with you in both editions.
 
@@ -39,9 +37,7 @@ In the shared `real-skills` marketplace, the package IDs are `real-skills-leashe
 
 ## Install
 
-The current public install route is Real Skills [Leashed]. Real Skills [Unleashed] is still working toward a public release.
-
-If you are installing <picture><source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/wake/windflower.dark.svg"><img alt="" src="assets/real-skills-editions/wake/windflower.light.svg" height="20"></picture> Real Skills [Leashed], use its public archive release, [release 1.3.4+from.1.3.2](https://github.com/nisavid/real-skills/releases/tag/v1.3.4%2Bfrom.1.3.2). It provides one archive per provider and a `SHA256SUMS` file with checksums for both:
+**<picture><source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/wake/windflower.dark.svg"><img alt="" src="assets/real-skills-editions/wake/windflower.light.svg" width="18" height="18"></picture>&nbsp;Leashed.** The public archives are in [release 1.3.4+from.1.3.2](https://github.com/nisavid/real-skills/releases/tag/v1.3.4%2Bfrom.1.3.2). It provides one archive per provider and a `SHA256SUMS` file with checksums for both:
 
 - **ChatGPT:** `real-skills-leashed-1.3.4+from.1.3.2-agent-plugins.zip`
 - **Claude:** `real-skills-leashed-1.3.4+from.1.3.2-claude.zip`
@@ -50,7 +46,7 @@ Download the archive for your provider and follow the [installation instructions
 
 If you have an earlier installation of this fork, keep it until you have verified the Leashed replacement. The Leashed plugin uses a different identity from the earlier fork package, so do not assume an existing installation will update automatically. While you verify, disable other active providers of the same skills where your provider supports it, so the source of each skill invocation is clear. Update and coexistence behavior depends on the provider.
 
-If you are waiting to install <picture><source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/wake/nested-bloom.dark.svg"><img alt="" src="assets/real-skills-editions/wake/nested-bloom.light.svg" height="20"></picture> Real Skills [Unleashed], watch the [releases page](https://github.com/nisavid/real-skills/releases). Earlier Unleashed builds were exercised privately, and qualification of the eventual public release is still being completed. Once a build is published, look for release notes that name a supported install route.
+**<picture><source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/wake/nested-bloom.dark.svg"><img alt="" src="assets/real-skills-editions/wake/nested-bloom.light.svg" width="18" height="18"></picture>&nbsp;Unleashed.** Watch the [releases page](https://github.com/nisavid/real-skills/releases). Earlier Unleashed builds were exercised privately, and qualification of the eventual public release is still being completed. Once a build is published, look for release notes that name a supported install route.
 
 Install verification through the shared `real-skills` marketplace is still underway.
 
@@ -62,7 +58,7 @@ Once an edition is installed, run [`setup-matt-pocock-skills`](skills/engineerin
 
 Not sure which skill fits a task? Invoke [`ask-matt`](skills/engineering/ask-matt/SKILL.md).
 
-From [The original collection](#the-original-collection) onward, this README keeps Matt's introduction, installation guidance, and skill reference, with a few fork-specific notes in it. First-person references in the original material refer to Matt.
+[The original collection](#the-original-collection) and its reference below keep Matt's introduction, installation guidance, and skill reference, with a few fork-specific notes in it. First-person references in the original material refer to Matt.
 
 ## The original collection
 
@@ -318,3 +314,7 @@ General workflow tools, not code-specific.
 
 - **[grilling](./skills/productivity/grilling/SKILL.md)**: Interview the user relentlessly about a plan, decision, or idea until every branch of the design tree is resolved. The reusable interview primitive behind `grill-me`, `grill-with-docs`, `triage`, `wayfinder` and `improve-codebase-architecture`.
 - **[writing-for-agents](./skills/productivity/writing-for-agents/SKILL.md)**: Writing documents for agents: skills, AGENTS.md/CLAUDE.md, and any doc an agent reaches by a pointer.
+
+## Artwork credits
+
+**Windflower**, the Leashed icon, and **Nested Bloom**, the Unleashed icon, are by Ivan D Vasin. See the [CC BY 4.0 artwork notice](assets/real-skills-editions/ARTWORK-NOTICE.md) for attribution and reuse terms.
