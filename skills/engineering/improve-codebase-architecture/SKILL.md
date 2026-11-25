@@ -14,6 +14,8 @@ This command is _informed_ by the project's domain model and built on a shared d
 
 ## Process
 
+Invocation grants no authority, so reuse an applicable user grant for sharing repository context with exploration, fact-finding, or design workers, writing and opening the temporary report, loading its CDN scripts, and writing glossary entries or accepted ADRs, and return the findings or drafts and ask before any uncovered operation on its target.
+
 ### 1. Explore
 
 **Scope before you scan: YAGNI.** Deepening a module pays off by making future changes to it easier, so put extra weight on the parts of the codebase that have recently changed. Decide *where* to look before you look:
