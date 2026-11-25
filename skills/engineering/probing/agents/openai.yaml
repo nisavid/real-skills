@@ -1,0 +1,3 @@
+interface:
+  display_name: "Probing"
+  short_description: "Resolve one uncertainty with bounded evidence"
