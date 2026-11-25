@@ -1,38 +1,74 @@
+# Real Skills
+
+Real Skills is a fork of [Matt Pocock's Skills for Real Engineers](https://github.com/mattpocock/skills), a collection of agent skills for planning, building, debugging, reviewing, and documenting software. The skills and the engineering workflows in them are Matt's. This fork preserves his attribution and the collection's [MIT license](LICENSE).
+
+The fork packages the collection as a plugin for engineering teams. It comes in two editions, Real Skills [Leashed] and Real Skills [Unleashed], which differ in who can start a skill.
+
+## Choose an edition
+
+Matt's collection draws a line between skills an agent may invoke on its own and skills that run only when you select them. The editions differ in how they treat that second, reserved group.
+
+### Real Skills [Leashed]
+
 <p>
-  <a href="https://www.aihero.dev/s/skills-newsletter">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://res.cloudinary.com/total-typescript/image/upload/v1777382277/skills-repo-dark_2x.png">
-      <source media="(prefers-color-scheme: light)" srcset="https://res.cloudinary.com/total-typescript/image/upload/v1777382277/skill-repo-light_2x.png">
-      <img alt="Skills" src="https://res.cloudinary.com/total-typescript/image/upload/v1777382277/skill-repo-light_2x.png" width="369">
-    </picture>
-  </a>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/nocturne/windflower.dark.svg">
+    <img alt="" src="assets/real-skills-editions/nocturne/windflower.light.svg" height="96">
+  </picture>
 </p>
 
-# Real Skills [Leashed]
+Leashed is the upstream-faithful edition. It keeps the line where Matt drew it and adds this fork's focused packaging, safety, and reliability fixes. Choose Leashed when you want the collection to behave as upstream documents it, or when your team wants a person to start the reserved workflows.
 
-[Matt Pocock's Skills for Real Engineers](https://github.com/mattpocock/skills) is a collection of agent skills for planning, building, debugging, reviewing, and documenting software. Real Skills [Leashed] (RSL) is a lightly revised and repackaged fork of Matt's collection, with focused fixes for packaging, safety, and reliability.
+### Real Skills [Unleashed]
 
-Leashed retains the upstream distinction between skills you invoke and skills an agent may invoke on its own. Real Skills [Unleashed] (RSU) is a planned variant that will make the active skills available for agents to invoke while preserving decisions and approvals that require a person. RSU is not yet available.
+<p>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/nocturne/nested-bloom.dark.svg">
+    <img alt="" src="assets/real-skills-editions/nocturne/nested-bloom.light.svg" height="96">
+  </picture>
+</p>
 
-## Install Real Skills [Leashed]
+Unleashed opens the reserved skills to the agent as well, and it is the reason this fork is maintained. The agent can reach for any active skill in the collection without you naming it, so a skill you did not ask for can start partway through a task. Choose Unleashed when you want the agent to apply the workflows on its own initiative, without you having to know which skill fits.
 
-When a Real Skills [Leashed] release is available, download the archive for your provider from the [Real Skills releases](https://github.com/nisavid/real-skills/releases) page and check its release notes for qualification. If no Leashed release is listed there, its release archives are not available there.
+### Side by side
 
-**ChatGPT**
+| | Real Skills [Leashed] | Real Skills [Unleashed] |
+| --- | --- | --- |
+| Skills upstream reserves for you | Run when you select them | The agent may invoke them too |
+| Skills upstream lets an agent invoke | The agent may invoke them | The agent may invoke them |
+| Decisions and approvals that require a person | Stay with the person | Stay with the person |
+| Package ID | `real-skills-leashed` | `real-skills-unleashed` |
 
-1. Open your profile menu, then choose **Settings** and **Plugins**.
-2. Choose **Browse directory**, **Add**, and **Upload plugin archive**.
-3. Select the Agent Plugins ZIP, choose **Add plugin**, then **Install plugin**.
+Use one edition per harness (the agent app or CLI that loads the skills). The skills call each other by bare name, so each harness needs a single provider for those names. With two providers active, a chain of skills can continue in the other provider's version of a skill or be refused by it.
 
-**Claude**
+Choosing an edition here does not change an installation you already have. The editions are separate packages defined under one marketplace name, `real-skills`, so the package ID is what tells you which edition an installation is.
 
-1. Open your profile menu, then choose **Settings**, **Customize**, and **Plugins**.
-2. Choose **Add**, then **Upload plugin**.
-3. Select the Claude ZIP and choose **Upload**.
+## Install
 
-If you already have an earlier installation, keep it until you have verified the replacement. During verification, disable other active providers of the same skills if the provider supports it; overlapping providers can make it unclear which instructions were used. Each harness needs one selected provider for these skill names at all times, not only during verification, because the skills call each other by bare name. Otherwise a chain can continue in another provider's version of a skill, or be refused by it. This release uses a different plugin identity, and update or coexistence behavior depends on the provider.
+The current public install route is Real Skills [Leashed]. Real Skills [Unleashed] is still working toward a public release.
 
-The sections below retain Matt's introduction, installation guidance, and descriptions of the original collection. First-person references in that material refer to Matt. The installation commands are for upstream, not this fork. The skill descriptions below are upstream's too. Where the `implement` and `implement-spec` summaries close out with `/code-review`, this fork's skills call this collection's own `code-review` skill. Where it was installed as a plugin, they use the plugin-qualified name the skill was loaded under (`<plugin>:code-review`), because a harness built-in that shares the bare name is a different review.
+If you are installing <picture><source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/wake/windflower.dark.svg"><img alt="" src="assets/real-skills-editions/wake/windflower.light.svg" height="20"></picture> Real Skills [Leashed], use its public archive release, [release 1.3.4+from.1.3.2](https://github.com/nisavid/real-skills/releases/tag/v1.3.4%2Bfrom.1.3.2). It provides one archive per provider and a `SHA256SUMS` file with checksums for both:
+
+- **ChatGPT:** `real-skills-leashed-1.3.4+from.1.3.2-agent-plugins.zip`
+- **Claude:** `real-skills-leashed-1.3.4+from.1.3.2-claude.zip`
+
+Download the archive for your provider and follow the [installation instructions pinned to that release](https://github.com/nisavid/real-skills/blob/c63cbf7f7ceb578eb3d55950cf6bb18bad7f680b/README.md#install-real-skills-leashed). The release notes record how both archives were tested and what that testing does not cover.
+
+If you have an earlier installation of this fork, keep it until you have verified the Leashed replacement. The Leashed plugin uses a different identity from the earlier fork package, so do not assume an existing installation will update automatically. While you verify, disable other active providers of the same skills where your provider supports it, so the source of each skill invocation is clear. Update and coexistence behavior depends on the provider.
+
+If you are waiting to install <picture><source media="(prefers-color-scheme: dark)" srcset="assets/real-skills-editions/wake/nested-bloom.dark.svg"><img alt="" src="assets/real-skills-editions/wake/nested-bloom.light.svg" height="20"></picture> Real Skills [Unleashed], watch the [releases page](https://github.com/nisavid/real-skills/releases). Earlier Unleashed builds were exercised privately, and qualification of the eventual public release is still being completed. Once a build is published, look for release notes that name a supported install route.
+
+Install verification through the shared `real-skills` marketplace is still underway.
+
+The commands under [The original collection](#the-original-collection) below install Matt's original collection.
+
+## Start here
+
+Once an edition is installed, run [`setup-matt-pocock-skills`](skills/engineering/setup-matt-pocock-skills/SKILL.md) in each repository where you want to use the engineering workflows. It asks where to track issues and where to maintain your project's domain documentation.
+
+Not sure which skill fits a task? Invoke [`ask-matt`](skills/engineering/ask-matt/SKILL.md).
+
+From [The original collection](#the-original-collection) onward, this README keeps Matt's introduction, installation guidance, and skill reference, with a few fork-specific notes in it. First-person references in the original material refer to Matt.
 
 ## The original collection
 
