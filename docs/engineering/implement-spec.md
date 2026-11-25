@@ -1,8 +1,8 @@
 ## What it does
 
-`implement-spec` takes a [spec](https://www.aihero.dev/ai-coding-dictionary/spec) and its [tickets](https://www.aihero.dev/ai-coding-dictionary/ticket) and lands the whole thing in one run. The orchestrating [agent](https://www.aihero.dev/ai-coding-dictionary/agent) hands each ticket to an implementer [subagent](https://www.aihero.dev/ai-coding-dictionary/subagent) working in its own git worktree, merges each finished branch into a single **integration branch**, runs this collection's own [code-review](https://aihero.dev/skills-code-review) over the result, and resolves the tickets. Where the collection was installed as a plugin, it calls that review by its plugin-qualified name, because a built-in can share the bare name `code-review`.
+`implement-spec` takes a [spec](https://www.aihero.dev/ai-coding-dictionary/spec) and its [tickets](https://www.aihero.dev/ai-coding-dictionary/ticket) and uses your existing grant to land them in one run, reporting any uncovered operation and target and asking before acting. The orchestrating [agent](https://www.aihero.dev/ai-coding-dictionary/agent) uses your grant to hand each ticket to an implementer [subagent](https://www.aihero.dev/ai-coding-dictionary/subagent) working in its own git worktree, merge each committed ticket into a single **integration branch**, run this collection's own [code-review](https://aihero.dev/skills-code-review) over the result, and resolve the tickets. Where the collection was installed as a plugin, it calls that review by its plugin-qualified name, because a built-in can share the bare name `code-review`.
 
-It reads the tickets as a **task graph**, not a list. Blocking edges decide what can start, so at any moment there is a **frontier** of tickets whose blockers have all landed, and every ticket on the frontier runs at once. That is the difference from working the tickets one by one. The graph's shape sets the pace, not the tickets' order on the tracker.
+It reads the tickets as a **task graph**, not a list. Blocking edges decide what can start, so at any moment there is a **frontier** of tickets whose blockers have all landed, and tickets on the frontier can run in parallel within your grant. That is the difference from working the tickets one by one. The graph's shape sets the pace, not the tickets' order on the tracker.
 
 ## When to reach for it
 
@@ -17,13 +17,13 @@ Type `/implement-spec`, or the agent can invoke it when the task fits. Pushing, 
 
 ## Prerequisites
 
-- **An issue tracker.** The skill reads the tickets from, and resolves them on, the tracker [setup-matt-pocock-skills](https://aihero.dev/skills-setup-matt-pocock-skills) configured. If none has been configured, it runs setup-matt-pocock-skills when governing instructions permit; otherwise it stops and tells you to run that first rather than guessing.
-- **Tickets with blocking edges**, as [to-tickets](https://aihero.dev/skills-to-tickets) writes them. Without edges the graph is flat and every ticket starts at once.
+- **An issue tracker.** Within your grant, the skill reads the tickets from, and resolves them on, the tracker [setup-matt-pocock-skills](https://aihero.dev/skills-setup-matt-pocock-skills) configured. If none has been configured, it runs setup-matt-pocock-skills when governing instructions permit; otherwise it stops and tells you to run that first rather than guessing.
+- **Tickets with blocking edges**, as [to-tickets](https://aihero.dev/skills-to-tickets) writes them. Without edges the graph is flat and every ticket is eligible to start at once within your grant.
 - **A [harness](https://www.aihero.dev/ai-coding-dictionary/harness) that runs subagents in the background and gives each one a git worktree.** The skill exists to run tickets at the same time, so on a harness that runs subagents one at a time, it is only a slower `implement`.
 
 ## The integration branch
 
-Everything lands on one branch. The orchestrator points each implementer to your `implement-spec` request, which authorizes it to commit its ticket to its own branch. Each implementer:
+Committed tickets land on one branch. Each implementer checks your request for authority to commit to its own branch and, without it, keeps the worktree, reports the unmerged ticket, and asks before committing. Each implementer:
 
 1. confirms its worktree is based on the integration branch before it starts,
 2. builds its ticket with [tdd](https://aihero.dev/skills-tdd), red-green one slice at a time,
