@@ -6,7 +6,7 @@ Ivan D Vasin authored the Real Skills changes unless an entry credits another co
 
 ### Unreleased
 
-- Add `probing` to test assumptions before building on them, with a Wayfinder ticket type for probes. [#131](https://github.com/nisavid/real-skills/pull/131)
+- Add `probing` to answer questions by trying things and observing what happens. Wayfinder gains a ticket type for probes. [#131](https://github.com/nisavid/real-skills/pull/131)
 - Keep skills that call each other within the same active provider during implementation. [#132](https://github.com/nisavid/real-skills/pull/132)
 - Add the Wayfinder package icon and preserve existing Codex manifests if generation fails. [#64](https://github.com/nisavid/real-skills/pull/64), [#77](https://github.com/nisavid/real-skills/pull/77)
 - Check archive provenance in CI and support rebuilding from retained source archives. [#103](https://github.com/nisavid/real-skills/pull/103), [#113](https://github.com/nisavid/real-skills/pull/113)
