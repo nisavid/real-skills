@@ -13,4 +13,4 @@ Run typechecking regularly, single test files regularly, and the full test suite
 
 Once done, review the work. Call the Skill tool with this collection's own `code-review` skill. Where it was installed as a plugin, use the plugin-qualified name this skill was loaded under (`<plugin>:code-review`). A harness built-in that shares the bare name is a different review and does not satisfy this step.
 
-Commit your work to the current branch only if the active request and governing instructions authorize that commit. Otherwise, leave the work uncommitted and report the pending commit.
+Commit your work to the current branch only if the active request and governing instructions authorize that commit. Reuse an applicable user grant for the scoped workflow even when the agent invoked this skill. Without commit authority, leave the work uncommitted, report the pending commit, and say that `code-review` could not cover those changes. Do not commit just to enable the review.
