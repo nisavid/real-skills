@@ -112,6 +112,8 @@ def verify_archive(repo, source, source_sha256, base, release, fmt, path):
     has_placements = placement_path in paths
     composer = icon
     if has_placements:
+        metadata = git(repo, "ls-tree", source, "--", placement_path).split(b"\t", 1)[0].decode().split()
+        require(len(metadata) == 3 and metadata[0] in ("100644", "100755") and metadata[1] == "blob", "invalid icon placements")
         placements = json_object(blob(repo, source, placement_path))
         require(set(placements) == {"composerIcon"}, "invalid icon placements")
         composer = placements["composerIcon"]
