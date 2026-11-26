@@ -1,6 +1,6 @@
 ## What it does
 
-`improve-codebase-architecture` surveys a codebase for **deepening opportunities**. These are places where a shallow module (an interface nearly as complex as the thing it hides) could become a deep one. Asking for the report, including by invoking the skill yourself, covers saving and opening the local HTML file, and the agent returns its findings and asks before any action outside your grant, including loading CDN scripts. The skill then [grills](https://www.aihero.dev/ai-coding-dictionary/grilling) you through the one you pick.
+`improve-codebase-architecture` surveys a codebase for **deepening opportunities**. These are places where a shallow module (an interface nearly as complex as the thing it hides) could become a deep one. Asking for the report, including by invoking the skill yourself, covers saving the local HTML file. The standard report loads CDN scripts when opened, so unless you have allowed that, the agent gives you the file's path and asks before opening it. It also asks before any other action outside your grant. The skill then [grills](https://www.aihero.dev/ai-coding-dictionary/grilling) you through the one you pick.
 
 It never changes the code. The saved report is one HTML file in your OS temp directory. You do the refactor later, in a separate [session](https://www.aihero.dev/ai-coding-dictionary/session), through the normal build flow. This makes it a survey, not a refactoring tool, so you can run it on a codebase you are not ready to touch yet.
 
