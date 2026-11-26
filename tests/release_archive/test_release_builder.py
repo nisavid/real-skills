@@ -274,3 +274,31 @@ def test_nonregular_placement_sidecar_cannot_fall_back_to_legacy():
     source = output.getvalue()
     with pytest.raises(ValueError):
         build(source, hashlib.sha256(source).hexdigest(), REVISION, "1.3.1", "1.3.2+from.1.3.1")
+
+
+def test_placement_sidecar_without_base_icon_is_rejected():
+    import copy
+    import pytest
+    from release_builder import build
+
+    original_bytes = source_archive()
+    output = io.BytesIO()
+    with tarfile.open(fileobj=io.BytesIO(original_bytes), mode="r:gz") as original:
+        with tarfile.open(fileobj=output, mode="w:gz") as replacement:
+            for item in original:
+                item = copy.copy(item)
+                data = original.extractfile(item).read() if item.isfile() else None
+                replacement.addfile(item, io.BytesIO(data) if data is not None else None)
+            root = "mattpocock-skills-" + REVISION
+            folder = tarfile.TarInfo(root + "/assets")
+            folder.type = tarfile.DIRTYPE
+            folder.mode = 0o755
+            replacement.addfile(folder)
+            data = b'{"composerIcon":"./assets/wake.svg"}'
+            entry = tarfile.TarInfo(root + "/assets/icon-placements.json")
+            entry.size = len(data)
+            entry.mode = 0o644
+            replacement.addfile(entry, io.BytesIO(data))
+    source = output.getvalue()
+    with pytest.raises(ValueError, match="icon placements require an icon"):
+        build(source, hashlib.sha256(source).hexdigest(), REVISION, "1.3.1", "1.3.2+from.1.3.1")

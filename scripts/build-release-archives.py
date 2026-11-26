@@ -315,6 +315,7 @@ def build(raw, expected_sha256, revision, base, release):
     require(set(claude) <= allowed, "new manifest fields need projection review")
     icon_path = claude.get("icon")
     if "icon" not in claude:
+        require("assets/icon-placements.json" not in types, "icon placements require an icon")
         require("logo" not in native["interface"] and "composerIcon" not in native["interface"],
                 "native icon references disagree")
     else:
