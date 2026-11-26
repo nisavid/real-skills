@@ -4,3 +4,4 @@ description: "A relentless interview to sharpen a plan or design, which also cre
 ---
 
 Call the Skill tool twice, for "grilling" and "domain-modeling".
+The user's own request for this interview, whether they invoked this skill themselves or asked in words, is a grant for the glossary entries and accepted ADRs that `domain-modeling` writes at their validated paths, and for nothing beyond them; the agent's choice to invoke this skill is not.
