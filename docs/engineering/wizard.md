@@ -6,7 +6,7 @@ The [agent](https://www.aihero.dev/ai-coding-dictionary/agent) writes the script
 
 ## When to reach for it
 
-You can type `/wizard`, and the agent can also reach for it on its own. When it hits a step you have to take (a key it can't mint, a dashboard it can't click), it builds you a wizard when your request covers the script path and stages, or proposes the pending steps.
+You can type `/wizard`, and the agent can also reach for it on its own. When it hits a step you have to take (a key it can't mint, a dashboard it can't click), it builds you a wizard instead of writing the instructions into the chat, where they scroll away.
 
 Reach for it when the next thing blocking you is a trip through a dashboard:
 
@@ -15,7 +15,7 @@ Reach for it when the next thing blocking you is a trip through a dashboard:
 | A new dev needs six services configured before the app boots | Opens each dashboard in order, captures the keys, writes them to `.env` and CI |
 | A one-off migration needs switches flipped in a specific order | Sequences the irreversible steps behind confirmation gates |
 | A project has to move from state A to state B once | Walks the transition and reports what it could not do |
-| You are about to write those steps into a README | With permission to create it and change its mode, writes an executable version instead, which fails visibly when a step goes stale |
+| You are about to write those steps into a README | Writes an executable version instead, which fails visibly when a step goes stale |
 
 Don't reach for it to *decide* what to build; for that, [grill-with-docs](https://aihero.dev/skills-grill-with-docs) and [to-spec](https://aihero.dev/skills-to-spec) are the tools.
 
@@ -31,7 +31,7 @@ Before entering values, you confirm the displayed project root, env file, and Gi
 
 A **stage** is one focused task on one screen. The script clears the terminal between stages, so a stage that overflows the screen loses the part that scrolled away. You author stages in dependency order and set `TOTAL_STAGES` to a non-negative integer before configuring destinations. The first successful configuration fixes the progress count for the run, even if you reconfigure destinations.
 
-The [skill](https://www.aihero.dev/ai-coding-dictionary/skill) scopes the procedure before it writes any script. It reads the repo instead of asking cold: `.env*`, `docker-compose*`, framework config, and every `secrets.*` / `vars.*` reference in `.github/workflows/`. Each of those references is a value the wizard has to produce. It then shows you the ordered stage list to confirm. Only after you confirm does it map each stage to the exact path a human follows ("Dashboard → Developers → API keys → Reveal test key → copy"). Where it doesn't know the current UI, it asks you or checks docs covered by your request rather than inventing clicks.
+The [skill](https://www.aihero.dev/ai-coding-dictionary/skill) scopes the procedure before it writes any script. It reads the repo instead of asking cold: `.env*`, `docker-compose*`, framework config, and every `secrets.*` / `vars.*` reference in `.github/workflows/`. Each of those references is a value the wizard has to produce. It then shows you the ordered stage list to confirm. Only after you confirm does it map each stage to the exact path a human follows ("Dashboard → Developers → API keys → Reveal test key → copy"). Where it doesn't know the current UI, it asks you or checks the docs rather than inventing clicks.
 
 For each captured value, scoping decides where it goes:
 
@@ -53,8 +53,8 @@ The agent that writes a wizard never runs it end to end, because the script open
 
 | What you have | What to do with the script |
 | --- | --- |
-| A one-off migration, a personal setup, a transition you'll never repeat | Save it at an authorized scratch or `scripts/` path, run it yourself, and delete it if cleanup is covered |
-| A setup path the next person on the repo will also need | When your grant covers both writes, commit it and link it from the README, so they run the script instead of re-asking an agent |
+| A one-off migration, a personal setup, a transition you'll never repeat | Save it to a scratch or `scripts/` path, run it, delete it |
+| A setup path the next person on the repo will also need | Commit it and link it from the README, so they run the script instead of re-asking an agent |
 
 ## Common questions
 
@@ -64,7 +64,7 @@ This fork rejects those destinations before reading saved defaults or writing va
 
 New files are private (`0600`). Existing files retain their owner, group, mode, access-control lists, and extended attributes; an update fails before replacement if that metadata cannot be retained. Intended sharing remains possible, so you still need to check who can read an existing destination. Atomic replacement requires write access to its parent directory, changes the inode, and leaves other hard links pointing to the old contents. This fork supersedes upstream's deliberate symlink write-through behavior.
 
-These safeguards apply to newly generated scripts. When your request covers replacing an older wizard, regenerate it to update its library. Atomic replacement avoids exposing a partially copied destination during an ordinary failed update; it does not promise recovery after power loss or protect against a hostile process moving an already-open project directory elsewhere. Keep the project directory under your control while running a wizard.
+These safeguards apply to newly generated scripts. Regenerate an older wizard to update its library. Atomic replacement avoids exposing a partially copied destination during an ordinary failed update; it does not promise recovery after power loss or protect against a hostile process moving an already-open project directory elsewhere. Keep the project directory under your control while running a wizard.
 
 **How do I clean up after an interrupted env write?**
 
@@ -105,7 +105,7 @@ The script does. It's plain bash, and it runs the same whatever [harness](https:
 
 **Didn't this used to be user-invoked?**
 
-It did. It's now model-invoked, so the agent reaches for it unprompted when it hits a step you have to take. Nothing you could do before stopped working. Model invocation lets the agent call the skill as well as you, so `/wizard` behaves as it did. The change fixes one failure. Before, an agent that hit a credentials wall mid-build dumped six numbered steps into the chat for you to follow by hand. Now it can write a wizard within the scope you authorize.
+It did. It's now model-invoked, so the agent reaches for it unprompted when it hits a step you have to take. Nothing you could do before stopped working. Model invocation lets the agent call the skill as well as you, so `/wizard` behaves as it did. The change fixes one failure. Before, an agent that hit a credentials wall mid-build dumped six numbered steps into the chat for you to follow by hand. Now it writes a wizard.
 
 **It used to be in `in-progress/`. Where is it now?**
 
@@ -114,7 +114,7 @@ It did. It's now model-invoked, so the agent reaches for it unprompted when it h
 ## It's working if
 
 - You're shown an ordered list of stages, and the values each one produces, and asked to confirm, before any script exists.
-- Each URL in the authorized stages is opened before the value from that page is asked for. You're never asked to paste something you haven't been sent to fetch.
+- Every URL is opened before the value from that page is asked for. You're never asked to paste something you haven't been sent to fetch.
 - Secrets are typed blind. Nothing sensitive echoes into your scrollback.
 - You confirm the project, env file, and repository before the wizard reads or captures values.
 - Each stage fits one screen. Nothing you still need has scrolled away.

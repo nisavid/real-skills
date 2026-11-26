@@ -72,7 +72,7 @@ Probably not. The ticket is more likely too big. A run does codebase exploration
 
 **`/implement #2` in a fresh session worked on something completely unrelated.**
 
-The agent resolved `#2` against another numbered list in context, such as a todo file or checklist, rather than the configured tracker. `implement` uses the tracker access covered by your grant to fetch a passed reference and states its title before starting, and asks when the reference is ambiguous. Check that title matches the ticket you meant; passing the issue URL or `owner/repo#2` removes the ambiguity entirely.
+The agent resolved `#2` against another numbered list in context, such as a todo file or checklist, rather than the configured tracker. `implement` now fetches a passed reference from the issue tracker and states its title before starting, and asks when the reference is ambiguous. Check that title matches the ticket you meant; passing the issue URL or `owner/repo#2` removes the ambiguity entirely.
 
 ## It's working if
 

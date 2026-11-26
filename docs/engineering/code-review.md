@@ -25,7 +25,7 @@ The Standards axis needs nothing. It reads whatever the repo documents (`CODING_
 
 The Spec axis needs a spec to exist and be findable. It looks in this order:
 
-1. Issue references in the commit messages (`#123`, `Closes #45`, a GitLab `!67`), fetched through the tracker doc when your request covers reading that item.
+1. Issue references in the commit messages (`#123`, `Closes #45`, a GitLab `!67`), fetched through the tracker doc.
 2. A path you pass in as an argument.
 3. A spec file under `docs/`, `specs/`, or `.scratch/` matching the branch or feature name.
 4. Asking you.

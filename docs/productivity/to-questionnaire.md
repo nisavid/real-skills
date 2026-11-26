@@ -1,6 +1,6 @@
 ## What it does
 
-`to-questionnaire` turns a decision you can't settle on your own into a **questionnaire**: a Markdown document you hand to the one person who holds what you're missing, for them to fill in async or for the two of you to work through in a meeting.
+`to-questionnaire` turns a decision you can't settle on your own into a **questionnaire**: a Markdown document you hand to the one person who holds what you're missing, for them to fill in async or for the two of you to work through in a meeting. The skill saves the questionnaire in the current directory if your request covers that path, or returns the draft and asks before writing there.
 
 It grills you about the **send**, never the subject. An interview about the topic is pointless, because not knowing the topic is why you're writing to someone else. So it asks the two things you can always answer (who this is going to, and what you need back from them) and aims every question in the document at the **gap** between the two.
 
@@ -26,7 +26,7 @@ The interview is two exchanges, and then it stops.
 - **Who is it going to?** Their role, their expertise, their relationship to you. This sets the tone and how much context the document has to carry. An outside client needs orienting; a teammate does not.
 - **What do you need back?** The concrete decisions or facts you can't resolve alone. This becomes the checklist for the finished document. Every item you name gets a question aimed at it.
 
-Everything after that is drafting. The skill saves `to-questionnaire-<slug>.md` in the current directory if your request covers that path, or returns the draft and asks before writing there. There is no setup, no workspace, and nothing to configure.
+Everything after that is drafting. The skill writes the file to `to-questionnaire-<slug>.md` in the current directory. There is no setup, no workspace, and nothing to configure.
 
 ## The document
 
@@ -55,7 +55,7 @@ No. The dependent-question design was explored and did not ship. The output is a
 The document tells them to say so. It explicitly asks for "I don't know" and partial answers. A flagged uncertainty is worth more than a guess, because a vague answer and a confidently wrong one look identical once they're back in your context.
 
 **Does it send it anywhere (Slack, an issue tracker, email)?**
-No. If it saves the file as described above, it tells you the path. Delivery is yours: paste it into a [ticket](https://www.aihero.dev/ai-coding-dictionary/ticket), drop it in a Slack thread, attach it to an email, or open it on a shared screen and work through it live. People have done all four by hand.
+No. It writes a Markdown file in the current directory and tells you the path. Delivery is yours: paste it into a [ticket](https://www.aihero.dev/ai-coding-dictionary/ticket), drop it in a Slack thread, attach it to an email, or open it on a shared screen and work through it live. People have done all four by hand.
 
 **Isn't this just `/grill-me` in batch mode?**
 No. `grill-me` already asks in **rounds**. It asks the whole frontier of open questions at once, then recomputes it from your answers, so it already meets the "give me all the questions at once" need. `to-questionnaire` differs on another axis. It is about whose head the answers are in, not how the questions are delivered. To answer them yourself faster, use `grill-me`. To get them out of someone else, use this.

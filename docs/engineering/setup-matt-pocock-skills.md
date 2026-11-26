@@ -4,7 +4,7 @@
 
 Those files hold each repo's skill configuration. The skills themselves are identical everywhere. They read `docs/agents/issue-tracker.md` at run time and do what it says. That is why the set is not tied to GitHub, and why you never edit a skill file to point it at another tracker. Invoking it with "link the skills to a custom issue tracker" works with anything you can connect to programmatically, with no changes to the skills.
 
-It is a prompt-driven skill, not a deterministic script. It reads your `git remote`, `CLAUDE.md` and `GLOSSARY.md`, proposes what it found, and confirms the setup choices with you.
+It is a prompt-driven skill, not a deterministic script. It uses your existing permission for hosted lookups, Git initialization, remote setup, and label creation, asking before any lookup or change outside your grant. It reads your `git remote`, `CLAUDE.md` and `GLOSSARY.md`, proposes what it found, and confirms the setup choices with you.
 
 ## When to reach for it
 
@@ -46,7 +46,7 @@ The tracker options:
 
 The first three ship as templates in the skill and work out of the box. Local markdown is a full option, not a fallback. The skill supports a solo project with no remote. One caveat: don't use local markdown if you use GitHub. They are alternatives, so pick one.
 
-If you choose GitHub or GitLab, the agent confirms the exact project and uses your existing permission to check it with `gh` or `glab`, asking before any lookup or change outside your grant. If no remote points to that host, it asks for the repository URL, and, within that grant, initializes Git if needed and adds a remote under an unused name. Existing remotes are preserved. The tracker instructions then target the confirmed project explicitly. If the check fails, setup stops and explains what is missing.
+If you choose GitHub or GitLab, the agent confirms the exact project and checks that `gh` or `glab` can resolve it. If no remote points to that host, it asks for the repository URL, initializes Git if needed, and adds a remote under an unused name. Existing remotes are preserved. The tracker instructions then target the confirmed project explicitly. If the check fails, setup stops and explains what is missing.
 
 If a legacy context map exists, setup can offer a migration of the map and its mapped context glossaries. It shows the proposed file moves and reference updates for your confirmation, and stops on unsafe paths or destination conflicts instead of overwriting files.
 
@@ -70,7 +70,7 @@ This is a known gap, and still open. The file-selection rule is "edit `CLAUDE.md
 
 **It didn't create my triage labels.**
 
-When `triage` is installed and you choose GitHub or GitLab, setup records the selected triage-label mapping and creates missing labels when your grant covers checking and creating them on that project, otherwise reporting the pending action and asking before proceeding. If `triage` is not installed, setup skips the mapping and label creation.
+When `triage` is installed and you choose GitHub or GitLab, setup records the selected triage-label mapping and creates any configured labels missing from the tracker. If `triage` is not installed, setup skips the mapping and label creation.
 
 Wayfinder's `wayfinder:map` and `wayfinder:<type>` labels are separate; setup does not create them. Create those labels before using wayfinder with a tracker that requires labels to exist first.
 
@@ -91,9 +91,9 @@ One long-standing complaint says yes, in these words: *"having a skill to set up
 - `docs/agents/issue-tracker.md` and `docs/agents/domain.md` exist, plus `triage-labels.md` if `triage` is installed.
 - An `## Agent skills` section appears in the instruction file your harness reads, with a one-line summary pointing at each of those files.
 - The tracker it proposed matches the remote you use, and the label strings match labels that exist in your tracker.
-- With permission for the relevant tracker writes, `/to-tickets` publishes without asking you where issues live, and `/triage` applies labels rather than inventing them.
+- Afterwards, `/to-tickets` publishes without asking you where issues live, and `/triage` applies labels rather than inventing them.
 - Nothing in the skill files themselves changed. If setup edited a `SKILL.md`, something went wrong.
 
 ## Where it fits
 
-`setup-matt-pocock-skills` is the **run-once setup** for the engineering flow, the precondition everything else assumes rather than a step in the chain. Its neighbours use their own grants for the configured tracker operations: [triage](https://aihero.dev/skills-triage), which applies the label vocabulary written here; [to-spec](https://aihero.dev/skills-to-spec) and [to-tickets](https://aihero.dev/skills-to-tickets), which publish into the tracker named here; and [wayfinder](https://aihero.dev/skills-wayfinder), which reads the "Wayfinding operations" section of the same tracker file to learn how to store maps and child [tickets](https://www.aihero.dev/ai-coding-dictionary/ticket). [domain-modeling](https://aihero.dev/skills-domain-modeling) later fills in the domain-doc layout that setup records. It creates `GLOSSARY.md` and ADRs only when you resolve a term or decision, so a repo with no domain docs after setup is normal. For which skill to reach for next, [ask-matt](https://aihero.dev/skills-ask-matt) routes the whole set.
+`setup-matt-pocock-skills` is the **run-once setup** for the engineering flow, the precondition everything else assumes rather than a step in the chain. Its neighbours are its readers: [triage](https://aihero.dev/skills-triage), which applies the label vocabulary written here; [to-spec](https://aihero.dev/skills-to-spec) and [to-tickets](https://aihero.dev/skills-to-tickets), which publish into the tracker named here; and [wayfinder](https://aihero.dev/skills-wayfinder), which reads the "Wayfinding operations" section of the same tracker file to learn how to store maps and child [tickets](https://www.aihero.dev/ai-coding-dictionary/ticket). [domain-modeling](https://aihero.dev/skills-domain-modeling) later fills in the domain-doc layout that setup records. It creates `GLOSSARY.md` and ADRs only when you resolve a term or decision, so a repo with no domain docs after setup is normal. For which skill to reach for next, [ask-matt](https://aihero.dev/skills-ask-matt) routes the whole set.

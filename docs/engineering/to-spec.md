@@ -6,7 +6,7 @@ It does not interview you. When you reach for it, the deciding is already done. 
 
 ## When to reach for it
 
-Type `/to-spec`, or the agent can invoke it when the task fits. Publication and labeling require authority for the selected tracker and operation; without it, the agent returns the draft and target for a decision.
+Type `/to-spec`, or the agent can invoke it when the task fits. Reading the hosted map and its linked decisions, publication, and labeling require authority for the selected tracker and operation; without it, the agent works from what you supply and returns the pending lookup or draft and target for a decision.
 
 Reach for it when the build is too big for one agent [session](https://www.aihero.dev/ai-coding-dictionary/session) and must be split across several. That is the whole trigger:
 
@@ -45,7 +45,7 @@ The label means "no further triage needed": the document is complete enough for 
 Often you should. The spec is worth its step only on multi-session work. Its value is that the tickets are disposable and the spec is not. Each ticket is sized for one fresh context window and then gets deleted or closed, while the spec stays as the one place that records the reasoning behind them. On a single-session change, that gives you nothing, and you pay for an extra synthesis step where the [model](https://www.aihero.dev/ai-coding-dictionary/model) can drift. Go from grilling to `/implement`.
 
 **I just finished a wayfinder map. What do I feed it?**
-Given the main map issue (`/to-spec #<map_issue>`), it uses your existing grant to read the map and its linked decisions, or works from what you supply and asks before fetching anything outside that grant. [wayfinder](https://aihero.dev/skills-wayfinder) produces decisions spread across a map, not deliverables. `to-spec` collapses them into one document you can build from. If you loop the map straight into `/implement`, you lose that step.
+Give it the main map issue, `/to-spec #<map_issue>`, not the individual decision tickets. [wayfinder](https://aihero.dev/skills-wayfinder) produces decisions spread across a map, not deliverables. `to-spec` collapses them into one document you can build from. If you loop the map straight into `/implement`, you lose that step.
 
 **Is the spec for me to review, or is it just for the agent?**
 Mostly for the agent, and it reads that way: complete, dense, and full of references. Read the seams and the out-of-scope section. In those two places, a wrong decision is cheapest to catch now and most expensive to find later. People do complain about reading the whole thing, and there is no summary mode. But if the spec surprises you, the grilling was too shallow; the spec is not too long.

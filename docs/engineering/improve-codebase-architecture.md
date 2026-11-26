@@ -2,7 +2,7 @@
 
 `improve-codebase-architecture` surveys a codebase for **deepening opportunities**. These are places where a shallow module (an interface nearly as complex as the thing it hides) could become a deep one. It uses your existing permission to write the findings as a self-contained HTML report, or returns them and asks before saving the file, then [grills](https://www.aihero.dev/ai-coding-dictionary/grilling) you through the one you pick.
 
-It never changes the code. An authorized report goes in your OS temp directory. You do the refactor later, in a separate [session](https://www.aihero.dev/ai-coding-dictionary/session), through the normal build flow. This makes it a survey, not a refactoring tool, so you can run it on a codebase you are not ready to touch yet.
+It never changes the code. The whole run produces a conversation and, if saving is authorized, one HTML file in your OS temp directory. You do the refactor later, in a separate [session](https://www.aihero.dev/ai-coding-dictionary/session), through the normal build flow. This makes it a survey, not a refactoring tool, so you can run it on a codebase you are not ready to touch yet.
 
 Two filters stop the report from becoming generic cleanup advice. First, every candidate must pass the **deletion test**: if you removed this module, would its complexity move behind a smaller interface, or spread across the callers? Only the first case gets a card. Second, unless you point it at a specific area, it reads recent commit history first and focuses the scan on paths that change often. A deepening in code that nobody touches is a refactor that never pays back.
 
@@ -29,7 +29,7 @@ Where it is confusable with siblings:
 
 None to run it. If `GLOSSARY.md` or ADRs in `docs/adr/` exist, it reads them and uses your domain's own nouns. A candidate then reads as "deepen the Order intake module," not "refactor the FooBarHandler."
 
-The authorized report goes to `<tmpdir>/architecture-review-<timestamp>.html`, outside the repo. With permission to write the glossary, it adds or sharpens terms in `GLOSSARY.md`, and creates that file if it does not exist. It also offers to record a rejected candidate as an ADR, so a future run does not suggest it again.
+It writes in two places. The report goes to `<tmpdir>/architecture-review-<timestamp>.html`, outside the repo. During the grilling loop it adds or sharpens terms in `GLOSSARY.md`, and creates that file if it does not exist. It also offers to record a rejected candidate as an ADR, so a future run does not suggest it again.
 
 ## Depth, and the report that hunts for it
 
@@ -63,7 +63,7 @@ Yes. Say so when you invoke it ("don't grill me, just show the report"). This is
 
 **The report opened as unstyled raw HTML with no diagrams. What happened?**
 
-Opening the report loads Tailwind and Mermaid from CDNs, so the agent needs your permission for those requests before it opens the file. If something blocks those scripts, the page breaks with no error. In the reported case, a security hook required SRI hashes. The agent added them, but the CDN served different bytes to the browser than to the `curl` that computed the hash, so the browser blocked the script. Offline and locked-down environments have the same problem. The agent cannot see it, because it never renders the page. As a workaround, ask for inline CSS and hand-built SVG diagrams instead of the CDN setup. This is an open issue.
+The report loads Tailwind and Mermaid from CDNs, so it needs network access when you open it. If something blocks those scripts, the page breaks with no error. In the reported case, a security hook required SRI hashes. The agent added them, but the CDN served different bytes to the browser than to the `curl` that computed the hash, so the browser blocked the script. Offline and locked-down environments have the same problem. The agent cannot see it, because it never renders the page. As a workaround, ask for inline CSS and hand-built SVG diagrams instead of the CDN setup. This is an open issue.
 
 **It gave me twelve candidates. Do I work through them in the same session or start a new one?**
 
@@ -97,7 +97,7 @@ The skill does not ship a good answer. People often ask for a `TYPESCRIPT.md` wi
 
 - The candidates name your domain's concepts, not invented class names: "the Order intake module," not "the FooBarHandler."
 - The candidates are in files you edited recently, not in parts of the repo nobody touches.
-- No code changed during the run. If you authorized a report, it is in your temp directory.
+- No code changed during the run. The only new file is the HTML report in your temp directory.
 - It stops after the report and asks which candidate you want. It does not continue on its own.
 - Each card explains the payoff as locality or leverage, and says which tests get simpler, not just "this is cleaner."
 - When you reject a candidate for a lasting reason, it offers to record an ADR, so the next run does not suggest it again.
@@ -108,6 +108,6 @@ The skill does not ship a good answer. People often ask for a `TYPESCRIPT.md` wi
 
 - [codebase-design](https://aihero.dev/skills-codebase-design) owns the depth-and-seam vocabulary that every candidate uses.
 - [grilling](https://aihero.dev/skills-grilling) walks the decision tree after you choose a candidate.
-- [domain-modeling](https://aihero.dev/skills-domain-modeling) can update `GLOSSARY.md` and accepted ADRs within your write permission.
+- [domain-modeling](https://aihero.dev/skills-domain-modeling) keeps `GLOSSARY.md` and the ADRs current as you make the decision.
 
 Its output is an idea, which goes back into the main build flow at [grill-with-docs](https://aihero.dev/skills-grill-with-docs) or [to-spec](https://aihero.dev/skills-to-spec). Its counterpart at the end of the main flow is [retro](https://aihero.dev/skills-retro). This skill improves the code the agent works in, and `retro` improves the environment around it (checks, standards, steering files) after a build. For which skill fits a situation, [ask-matt](https://aihero.dev/skills-ask-matt) is the router over the whole set.
