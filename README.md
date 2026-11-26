@@ -8,11 +8,13 @@
   </a>
 </p>
 
-# Real Skills [Leashed]
+# Real Skills [Unleashed]
 
-[Matt Pocock's Skills for Real Engineers](https://github.com/mattpocock/skills) is a collection of agent skills for planning, building, debugging, reviewing, and documenting software. Real Skills [Leashed] (RSL) is a lightly revised and repackaged fork of Matt's collection, with focused fixes for packaging, safety, and reliability.
+[Matt Pocock's Skills for Real Engineers](https://github.com/mattpocock/skills) is a collection of agent skills for planning, building, debugging, reviewing, and documenting software. Real Skills [Unleashed] (RSU) is a variant of Matt's collection with promoted skills available to agents as well as people, alongside focused packaging, safety, and reliability fixes.
 
-Leashed retains the upstream distinction between skills you invoke and skills an agent may invoke on its own. Real Skills [Unleashed] (RSU) is a planned variant that will make the active skills available for agents to invoke while preserving decisions and approvals that require a person. RSU is not yet available.
+Agents can invoke the promoted skills when the task fits. The user remains responsible for consequential decisions and approvals, and invocation does not grant authority for effects.
+
+This checkout contains the Unleashed development package. The Leashed release archives are distributed separately.
 
 ## Install Real Skills [Leashed]
 
@@ -32,7 +34,7 @@ When a Real Skills [Leashed] release is available, download the archive for your
 
 If you already have an earlier installation, keep it until you have verified the replacement. During verification, disable other active providers of the same skills if the provider supports it; overlapping providers can make it unclear which instructions were used. Each harness needs one selected provider for these skill names at all times, not only during verification, because the skills call each other by bare name. Otherwise a chain can continue in another provider's version of a skill, or be refused by it. This release uses a different plugin identity, and update or coexistence behavior depends on the provider.
 
-The sections below retain Matt's introduction, installation guidance, and descriptions of the original collection. First-person references in that material refer to Matt. The installation commands are for upstream, not this fork. The skill descriptions below are upstream's too, except the `probing` entry, which this fork adds and describes. Where the `implement` and `implement-spec` summaries close out with `/code-review`, this fork's skills call this collection's own `code-review` skill. Where it was installed as a plugin, they use the plugin-qualified name the skill was loaded under (`<plugin>:code-review`), because a harness built-in that shares the bare name is a different review.
+The sections below retain Matt's introduction, installation guidance, and descriptions of the original collection. First-person references in that material refer to Matt. The installation commands are for upstream, not this fork. This fork adds the `probing` skill and its description and drops "user-invoked" from the upstream `ask-matt` description. The other skill descriptions are upstream's. The Reference introduction and its ungrouped lists reflect that every promoted skill here is agent-reachable. Where the `implement` and `implement-spec` summaries close out with `/code-review`, this fork's skills call this collection's own `code-review` skill. Where it was installed as a plugin, they use the plugin-qualified name the skill was loaded under (`<plugin>:code-review`), because a harness built-in that shares the bare name is a different review.
 
 ## The original collection
 
@@ -240,28 +242,23 @@ Software engineering fundamentals matter more than ever. These skills are my bes
 
 ## Reference
 
-These split on one axis: who can invoke them. **User-invoked** skills are reachable only when you type them (e.g. `/grill-me`); their job is to orchestrate. **Model-invoked** skills can be invoked by you _or_ reached for automatically by the agent when the task fits; they hold the reusable discipline. A user-invoked skill may invoke model-invoked skills, but never another user-invoked one.
+You or the agent can invoke each promoted skill when the task fits. Skill invocation does not grant authority for effects or decide questions that require a human.
 
 ### Engineering
 
 Skills I use daily for code work.
 
-**User-invoked**
-
-- **[ask-matt](./skills/engineering/ask-matt/SKILL.md)**: Ask which skill or flow fits your situation. A router over the user-invoked skills in this repo.
+- **[ask-matt](./skills/engineering/ask-matt/SKILL.md)**: Ask which skill or flow fits your situation. A router over the skills in this repo.
 - **[grill-with-docs](./skills/engineering/grill-with-docs/SKILL.md)**: Grilling session that also builds your project's domain model, sharpening terminology and updating `GLOSSARY.md` and ADRs inline.
 - **[triage](./skills/engineering/triage/SKILL.md)**: Move issues through a state machine of triage roles.
 - **[improve-codebase-architecture](./skills/engineering/improve-codebase-architecture/SKILL.md)**: Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
 - **[setup-matt-pocock-skills](./skills/engineering/setup-matt-pocock-skills/SKILL.md)**: Configure this repo for the engineering skills (issue tracker, triage labels, domain doc layout). Run once per repo before using the other engineering skills.
 - **[to-spec](./skills/engineering/to-spec/SKILL.md)**: Turn the current conversation into a spec and publish it to the issue tracker. No interview, just synthesizes what you've already discussed.
 - **[to-tickets](./skills/engineering/to-tickets/SKILL.md)**: Break any plan, spec, or conversation into a set of tracer-bullet tickets, each declaring its blocking edges, written as text in a local file, or as native blocking links on a real tracker.
-- **[implement](./skills/engineering/implement/SKILL.md)**: Build the work described by a spec or set of tickets, driving `/tdd` at pre-agreed seams and closing out with `/code-review` before committing.
+- **[implement](./skills/engineering/implement/SKILL.md)**: Build the work described by a spec or set of tickets, driving `/tdd` at pre-agreed seams and closing out with `/code-review` on the work it committed.
 - **[implement-spec](./skills/engineering/implement-spec/SKILL.md)**: Implement a whole spec on one integration branch. Works the tickets as a task graph, running implementer subagents across the ready frontier for maximum concurrency, then closes out with `/code-review`.
 - **[wayfinder](./skills/engineering/wayfinder/SKILL.md)**: Plan a huge chunk of work, more than one agent session can hold, as a shared map of decision tickets on the issue tracker, and resolve them one at a time until the way to the destination is clear.
 - **[retro](./skills/engineering/retro/SKILL.md)**: Suggest improvements to the coding agent's environment (navigation, automated checks, coding standards, steering files, tooling) after a session, most severe first.
-
-**Model-invoked**
-
 - **[prototype](./skills/engineering/prototype/SKILL.md)**: Build a throwaway prototype to answer a design question, either a single shareable HTML file for state/logic questions, or several radically different UI variations toggleable from one route.
 - **[probing](./skills/engineering/probing/SKILL.md)**: Settle a named factual uncertainty with the smallest adequate evidence and apply the result to discovery, design, or TDD.
 - **[diagnosing-bugs](./skills/engineering/diagnosing-bugs/SKILL.md)**: Disciplined diagnosis loop for hard bugs and performance regressions: build a feedback loop that goes red on this bug → minimise → hypothesise → instrument → fix → regression-test.
@@ -277,15 +274,10 @@ Skills I use daily for code work.
 
 General workflow tools, not code-specific.
 
-**User-invoked**
-
 - **[grill-me](./skills/productivity/grill-me/SKILL.md)**: Get relentlessly interviewed about a plan or design until every branch of the design tree is resolved.
 - **[handoff](./skills/productivity/handoff/SKILL.md)**: Compact the current conversation into a handoff document so another agent can continue the work.
 - **[teach](./skills/productivity/teach/SKILL.md)**: Teach the user a new skill or concept over multiple sessions, using the current directory as a stateful teaching workspace.
 - **[to-questionnaire](./skills/productivity/to-questionnaire/SKILL.md)**: Turn a decision you can't answer alone into a Markdown questionnaire for the one person who can, filled in async, or together over a meeting. It grills you about the send (who it's for, what you need back), not the subject.
 - **[wait-what](./skills/productivity/wait-what/SKILL.md)**: Fire this the moment a message doesn't land. The agent re-pitches it with the context you're missing, in plain English, using your `GLOSSARY.md` vocabulary.
-
-**Model-invoked**
-
 - **[grilling](./skills/productivity/grilling/SKILL.md)**: Interview the user relentlessly about a plan, decision, or idea until every branch of the design tree is resolved. The reusable interview primitive behind `grill-me`, `grill-with-docs`, `triage`, `wayfinder` and `improve-codebase-architecture`.
 - **[writing-for-agents](./skills/productivity/writing-for-agents/SKILL.md)**: Writing documents for agents: skills, AGENTS.md/CLAUDE.md, and any doc an agent reaches by a pointer.

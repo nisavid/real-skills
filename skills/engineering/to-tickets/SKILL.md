@@ -1,14 +1,15 @@
 ---
 name: to-tickets
-description: Break a plan, spec, or the current conversation into a set of tracer-bullet tickets, each declaring its blocking edges, published to the configured tracker (edges as text in one file per ticket locally, or native blocking links on a real tracker).
-disable-model-invocation: true
+description: "Break a plan, spec, or the current conversation into a set of tracer-bullet tickets, each declaring its blocking edges, published to the configured tracker (edges as text in one file per ticket locally, or native blocking links on a real tracker). Use when breaking an established plan or spec into tracked, dependency-aware implementation tickets."
 ---
 
 # To Tickets
 
 Break a plan, spec, or conversation into a set of **tickets**: tracer-bullet vertical slices, each declaring the tickets that **block** it.
 
-The issue tracker and triage label vocabulary should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.
+Invocation grants no authority to fetch a hosted spec or its comments, so reuse an applicable user grant for the reference and its network or account access, working from the conversation and asking before fetching anything outside that grant.
+
+The issue tracker and triage label vocabulary should have been provided to you. If not, call the Skill tool with "setup-matt-pocock-skills" when governing instructions permit; otherwise tell the user to run `/setup-matt-pocock-skills`.
 
 ## Process
 
@@ -56,6 +57,8 @@ Ask the user:
 Iterate until the user approves the breakdown.
 
 ### 5. Publish the tickets to the configured tracker
+
+Before publishing the approved breakdown, check that the active request and governing instructions authorize the tracker writes below for the selected target, reusing any applicable user grant. If authority is absent, return the ticket drafts and proposed target and ask for authority before writing.
 
 Publish the approved tickets. **How** depends on the tracker `/setup-matt-pocock-skills` configured; the tickets are the same either way, only the shape of the blocking edges changes:
 

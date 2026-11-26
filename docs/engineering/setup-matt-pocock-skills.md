@@ -4,11 +4,11 @@
 
 Those files hold each repo's skill configuration. The skills themselves are identical everywhere. They read `docs/agents/issue-tracker.md` at run time and do what it says. That is why the set is not tied to GitHub, and why you never edit a skill file to point it at another tracker. Invoking it with "link the skills to a custom issue tracker" works with anything you can connect to programmatically, with no changes to the skills.
 
-It is a prompt-driven skill, not a deterministic script. It reads your `git remote`, `CLAUDE.md` and `GLOSSARY.md`, proposes what it found, and confirms the setup choices with you.
+It is a prompt-driven skill, not a deterministic script. It uses your existing permission for hosted lookups, Git initialization, remote setup, and label creation, asking before any lookup or change outside your grant. It reads your `git remote`, `CLAUDE.md` and `GLOSSARY.md`, proposes what it found, and confirms the setup choices with you.
 
 ## When to reach for it
 
-You invoke this by typing `/setup-matt-pocock-skills`; the [agent](https://www.aihero.dev/ai-coding-dictionary/agent) won't reach for it on its own. Its metadata marks it non-invokable on purpose, so no other skill can fire it for you.
+Type `/setup-matt-pocock-skills`, or the agent can invoke it when the task fits. The setup draft and its consequential choices still require the user’s confirmation.
 
 Reach for it once per repo, before the first use of any other engineering skill. If [triage](https://aihero.dev/skills-triage), [to-spec](https://aihero.dev/skills-to-spec), [to-tickets](https://aihero.dev/skills-to-tickets) or [wayfinder](https://aihero.dev/skills-wayfinder) start guessing where your issues go, or apply labels your tracker doesn't have, this repo has not been set up yet. You can run it in a repo halfway through a project. The skill reads what is already there, so no earlier work is lost.
 

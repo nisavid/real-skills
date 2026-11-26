@@ -6,7 +6,7 @@ It plans and does not build. Every ticket asks a question, and the answer is a d
 
 ## When to reach for it
 
-You invoke this by typing `/wayfinder`; the [agent](https://www.aihero.dev/ai-coding-dictionary/agent) won't reach for it on its own.
+Type `/wayfinder`, or the agent can invoke it when the task fits. The agent reuses your grant for hosted reads, tracker writes, workers and their inputs, planning files, isolated prototype builds, research or prototype branches and commits, research pushes, and prototype delivery, and returns the draft, artifact, or proposed operation with its target for your approval wherever that grant falls short.
 
 It is the heaviest flow in the set, so the trigger is narrow. The effort must be larger than one agent session can hold, and the route to the destination must be unclear. The split is session count: `/grill-with-docs` for single-session planning, `/wayfinder` for multi-session planning.
 

@@ -1,7 +1,6 @@
 ---
 name: setup-matt-pocock-skills
-description: "Configure this repo for the engineering skills: set up its issue tracker, triage label vocabulary, and domain doc layout. Run once before first use of the other engineering skills."
-disable-model-invocation: true
+description: "Configure this repo for the engineering skills: set up its issue tracker, triage label vocabulary, and domain doc layout. Run once before first use of the other engineering skills. Use when a repository needs issue tracker, triage label, or domain-document configuration for these skills."
 ---
 
 # Setup Matt Pocock's Skills
@@ -15,6 +14,8 @@ Scaffold the per-repo configuration that the engineering skills assume:
 This is a prompt-driven skill, not a deterministic script. Explore, present what you found, confirm with the user, then write.
 
 ## Process
+
+Since invocation grants no authority, reuse an applicable user grant for Git initialization, remote setup, hosted lookups, or label creation, report the target and ask before any uncovered operation, and include that rule in generated tracker instructions so later workflows use their own grants for hosted items, labels, relationships, and local ticket or map files.
 
 ### 1. Explore
 

@@ -1,6 +1,6 @@
 ## What it does
 
-`triage` works through the issues on your project's tracker. It moves each one through a small state machine of **triage roles** (a category role and a state role). Each issue ends as an agent-ready brief, a specific question for the reporter, or a closed issue with a recorded reason.
+`triage` works through the issues on your project's tracker. It reuses the permission you gave for the issue or PR and asks before taking any uncovered action, returning its recommendation or draft. In a completed triage, it moves the item through a small state machine of **triage roles** (a category role and a state role). Each issue ends as an agent-ready brief, a specific question for the reporter, or a closed issue with a recorded reason.
 
 It is only for issues **you didn't create**. That means raw bug reports, incoming feature requests, or an external pull request that arrived unannounced: work that came into the tracker from outside, in whatever shape the reporter left it. [Tickets](https://www.aihero.dev/ai-coding-dictionary/ticket) from [to-tickets](https://aihero.dev/skills-to-tickets) are already agent-ready, so if you run `triage` over them, you waste the work. The rule is simple: `/triage` is only for incoming issues, not for issues you created yourself.
 
@@ -8,7 +8,7 @@ It also differs from labelling by hand because it recommends and then waits. It 
 
 ## When to reach for it
 
-You invoke this by typing `/triage` and then describing what you want in plain language. The [agent](https://www.aihero.dev/ai-coding-dictionary/agent) won't reach for it on its own. Examples: "Show me anything that needs my attention", "let's look at #42", "move #42 to ready-for-agent".
+Type `/triage`, or the agent can invoke it when the task fits. Describe what you want in plain language, such as looking at a particular issue or reviewing what needs attention.
 
 | What you have | Where to go |
 | --- | --- |
@@ -52,12 +52,12 @@ That is the whole vocabulary. The rule of exactly one state role per item keeps 
 
 ## Verify before you brief
 
-Before any [grilling](https://www.aihero.dev/ai-coding-dictionary/grilling), `triage` reviews the claim statically. When suitable isolation is available, it reproduces a bug or checks out the exact reviewed PR revision and runs reviewed tests inside that boundary. Git hooks, checkout filters, and automatic dependency install scripts stay disabled. Then it reports one of four results:
+Before any [grilling](https://www.aihero.dev/ai-coding-dictionary/grilling), `triage` reviews the claim statically. When your request covers execution and suitable isolation is available, it reproduces a bug or checks out the exact reviewed PR revision and runs reviewed tests inside that boundary. Git hooks, checkout filters, and automatic dependency install scripts stay disabled. Then it reports one of four results:
 
 - Confirmed, with the code path.
 - Failed to reproduce.
 - Not enough detail to try. This is the strongest `needs-info` signal there is.
-- Not run because suitable isolation is unavailable. This does not mean the claim failed.
+- Not run because execution is outside the request or suitable isolation is unavailable. This does not mean the claim failed.
 
 The notes and agent brief distinguish static conclusions from executed results and carry the exact revisions, commands, isolation, and skipped checks. The same boundary follows delegated diagnosis and implementation work. A temporary worktree alone does not protect maintainer credentials, files, or network access.
 

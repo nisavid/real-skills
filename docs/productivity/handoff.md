@@ -1,12 +1,12 @@
 ## What it does
 
-`handoff` compacts the conversation you are in into a **handoff document**: one markdown file, written to your OS's temporary directory rather than into the workspace, that a fresh [agent](https://www.aihero.dev/ai-coding-dictionary/agent) can read to pick the work up.
+`handoff` compacts the conversation you are in into a **handoff document**: a redacted summary a fresh [agent](https://www.aihero.dev/ai-coding-dictionary/agent) can read to pick the work up. Asking for a handoff, including by typing `/handoff`, covers saving the Markdown file in your OS's temporary directory, and an agent without permission to write there returns the draft and asks first.
 
 What it gives you is **portability**, not compression, so the skill is narrower than it sounds. You need a file only when the work has to *travel*: to a new [harness](https://www.aihero.dev/ai-coding-dictionary/harness), a new directory, a colleague, or a side task you want to fork off. If nothing is travelling, you do not need a handoff. Staying in the [session](https://www.aihero.dev/ai-coding-dictionary/session), `/clear`, a [subagent](https://www.aihero.dev/ai-coding-dictionary/subagent) and `/compact` cover the ordinary end-of-phase case, and `/compact` covers it more often than this skill does.
 
 ## When to reach for it
 
-You invoke this by typing `/handoff`; the agent won't reach for it on its own. Pass a note about what the next session is for, and the skill writes the document for that purpose.
+Type `/handoff`, or the agent can invoke it when the task fits. Pass a note about what the next session is for.
 
 There are four triggers, and only four:
 
@@ -60,7 +60,7 @@ Ask whether it's true next month. `CLAUDE.md` is standing context about the proj
 This is a fair criticism, and people raise it often. Two things help. Pass the argument (tell it what the next session is for), so the skill keeps the reasoning that bears on *that* rather than flattening it. And watch for confident claims the session never verified, such as "X isn't built" or "Y is done". The next agent trusts the document and does not re-check it, so a belief written as a fact becomes a false premise for everything that follows. Read the document before you hand it over, and downgrade anything you only assumed.
 
 **Why is it a skill rather than a slash command?**
-Both work; they suit different situations. As a skill, it ships and updates through the same install path as everything else here, which makes it shareable. Its frontmatter, not the mechanism, is what stops the agent from firing it on its own.
+Both work; they suit different situations. As a skill, it ships and updates through the same install path as everything else here, which makes it shareable.
 
 ## It's working if
 
