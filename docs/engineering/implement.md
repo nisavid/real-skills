@@ -36,7 +36,7 @@ A run has five steps, in order:
 2. Drive [tdd](https://aihero.dev/skills-tdd) at the pre-agreed seams, one red-green slice at a time.
 3. Typecheck often, run single test files as it goes.
 4. Run the full test suite once, at the end.
-5. Run this collection's own [code-review](https://aihero.dev/skills-code-review), then commit to the current branch if the active request and governing instructions authorize it. An applicable grant you gave for the scoped workflow still covers the commit when the agent invokes the skill. Without that authority, it leaves the work uncommitted and reports the pending commit and the changes the review could not cover. It does not commit just to enable the review. Where the collection was installed as a plugin, it calls that skill by its plugin-qualified name, because a [harness](https://www.aihero.dev/ai-coding-dictionary/harness) built-in can share the bare name `code-review`.
+5. Commit to the current branch if the active request and governing instructions authorize it, then run this collection's own [code-review](https://aihero.dev/skills-code-review) on that work, from the commit the run started at. An applicable grant you gave for the scoped workflow still covers the commit when the agent invokes the skill. Without that authority, it leaves the work uncommitted, reports the pending commit, and says the work has not been reviewed, because `code-review` reads commits only. A review is not a reason for it to commit without that authority. Where the collection was installed as a plugin, it calls that skill by its plugin-qualified name, because a [harness](https://www.aihero.dev/ai-coding-dictionary/harness) built-in can share the bare name `code-review`.
 
 One run covers one ticket. The tickets [to-tickets](https://aihero.dev/skills-to-tickets) produces are tracer-bullet vertical slices sized to fit a single fresh [context window](https://www.aihero.dev/ai-coding-dictionary/context-window), so the intended rhythm is: clear context, implement one ticket, commit, clear again. Each ticket is self-contained, so you can discard the previous ticket's context.
 
@@ -62,7 +62,7 @@ Not built in. Commits go straight to the current branch. Several people find thi
 
 **`code-review` says it cannot see my changes.**
 
-`code-review` reviews `git diff <fixed-point>...HEAD`, which excludes staged and working-tree changes. `implement` runs it before committing, so unless an interim commit already exists there is nothing in that diff to review. Multiple people have reported this. Once the changes are committed, review against the point you branched from.
+`code-review` reviews `git diff <fixed-point>...HEAD`, which excludes staged and working-tree changes. So `implement` commits first and reviews from the commit the run started at. If it had no authority to commit, nothing was reviewed, and its report says so: commit the work yourself, then run `code-review` against the commit you started from. A change made after the review is not covered until it is committed and reviewed in turn.
 
 Separately, some people do not want the review inside the run at all, because an agent reviewing the code it just wrote is biased toward its own solution. Running [code-review](https://aihero.dev/skills-code-review) in a fresh session against a fixed point is a valid alternative. The same bias is why that skill runs its two axes in separate sub-agents.
 
@@ -90,7 +90,7 @@ The agent resolved `#2` against another numbered list in context, such as a todo
 grill-with-docs → to-spec → to-tickets → implement → code-review → retro
 ```
 
-Its neighbours are [to-tickets](https://aihero.dev/skills-to-tickets), which produces the tickets it consumes and declares the blocking edges that decide their order; [tdd](https://aihero.dev/skills-tdd), which it drives internally at each seam; and [code-review](https://aihero.dev/skills-code-review), which it runs before committing. It sits downstream of the planning skills and trusts them. It does not re-validate the shape of what it was handed, so a badly-structured map or a horizontally-layered ticket gets built as written.
+Its neighbours are [to-tickets](https://aihero.dev/skills-to-tickets), which produces the tickets it consumes and declares the blocking edges that decide their order; [tdd](https://aihero.dev/skills-tdd), which it drives internally at each seam; and [code-review](https://aihero.dev/skills-code-review), which it runs on the work it has just committed. It sits downstream of the planning skills and trusts them. It does not re-validate the shape of what it was handed, so a badly-structured map or a horizontally-layered ticket gets built as written.
 
 That trust is why [wayfinder](https://aihero.dev/skills-wayfinder) merges onto the chain at [to-spec](https://aihero.dev/skills-to-spec) rather than looping its map straight into `implement`. Go straight to `implement` from a map only when the effort turned out small.
 
