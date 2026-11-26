@@ -33,11 +33,11 @@ Communication to and from subagents should be sparse. Communicate primarily thro
    - commits its work on its own branch if the grant covers it; otherwise, keeps the uncommitted changes in that worktree, reports the pending commit and unmerged ticket, and asks before committing;
    - after committing, merges the integration branch tip into its own branch before reporting done
 
-5. Once an **implementer subagent** has committed its work (including a review fix from step 7), merged the current integration branch tip into its own branch, and reported done, merge its work to the integration branch with a **merger subagent**.
+5. When an **implementer subagent** reports done after committing its work (including a review fix from step 7) and merging the integration branch tip into its own branch as described in step 4, merge its work to the integration branch with a **merger subagent**.
 
 6. After each merge, update the **frontier** and start an **implementer subagent** for each ticket whose last blocker just landed on the integration branch, even if the blocker is still open on the tracker.
 
-7. Once all tickets have merged into the integration branch, review it. Call the Skill tool with this collection's own `code-review` skill. Where it was installed as a plugin, use the plugin-qualified name this skill was loaded under (`<plugin>:code-review`). A harness built-in that shares the bare name is a different review and does not satisfy this step. Fix all issues raised by the code review in a single **implementer subagent**. Pass it the same pointer to the user's request and apply the commit and pending-work instructions from step 4 to its fixes.
+7. Once all tickets have merged into the integration branch, review it. Call the Skill tool with this collection's own `code-review` skill. Where it was installed as a plugin, use the plugin-qualified name this skill was loaded under (`<plugin>:code-review`). A harness built-in that shares the bare name is a different review and does not satisfy this step. Fix all issues raised by the code review in a single **implementer subagent**. Pass it the same pointer to the user's request and apply the commit, pending-work, and merge-before-reporting instructions from step 4 to its fixes.
 
 8. Before marking a PR ready or closing tickets, check the same authority for those operations and targets. If a draft PR exists, mark it ready for review only when all tickets and review fixes have landed. Otherwise, resolve only tickets whose work and review fixes have landed, using the issue tracker's usual closing method, and report the integration branch. Report any unmerged ticket or review fix as pending. If authority is absent, report the integration branch and the pending operations instead.
 
