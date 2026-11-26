@@ -70,7 +70,7 @@ def manifests(repo, source, release):
     return name, claude, interface, sha256(native_bytes), roots
 
 
-def selected_files(repo, source, roots, asset):
+def selected_files(repo, source, roots, asset, extra=()):
     tree = {}
     for row in git(repo, "ls-tree", "-rz", source).split(b"\0"):
         if row:
@@ -84,7 +84,7 @@ def selected_files(repo, source, roots, asset):
             "duplicate promoted skill name")
     require(all(f"{root}/agents/openai.yaml" in tree for root in roots),
             "missing invocation metadata")
-    required = {"LICENSE"}
+    required = {"LICENSE", *extra}
     if asset:
         required.add(asset)
     require(required <= tree.keys(), "missing license or icon")
@@ -107,17 +107,27 @@ def selected_files(repo, source, roots, asset):
 def verify_archive(repo, source, source_sha256, base, release, fmt, path):
     name, claude, interface, native_digest, roots = manifests(repo, source, release)
     icon = claude.get("icon")
+    paths = {row.split(b"\t", 1)[1].decode() for row in git(repo, "ls-tree", "-rz", source).split(b"\0") if row}
+    placement_path = "assets/icon-placements.json"
+    has_placements = placement_path in paths
+    composer = icon
+    if has_placements:
+        placements = json_object(blob(repo, source, placement_path))
+        require(set(placements) == {"composerIcon"}, "invalid icon placements")
+        composer = placements["composerIcon"]
     if "icon" in claude:
-        require(isinstance(icon, str) and
+        require(isinstance(icon, str) and isinstance(composer, str) and
                 re.fullmatch(r"\./assets/[a-zA-Z0-9_-]+\.(?:svg|png|jpg|jpeg|webp)", icon)
-                and interface.get("logo") == interface.get("composerIcon") == icon,
+                and re.fullmatch(r"\./assets/[a-zA-Z0-9_-]+\.(?:svg|png|jpg|jpeg|webp)", composer)
+                and interface.get("logo") == icon and interface.get("composerIcon") == composer,
                 "source icon references disagree")
     else:
-        require("logo" not in interface and "composerIcon" not in interface,
+        require(not has_placements and "logo" not in interface and "composerIcon" not in interface,
                 "source icon references disagree")
     asset = icon.removeprefix("./") if icon else None
-    files = selected_files(repo, source, roots, asset)
     portable = fmt == "agent-plugins"
+    extra = (["assets/ICON-CREDITS.md"] + ([composer.removeprefix("./")] if portable else [])) if has_placements else []
+    files = selected_files(repo, source, roots, asset, extra)
     targets = {item: item for item in files}
     if portable:
         for item in files:
