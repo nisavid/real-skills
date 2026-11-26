@@ -333,7 +333,7 @@ def build(raw, expected_sha256, revision, base, release):
         composer = icon_path
         if "assets/icon-placements.json" in types:
             require(types.get("assets/icon-placements.json") in (tarfile.REGTYPE, tarfile.AREGTYPE) and "assets/icon-placements.json" in source, "invalid icon placements")
-            placements = json.loads(source["assets/icon-placements.json"][0])
+            placements = unique_json(source["assets/icon-placements.json"][0])
             require(isinstance(placements, dict) and set(placements) == {"composerIcon"}, "invalid icon placements")
             composer = placements["composerIcon"]
             require(types.get("assets/ICON-CREDITS.md") in (tarfile.REGTYPE, tarfile.AREGTYPE) and "assets/ICON-CREDITS.md" in source, "missing artwork credit")

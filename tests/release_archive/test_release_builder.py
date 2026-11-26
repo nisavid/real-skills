@@ -257,6 +257,29 @@ def test_distinct_icon_placements_and_credit_are_packaged():
                 assert interface["composerIcon"] == "./assets/wake.svg"
 
 
+def test_duplicate_placement_keys_are_rejected():
+    import pytest
+    from release_builder import build
+    import copy
+
+    output = io.BytesIO()
+    root = "mattpocock-skills-" + REVISION
+    with tarfile.open(fileobj=io.BytesIO(source_archive(icon=True)), mode="r:gz") as original:
+        with tarfile.open(fileobj=output, mode="w:gz") as replacement:
+            for item in original:
+                item = copy.copy(item)
+                data = original.extractfile(item).read() if item.isfile() else None
+                replacement.addfile(item, io.BytesIO(data) if data is not None else None)
+            for name, data in {"icon-placements.json": b'{"composerIcon":"./assets/wayfinder.svg","composerIcon":"./assets/wayfinder.svg"}', "ICON-CREDITS.md": b"Credit"}.items():
+                entry = tarfile.TarInfo(root + "/assets/" + name)
+                entry.mode = 0o644
+                entry.size = len(data)
+                replacement.addfile(entry, io.BytesIO(data))
+    source = output.getvalue()
+    with pytest.raises(ValueError, match="duplicate JSON key"):
+        build(source, hashlib.sha256(source).hexdigest(), REVISION, "1.3.1", "1.3.2+from.1.3.1")
+
+
 def test_nonregular_placement_sidecar_cannot_fall_back_to_legacy():
     import copy
     import pytest

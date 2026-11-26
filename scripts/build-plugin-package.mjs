@@ -34,9 +34,13 @@ if (manifest.icon !== undefined) {
 }
 let composerIcon = manifest.icon;
 if (requirePath("assets/icon-placements.json", false, true)) {
-  const placements = JSON.parse(readFileSync(join(repo, "assets/icon-placements.json")));
+  const rawPlacements = readFileSync(join(repo, "assets/icon-placements.json"), "utf8");
+  const singleEntry = /^\s*\{\s*("(?:[^"\\\x00-\x1f]|\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4}))*")\s*:\s*("(?:[^"\\\x00-\x1f]|\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4}))*")\s*\}\s*$/.exec(rawPlacements);
+  if (!singleEntry || JSON.parse(singleEntry[1]) !== "composerIcon") throw new Error("Invalid icon placements.");
+  const placements = JSON.parse(rawPlacements);
   if (!manifest.icon || !placements || typeof placements !== "object" || Array.isArray(placements) || Object.keys(placements).length !== 1 || typeof placements.composerIcon !== "string" || !/^\.\/assets\/[a-zA-Z0-9_-]+\.(?:svg|png|jpg|jpeg|webp)$/.test(placements.composerIcon)) throw new Error("Invalid icon placements.");
   requirePath(placements.composerIcon.slice(2), false);
+  requirePath("assets/ICON-CREDITS.md", false);
   composerIcon = placements.composerIcon;
 }
 const { version } = JSON.parse(readFileSync(join(repo, "package.json")));
