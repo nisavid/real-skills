@@ -1,6 +1,6 @@
 # Invocation of promoted skills
 
-The promoted engineering and productivity skills are reachable by the user and by the agent. Omit `disable-model-invocation` in Claude frontmatter and `policy.allow_implicit_invocation: false` in Codex metadata for these skills. Keep descriptions clear about when each skill fits. Invocation does not grant authority to perform effects or answer questions reserved for the user. Higher-priority instructions and each skill’s explicit decision boundaries still apply.
+The promoted engineering and productivity skills are reachable by the user and by the agent. Omit `disable-model-invocation` in Claude frontmatter and `policy.allow_implicit_invocation: false` in Codex metadata for these skills. Keep descriptions clear about when each skill fits. Invocation does not grant authority to perform effects or answer questions reserved for the user. A user's own request for a skill's deliverable, whether they invoked the skill themselves or asked in words, authorizes producing that deliverable where the skill says and nothing beyond it; an agent's choice to invoke a skill authorizes nothing. Higher-priority instructions and each skill’s explicit decision boundaries still apply.
 
 Non-promoted skills remain outside this convention; preserve their existing metadata unless their scope is separately approved.
 

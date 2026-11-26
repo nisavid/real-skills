@@ -14,7 +14,7 @@ This command is _informed_ by the project's domain model and built on a shared d
 
 ## Process
 
-Invocation grants no authority, so reuse an applicable user grant for sharing repository context with exploration, fact-finding, or design workers, writing and opening the temporary report, loading its CDN scripts, and writing glossary entries or accepted ADRs, and return the findings or drafts and ask before any uncovered operation on its target.
+Invocation grants no authority, so reuse an applicable user grant for sharing repository context with exploration, fact-finding, or design workers, writing and opening the temporary report, loading its CDN scripts, and writing glossary entries or accepted ADRs, and return the findings or drafts and ask before any uncovered operation on its target. The user's own request for an architecture report, whether they invoked this skill themselves or asked in words, is such a grant for writing the temporary HTML file and opening it locally and nothing beyond it; the agent's choice to invoke this skill is not.
 
 ### 1. Explore
 

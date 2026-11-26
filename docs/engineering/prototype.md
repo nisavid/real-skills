@@ -2,7 +2,7 @@
 
 `prototype` writes **throwaway code that answers a question**: does this state model feel right, or what should this screen look like. The question comes first and decides what you build. A prototype that answers the wrong question is wasted, however good it looks.
 
-Throwaway is a constraint on how the code is *written*, not a promise to destroy it. No tests, no error handling beyond what makes it run, no abstractions, no persistence, because none of that helps you learn the one thing you're trying to learn. The agent uses the permission you've already given for each part of the experiment, from building the demo to putting the answer in product code or keeping the evidence on a branch, and asks before a step outside that scope.
+Throwaway is a constraint on how the code is *written*, not a promise to destroy it. No tests, no error handling beyond what makes it run, no abstractions, no persistence, because none of that helps you learn the one thing you're trying to learn. Asking for a prototype, including by typing `/prototype`, covers writing the throwaway demo and opening a local HTML demo for you, while the agent still asks before any other step you haven't authorized, such as changing product code or committing the prototype.
 
 ## When to reach for it
 

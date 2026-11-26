@@ -6,7 +6,7 @@ argument-hint: "What would you like to learn about?"
 
 The user has asked you to teach them something. This is a stateful request - they intend to learn the topic over multiple sessions.
 
-Invocation grants no authority, so reuse an applicable user grant to write course files in this workspace, consult outside sources about resources or communities with the proposed query, or open a local lesson, and report any operation and target outside that grant and ask before acting.
+Invocation grants no authority, so reuse an applicable user grant to write course files in this workspace, consult outside sources about resources or communities with the proposed query, or open a local lesson, and report any operation and target outside that grant and ask before acting. The user's own request to be taught, whether they invoked this skill themselves or asked in words, is such a grant for the course files in this workspace and for opening a local lesson, and for nothing beyond them; the agent's choice to invoke this skill is not.
 
 ## Teaching Workspace
 

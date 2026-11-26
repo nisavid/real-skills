@@ -1,6 +1,6 @@
 ## What it does
 
-`teach` teaches you one topic across many [sessions](https://www.aihero.dev/ai-coding-dictionary/session) in short, self-contained HTML lessons, reusing your permission to keep course files in the current directory, consult outside sources, or open a lesson, and asking before any of those actions your request leaves pending.
+`teach` teaches you one topic across many [sessions](https://www.aihero.dev/ai-coding-dictionary/session) in short, self-contained HTML lessons. Asking to be taught, including by typing `/teach`, covers keeping course files in this directory and opening a local lesson, while the agent still asks before any action you haven't authorized, including consulting outside sources.
 
 It does not teach from what the [model](https://www.aihero.dev/ai-coding-dictionary/model) already knows. It treats [parametric knowledge](https://www.aihero.dev/ai-coding-dictionary/parametric-knowledge) as untrusted. Before it teaches, it finds high-trust resources, records them in `RESOURCES.md`, and cites them inside every lesson. It is also [stateful](https://www.aihero.dev/ai-coding-dictionary/stateful). The mission, the resources, the lessons and the record of what you have learned all live as files in the directory, so the next session continues from those files, not from what is left of the last conversation.
 

@@ -5,7 +5,7 @@ description: "Implement the result of /to-spec and /to-tickets in code. Use when
 
 You have been provided a spec. This spec should have tickets associated with it, describing how to implement the spec.
 
-Invocation grants no authority, so reuse the user’s grant for tracker and external documentation reads, worker dispatch, inputs and shared note writes, worktree creation and cleanup, branch creation, resets and merges, code edits and test runs in those checkouts, and PR references that close the spec or tickets, reporting any uncovered operation and target and asking before acting.
+Invocation grants no authority, so reuse the user's grant for tracker and external documentation reads, worker dispatch, inputs and shared note writes, worktree creation and cleanup, branch creation, resets and merges, code edits and test runs in those checkouts, and PR references that close the spec or tickets, reporting any uncovered operation and target and asking before acting.
 
 The issue tracker should have been provided to you. If not, call the Skill tool with "setup-matt-pocock-skills" when governing instructions permit; otherwise tell the user to run `/setup-matt-pocock-skills`.
 
@@ -27,7 +27,7 @@ Communication to and from subagents should be sparse. Communicate primarily thro
 
 3. Create the integration branch. If the issue tracker closes work through PRs, or the user asks for one, open a draft PR after the first merge in step 5 (a branch with no commits ahead of main can't open one), marked as closing the spec and tickets. Before pushing the branch or opening the PR, check that the active request and governing instructions authorize those operations and the selected target. Reuse an applicable user grant for the scoped workflow; do not require another confirmation just because the agent invoked this skill. If authority is absent, keep the integration branch local and seek it before pushing or opening the PR.
 
-4. Use **implementer subagents** to implement each ticket, each in its own worktree on its own branch. Pass each implementer the ticket and a pointer to the user’s request. Each implementer subagent:
+4. Use **implementer subagents** to implement each ticket, each in its own worktree on its own branch. Pass each implementer the ticket and a pointer to the user's request. Each implementer subagent:
    - confirms its worktree is based on the integration branch before starting, and resets onto it if not;
    - calls the Skill tool with `tdd` to build the ticket;
    - commits its work on its own branch if the grant covers it; otherwise, keeps the uncommitted changes in that worktree, reports the pending commit and unmerged ticket, and asks before committing;

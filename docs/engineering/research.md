@@ -1,8 +1,8 @@
 ## What it does
 
-`research` uses your existing permission to delegate a question, read the sources that own the answer, and save a cited Markdown note in the repo, or returns the available findings and asks before any step outside that scope. It works only from **[primary sources](https://www.aihero.dev/ai-coding-dictionary/primary-source)**: official docs, source code, specs, first-party APIs. It follows every claim back to the source that owns it, so it will not repeat a blog post's account of an API when the API's own docs are reachable.
+Asking for a research note, including by typing `/research`, covers saving the cited Markdown file in the repo, and the agent returns the available findings and asks if a step such as delegating the question or looking up a source falls outside your grant. The skill works only from **[primary sources](https://www.aihero.dev/ai-coding-dictionary/primary-source)**: official docs, source code, specs, first-party APIs. It follows every claim back to the source that owns it, so it will not repeat a blog post's account of an API when the API's own docs are reachable.
 
-With permission to save it, the output is a file where the repo already keeps such notes, with a link on each claim. You get a document you can react to, hand to another agent, or throw away, rather than an answer that is gone when the [session](https://www.aihero.dev/ai-coding-dictionary/session) ends.
+The note goes where the repo already keeps such notes, with a link on each claim. You get a document you can react to, hand to another agent, or throw away, rather than an answer that is gone when the [session](https://www.aihero.dev/ai-coding-dictionary/session) ends.
 
 ## When to reach for it
 

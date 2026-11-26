@@ -7,7 +7,7 @@ description: Build a throwaway prototype to answer a design question. Use when t
 
 A prototype is **throwaway code that answers a question**. The question decides the shape.
 
-Since invocation grants no authority, reuse the user's applicable grant to build and run the demo, use its data and scratch storage, show or send it to the intended audience, change product code, create or commit to its branch, or update its implementation issue, and return the proposed action and target and ask before taking any step the grant does not cover.
+Since invocation grants no authority, reuse the user's applicable grant to build and run the demo, use its data and scratch storage, show or send it to the intended audience, change product code, create or commit to its branch, or update its implementation issue, and return the proposed action and target and ask before taking any step the grant does not cover. The user's own request for a throwaway prototype, whether they invoked this skill themselves or asked in words, is such a grant for writing its local demo files and opening a local HTML demo for the user and nothing beyond it; the agent's choice to invoke this skill is not.
 
 ## Pick a branch
 
