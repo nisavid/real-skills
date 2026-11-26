@@ -5,7 +5,7 @@ description: "Implement a piece of work based on a spec or set of tickets. Use w
 
 Implement the work described by the user in the spec or tickets.
 
-Invocation grants no authority, so reuse an applicable user grant to fetch the ticket or spec, edit code and tests in this checkout, run project checks, and dispatch reviewers with their inputs, reporting any uncovered operation and its target and asking before acting.
+Invocation grants no authority, so reuse an applicable user grant to fetch the ticket or spec, edit code and tests in this checkout, run project checks, and dispatch reviewers with their inputs, reporting any uncovered operation and its target and asking before acting. The user's own request to implement the work, whether they invoked this skill themselves or asked in words, is such a grant for the code and test edits that the work needs in this checkout and nothing beyond them; the agent's choice to invoke this skill is not.
 
 If the user passes a ticket reference, fetch it from the issue tracker and state its title before starting. If the reference is ambiguous, ask.
 
