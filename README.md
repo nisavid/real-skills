@@ -30,9 +30,9 @@ When a Real Skills [Leashed] release is available, download the archive for your
 2. Choose **Add**, then **Upload plugin**.
 3. Select the Claude ZIP and choose **Upload**.
 
-If you already have an earlier installation, keep it until you have verified the replacement. During verification, disable other active providers of the same skills if the provider supports it; overlapping providers can make it unclear which instructions were used. This release uses a different plugin identity, and update or coexistence behavior depends on the provider.
+If you already have an earlier installation, keep it until you have verified the replacement. During verification, disable other active providers of the same skills if the provider supports it; overlapping providers can make it unclear which instructions were used. Each harness needs one selected provider for these skill names at all times, not only during verification, because the skills call each other by bare name. Otherwise a chain can continue in another provider's version of a skill, or be refused by it. This release uses a different plugin identity, and update or coexistence behavior depends on the provider.
 
-The sections below retain Matt's introduction, installation guidance, and descriptions of the original collection. First-person references in that material refer to Matt. The installation commands are for upstream, not this fork.
+The sections below retain Matt's introduction, installation guidance, and descriptions of the original collection. First-person references in that material refer to Matt. The installation commands are for upstream, not this fork. The skill descriptions below are upstream's too, except the `probing` entry, which this fork adds and describes. Where the `implement` and `implement-spec` summaries close out with `/code-review`, this fork's skills call this collection's own `code-review` skill. Where it was installed as a plugin, they use the plugin-qualified name the skill was loaded under (`<plugin>:code-review`), because a harness built-in that shares the bare name is a different review.
 
 ## The original collection
 
@@ -263,6 +263,7 @@ Skills I use daily for code work.
 **Model-invoked**
 
 - **[prototype](./skills/engineering/prototype/SKILL.md)**: Build a throwaway prototype to answer a design question, either a single shareable HTML file for state/logic questions, or several radically different UI variations toggleable from one route.
+- **[probing](./skills/engineering/probing/SKILL.md)**: Settle a named factual uncertainty with the smallest adequate evidence and apply the result to discovery, design, or TDD.
 - **[diagnosing-bugs](./skills/engineering/diagnosing-bugs/SKILL.md)**: Disciplined diagnosis loop for hard bugs and performance regressions: build a feedback loop that goes red on this bug → minimise → hypothesise → instrument → fix → regression-test.
 - **[research](./skills/engineering/research/SKILL.md)**: Investigate a question against high-trust primary sources and capture the findings as a cited Markdown file in the repo, run as a background agent.
 - **[tdd](./skills/engineering/tdd/SKILL.md)**: Test-driven development with a red-green-refactor loop. Builds features or fixes bugs one vertical slice at a time.

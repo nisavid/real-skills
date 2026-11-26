@@ -36,7 +36,7 @@ A run has five steps, in order:
 2. Drive [tdd](https://aihero.dev/skills-tdd) at the pre-agreed seams, one red-green slice at a time.
 3. Typecheck often, run single test files as it goes.
 4. Run the full test suite once, at the end.
-5. Run [code-review](https://aihero.dev/skills-code-review), then commit to the current branch.
+5. Run this collection's own [code-review](https://aihero.dev/skills-code-review), then commit to the current branch. Where the collection was installed as a plugin, it calls that skill by its plugin-qualified name, because a [harness](https://www.aihero.dev/ai-coding-dictionary/harness) built-in can share the bare name `code-review`.
 
 One run covers one ticket. The tickets [to-tickets](https://aihero.dev/skills-to-tickets) produces are tracer-bullet vertical slices sized to fit a single fresh [context window](https://www.aihero.dev/ai-coding-dictionary/context-window), so the intended rhythm is: clear context, implement one ticket, commit, clear again. Each ticket is self-contained, so you can discard the previous ticket's context.
 
