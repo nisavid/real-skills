@@ -33,7 +33,7 @@ Communication to and from subagents should be sparse. Communicate primarily thro
    - commits its work on its own branch if the grant covers it; otherwise, keeps the uncommitted changes in that worktree, reports the pending commit and unmerged ticket, and asks before committing;
    - after committing, merges the integration branch tip into its own branch before reporting done
 
-5. Once an **implementer subagent** has committed its work (including a review fix from step 7), merge its work to the integration branch with a **merger subagent**.
+5. Once an **implementer subagent** has committed its work (including a review fix from step 7), merged the current integration branch tip into its own branch, and reported done, merge its work to the integration branch with a **merger subagent**.
 
 6. After each merge, update the **frontier** and start an **implementer subagent** for each ticket whose last blocker just landed on the integration branch, even if the blocker is still open on the tracker.
 
