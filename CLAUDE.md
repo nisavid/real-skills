@@ -56,6 +56,23 @@ Capture reusable packaging and synchronization procedures through `capturing-age
 
 Before generating the native manifest, checking package drift, changing marketplace routing, or consuming this fork's packaged skills, read [docs/agents/plugin-packaging.md](./docs/agents/plugin-packaging.md). Keep upstream skill sources authoritative; commit generated manifest changes together with their source or generator changes.
 
+### Merge methods
+
+A pull request into a long-lived branch is one of two kinds, and its kind decides how it merges. This fork's long-lived branches are `main` and `unleashed`.
+
+- **Locally developed pull request:** work written for this fork. Squash it. Let the repository default supply the squash commit's message, which is the pull request's title alone, so write the title as the commit subject it becomes. The description stays on the pull request and does not reach the branch.
+- **Hop:** a pull request that brings the history of one long-lived branch into another: upstream into this fork, `main` into `unleashed`, or a long-lived branch into a branch cut from it. Merge it with a merge commit, so that every commit keeps its identity. Never squash a hop.
+
+Do not use rebase merging for either kind.
+
+A pull request is one kind or the other, and the test is ancestry, not branch names. In a locally developed pull request, every commit it adds to its base is its own work, apart from merge commits that bring in only commits the base already has, whatever branch their message names. A hop adds only commits that are already on the source branch, plus the merge commit that joins the two branches and resolves their conflicts. When a pull request is both, land the other branch's history first by its own hop. The pull request then adds only its own work.
+
+Open a hop from a short-lived branch cut at the exact commit being brought over, not from the source branch itself. The hop then brings what was reviewed even if the source branch moves on, and resolving a conflict adds commits to the short-lived branch, not to the source.
+
+The repository cannot enforce this choice, because its branch rules allow both methods for every pull request. State the method when authorizing or performing a merge.
+
+If a hop was squashed, do not rewrite history, and do not merge the source branch again as it stands. The squash left the merge base where it was before the hop, so a plain merge brings back whatever the target has removed or reverted since. Record the ancestry instead with a hop whose head is cut from the target's tip and merges the squashed pull request's head commit while keeping the target's files (`git merge -s ours <commit>`). Check that the head's tree equals the target's before it merges. Use that exact commit, not the source branch's tip: merged this way, newer source commits would count as merged without their content. Bring them in a later hop.
+
 ### Operating prerequisites
 
 Invoke each workflow by its installed skill name. These fork operating tools are separate from the promoted skills distributed by this repository:
