@@ -33,18 +33,16 @@ If the tickets came from [to-tickets](https://aihero.dev/skills-to-tickets), [se
 A run has five steps, in order:
 
 1. Read the ticket or spec and work out the seams.
-2. Drive [tdd](https://aihero.dev/skills-tdd) at the pre-agreed seams, one red-green slice at a time.
+2. Drive [tdd](https://aihero.dev/skills-tdd) at selected public consumer boundaries, one red-green slice at a time.
 3. Typecheck often, run single test files as it goes.
 4. Run the full test suite once, at the end.
 5. Create a task-owned local checkpoint on the current branch if the active request and governing instructions authorize it, then run this collection's own [code-review](https://aihero.dev/skills-code-review) from the commit the run started at and resolve findings under the governing review policy. An applicable grant you gave for the scoped workflow still covers the commit when the agent invokes the skill. Without that authority, the run ends here. It leaves the work uncommitted, reports the pending commit, and says the work has not been reviewed, because `code-review` reads commits only. A review is not a reason for it to commit without that authority. Where the collection was installed as a plugin, it calls that skill by its plugin-qualified name, because a [harness](https://www.aihero.dev/ai-coding-dictionary/harness) built-in can share the bare name `code-review`. Every completed clean review sends the owning implementation coordinator through automatic [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture), subject only to its verified completed-baseline exception. Under the same commit authority, checkpoint any corrections or refactoring before another HEAD-based review and finish at the independently reviewed final checkpoint once the review covers both the candidate and its assessment. Review remains before push, with the repository's publication authority unchanged.
 
 One run covers one ticket. The tickets [to-tickets](https://aihero.dev/skills-to-tickets) produces are tracer-bullet vertical slices sized to fit a single fresh [context window](https://www.aihero.dev/ai-coding-dictionary/context-window), so the intended rhythm is: clear context, implement one ticket, commit, clear again. Each ticket is self-contained, so you can discard the previous ticket's context.
 
-## Pre-agreed seams
+## Consumer boundaries
 
-The skill's central idea is the **seam**, the public boundary you observe behaviour at without reaching inside. Tests live at seams. When the seam is agreed before any code exists, the tests last, and you can rewrite the implementation underneath without changing them.
-
-The "pre-agreed" part matters, and it is also the skill's weakest point. Nothing inside `implement` agrees the seams. `tdd` is the skill that asks, and it refuses to write a test at an unconfirmed seam. So in practice the agreement happens either upstream in the spec, or in the first exchange of the run. If it happens nowhere, the run becomes "just write the code" and nothing warns you. Naming the seams in the spec is what stops that.
+A **seam** is the public boundary where tests observe behaviour without reaching inside. The agent uses applicable decisions in the request, the ticket, and its parent spec, selects routine boundaries in the context of the consumer, and records what each test proves and misses. It asks you when a consequential boundary decision remains unresolved or an intended effect needs authority. Tests at public boundaries can survive an implementation rewrite.
 
 ## Common questions
 

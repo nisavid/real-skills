@@ -13,9 +13,9 @@ The issue tracker and triage label vocabulary should have been provided to you. 
 
 1. Explore the repo to understand the current state of the codebase, if you haven't already. Use the project's domain glossary vocabulary throughout the spec, and respect any ADRs in the area you're touching.
 
-2. Sketch out the seams at which you're going to test the feature. Existing seams should be preferred to new ones. Use the highest seam possible. If new seams are needed, propose them at the highest point you can. The fewer seams across the codebase, the better - the ideal number is one.
+2. Select the public consumer boundaries at which to test the feature. Prefer existing seams and the highest boundary that can establish the required behavior. Use as few seams as the behavior requires.
 
-Check with the user that these seams match their expectations.
+Record which consumer behavior each seam observes and what it cannot establish. Reuse decisions already made; ask only when an unresolved consequential choice needs the user's direction or an intended effect lacks authority.
 
 3. Write the spec using the template below. Before publishing it or applying a triage label, check that the active request and governing instructions authorize those tracker operations and the selected target. Reuse an applicable user grant for the scoped workflow; do not require another confirmation just because the agent invoked this skill. If authority is absent, return the draft and proposed target and seek it before writing. Once authorized, publish the spec and apply the `ready-for-agent` triage label; no additional triage is needed.
 
@@ -63,6 +63,7 @@ A list of testing decisions that were made. Include:
 
 - A description of what makes a good test (only test external behavior, not implementation details)
 - Which modules will be tested
+- The seams under test, the consumer behavior each observes, and what it cannot establish
 - Prior art for the tests (i.e. similar types of tests in the codebase)
 
 ## Out of Scope
