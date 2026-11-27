@@ -1,5 +1,5 @@
-# Keep the organization's review settings for options this file leaves unset.
+# Keep the configuration that would otherwise apply to each unset option.
 inheritance: true
 reviews:
-  # Keep summary updates from triggering the package workflow on description edits.
+  # Update the walkthrough comment so summary edits don't trigger a package run.
   high_level_summary_in_walkthrough: true
