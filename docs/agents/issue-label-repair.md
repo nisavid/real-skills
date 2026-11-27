@@ -22,7 +22,7 @@ The recognized labels are `wayfinder:map`, `wayfinder:research`, `wayfinder:prot
 
 Before dependent execution, load this procedure at its reviewed revision and record that revision. Verify the operation's authority, repository identity, current control and policy, and executing implementation. Read-only inspection does not require an apply grant. Apply requires a qualified operating interval and current authorization; transition work additionally requires its one accepted owner.
 
-The maintained source is this page, reached from the tracker instructions. The candidate proposes Real Skills fork maintenance as maintainer and Real Skills Dispatch as status consumer. Record their acceptance before relying on operational coverage. The human operator (the person these agents act for, never an agent that directs your work) retains the trial and production-enablement decisions.
+The maintained source is this page, reached from the tracker instructions. The candidate proposes Real Skills fork maintenance as maintainer and Real Skills Dispatch as status consumer. Record their acceptance before relying on operational coverage. Ivan retains the trial and production-enablement decisions.
 
 ## Current authority and operating evidence
 
