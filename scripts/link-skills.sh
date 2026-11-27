@@ -35,7 +35,7 @@ while IFS= read -r -d '' skill_md; do
   srcs+=("$src")
 done < <(find "$REPO/skills" -name SKILL.md -not -path '*/node_modules/*' -not -path '*/deprecated/*' -not -path '*/misc/*' -print0)
 
-# Judge link text lexically against REPO (upstream's link path) and destinations physically against PHYSICAL_REPO.
+# Judge link text lexically against REPO or PHYSICAL_REPO and destinations physically against PHYSICAL_REPO.
 points_into_checkout() {
   local target part path=""
   local -a parts
@@ -55,7 +55,8 @@ points_into_checkout() {
       *) path="$path/$part" ;;
     esac
   done
-  [[ "$path" == "$REPO" || "$path" == "$REPO/"* ]]
+  [[ "$path" == "$REPO" || "$path" == "$REPO/"* ||
+     "$path" == "$PHYSICAL_REPO" || "$path" == "$PHYSICAL_REPO/"* ]]
 }
 
 conflicts=0
@@ -74,16 +75,24 @@ for DEST in "${DESTS[@]}"; do
     ancestor="$(dirname "$ancestor")"
   done
 
-  if ! ancestor="$(cd -P -- "$ancestor" 2>/dev/null && pwd)" || [ ! -x "$ancestor" ]; then
+  if ! ancestor="$(cd -P -- "$ancestor" 2>/dev/null && pwd)"; then
     report_conflict "$DEST" "not a writable, searchable directory outside this checkout"
     continue
   fi
+
+  resolved="${ancestor%/}$suffix"
+  resolved="${resolved:-/}"
+  for destination in ${resolved_dests[@]+"${resolved_dests[@]}"}; do
+    if [ "$destination" = "$resolved" ]; then
+      continue 2
+    fi
+  done
+
   if [[ ! -w "$ancestor" || "$ancestor" == "$PHYSICAL_REPO" || "$ancestor" == "$PHYSICAL_REPO/"* ]]; then
     report_conflict "$DEST" "not a writable, searchable directory outside this checkout"
   fi
 
-  resolved="${ancestor%/}$suffix"
-  resolved_dests+=("${resolved:-/}")
+  resolved_dests+=("$resolved")
 done
 
 for DEST in ${resolved_dests[@]+"${resolved_dests[@]}"}; do

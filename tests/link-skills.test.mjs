@@ -10,7 +10,7 @@ import { basename, dirname, isAbsolute, join, relative, sep } from "node:path";
 import test from "node:test";
 
 // Review all destination construction and filesystem writes before updating this digest.
-const linkerDigest = "a4d07258d5ec72bbf52c41508a40151e12406528212bf2f2d645aa0ec27924e6";
+const linkerDigest = "ac25f7280e72cd2221ccd12f3382f6b508c8b417dab16b737839bbc08d1149f8";
 
 function resolveDestination(path, symlinksRemaining = 40) {
   try {
@@ -130,7 +130,7 @@ test("the launcher rejects a result that leaves a destination outside HOME", (t)
   assert.throws(() => f.run(), /Destination resolves outside temporary HOME/);
 });
 
-function snapshot(path) {
+function snapshot(path, excludeContentsOf = []) {
   const stat = lstatSync(path);
   const { ino, mode, ctimeMs } = stat;
   const metadata = { ino, mode, ctimeMs };
@@ -138,8 +138,9 @@ function snapshot(path) {
     return { ...metadata, target: readlinkSync(path) };
   }
   if (stat.isDirectory()) {
+    if (excludeContentsOf.includes(path)) return { ino, mode };
     const contents = readdirSync(path).sort().map((name) => [
-      name, snapshot(join(path, name)),
+      name, snapshot(join(path, name), excludeContentsOf),
     ]);
     return { ...metadata, contents };
   }
@@ -189,6 +190,44 @@ test("all conflicting paths and their kinds are reported before any link is chan
     assert.ok(line?.includes(kind), result.stderr);
   }
   assert.match(lines.at(-1), /nothing was changed/i);
+});
+
+test("destinations that share a directory check and link each skill once", async (t) => {
+  await t.test("an incumbent produces one conflict line", (t) => {
+    const f = fixture(t);
+    mkdirSync(f.claude, { recursive: true });
+    mkdirSync(dirname(f.agents));
+    symlinkSync(f.claude, f.agents);
+    const incumbent = join(f.claude, "alpha");
+    writeFileSync(incumbent, "keep this skill\n");
+    const before = snapshot(f.home);
+
+    const result = f.run();
+
+    assert.equal(result.status, 1, result.stderr);
+    assert.deepEqual(snapshot(f.home), before);
+    assert.deepEqual(result.stderr.trim().split("\n"), [
+      `error: ${incumbent} is a regular file.`,
+      "Nothing was changed.",
+    ]);
+  });
+
+  await t.test("a clear directory receives one link per name", (t) => {
+    const f = fixture(t);
+    mkdirSync(f.claude, { recursive: true });
+    mkdirSync(dirname(f.agents));
+    symlinkSync(f.claude, f.agents);
+
+    const result = f.run();
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(result.stdout.trim().split("\n").sort(), [
+      `linked alpha -> ${f.alpha} (${f.claude})`,
+      `linked beta -> ${f.beta} (${f.claude})`,
+    ]);
+    assert.equal(realpathSync(join(f.claude, "alpha")), f.alpha);
+    assert.equal(realpathSync(join(f.claude, "beta")), f.beta);
+  });
 });
 
 test("an existing entry of another filesystem kind is preserved and reported", (t) => {
@@ -258,6 +297,26 @@ test("links from an upstream run through a symlinked checkout path are refreshed
   }
 });
 
+test("an aliased rerun refreshes links from a direct run", (t) => {
+  const f = fixture(t);
+  const alias = join(f.home, "checkout-alias");
+  symlinkSync(f.checkout, alias);
+  const direct = f.run();
+  assert.equal(direct.status, 0, direct.stderr);
+  for (const dest of [f.claude, f.agents]) {
+    assert.equal(readlinkSync(join(dest, "alpha")), f.alpha);
+    assert.equal(readlinkSync(join(dest, "beta")), f.beta);
+  }
+
+  const aliased = f.run({ entrypoint: join(alias, "scripts/link-skills.sh") });
+
+  assert.equal(aliased.status, 0, aliased.stderr);
+  for (const dest of [f.claude, f.agents]) {
+    assert.equal(readlinkSync(join(dest, "alpha")), join(alias, relative(f.checkout, f.alpha)));
+    assert.equal(readlinkSync(join(dest, "beta")), join(alias, relative(f.checkout, f.beta)));
+  }
+});
+
 test("a symlink into another checkout is a conflict even when the paths share a prefix", (t) => {
   const f = fixture(t);
   const otherSkill = join(f.home, "checkout-other/skills/engineering/alpha");
@@ -308,7 +367,7 @@ test("relative skill links start from a destination symlink's directory outside 
   assert.equal(readlinkSync(join(actual, "alpha")), f.alpha);
 });
 
-test("refreshing a live destination chain keeps the second install in the directory checked", (t) => {
+test("an unsupported live destination chain preserves the checkout and refuses a rerun", (t) => {
   const f = fixture(t);
   const checked = join(f.home, "other-skills");
   mkdirSync(checked);
@@ -320,15 +379,26 @@ test("refreshing a live destination chain keeps the second install in the direct
   symlinkSync(join(f.claude, "alpha"), f.agents);
   writeFileSync(join(f.alpha, "beta"), "keep this checkout file\n");
   const checkoutBefore = snapshot(f.checkout);
+  const checkedDestinations = [f.claude, checked];
+  const outsideBefore = snapshot(f.root, checkedDestinations);
 
   const result = f.run();
 
   assert.equal(result.status, 0, result.stderr);
   assert.deepEqual(snapshot(f.checkout), checkoutBefore);
+  assert.deepEqual(snapshot(f.root, checkedDestinations), outsideBefore);
   assert.equal(realpathSync(join(f.claude, "alpha")), f.alpha);
   assert.deepEqual(readdirSync(checked).sort(), ["alpha", "beta"]);
   assert.equal(realpathSync(join(checked, "alpha")), f.alpha);
   assert.equal(realpathSync(join(checked, "beta")), f.beta);
+
+  const beforeRerun = snapshot(f.home);
+  const rerun = f.run();
+
+  assert.equal(rerun.status, 1, rerun.stderr);
+  assert.deepEqual(snapshot(f.home), beforeRerun);
+  assert.ok(rerun.stderr.includes(f.agents), rerun.stderr);
+  assert.match(rerun.stderr, /nothing was changed/i);
 });
 
 test("a destination symlink into the checkout stops all writes", (t) => {
