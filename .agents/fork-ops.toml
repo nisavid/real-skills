@@ -50,6 +50,12 @@ domain = "fork operations"
 portability_hint = "fork-specific"
 
 [[local_surfaces]]
+kind = "config"
+path = ".coderabbit.yaml"
+domain = "pull request review summaries"
+portability_hint = "fork-specific"
+
+[[local_surfaces]]
 kind = "agent_instruction"
 path = "CLAUDE.md"
 domain = "fork operating guidance"
