@@ -2,6 +2,7 @@ name: Plugin package
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, edited]
   push:
     branches:
       - main
@@ -30,6 +31,7 @@ jobs:
       - run: npm run check-plugin-package
 
   codex-compatibility:
+    name: codex-compatibility (${{ matrix.codex-version }})
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -37,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        codex-version: ["0.160.1", "latest"]
+        codex-version: ["0.160.1"]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -53,3 +55,49 @@ jobs:
           echo "CODEX_BIN=$RUNNER_TEMP/codex-tool/node_modules/.bin/codex" >> "$GITHUB_ENV"
       - run: npm run check-plugin-package
       - run: npm run test-codex-plugin
+
+  codex-compatibility-latest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - name: Install isolated Codex compatibility tool
+        env:
+          CODEX_VERSION: latest
+        run: |
+          npm install --prefix "$RUNNER_TEMP/codex-tool" --ignore-scripts --no-audit --no-fund --package-lock=false "@openai/codex@$CODEX_VERSION"
+          echo "CODEX_BIN=$RUNNER_TEMP/codex-tool/node_modules/.bin/codex" >> "$GITHUB_ENV"
+      - run: npm run check-plugin-package
+      - run: npm run test-codex-plugin
+
+  required:
+    name: Plugin package gate
+    needs: [check, codex-compatibility]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    permissions: {}
+    steps:
+      - name: Check required job results
+        if: ${{ always() }}
+        shell: sh
+        working-directory: .
+        env:
+          NEEDS_RESULTS: ${{ join(needs.*.result, ',') }}
+        run: |
+          printf 'Needed job results: %s\n' "$NEEDS_RESULTS"
+          remaining=$NEEDS_RESULTS
+          while :; do
+            case "$remaining" in
+              success) exit 0 ;;
+              success,*) remaining=${remaining#*,} ;;
+              *) exit 1 ;;
+            esac
+          done
