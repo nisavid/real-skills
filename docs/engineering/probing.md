@@ -47,4 +47,4 @@ It means the named hypothesis has support within the observed conditions. The co
 
 ## Where it fits
 
-`probing` is a reach-for-it-anytime standalone that returns evidence to the work that needed it. [prototype](https://aihero.dev/skills-prototype) supplies something a person can react to when the unresolved point is a design choice; [tdd](https://aihero.dev/skills-tdd) turns established behavior into tested implementation. [ask-matt](https://aihero.dev/skills-ask-matt) maps the rest of the skills.
+`probing` is a reach-for-it-anytime standalone that returns evidence to the work that needed it. [wayfinder](https://aihero.dev/skills-wayfinder) also runs it in a fresh [subagent](https://www.aihero.dev/ai-coding-dictionary/subagent) to resolve a `probing` ticket, where the observation itself answers the ticket's question. [prototype](https://aihero.dev/skills-prototype) supplies something a person can react to when the unresolved point is a design choice; [tdd](https://aihero.dev/skills-tdd) turns established behavior into tested implementation. [ask-matt](https://aihero.dev/skills-ask-matt) maps the rest of the skills.

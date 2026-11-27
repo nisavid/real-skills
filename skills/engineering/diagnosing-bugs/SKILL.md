@@ -7,6 +7,8 @@ description: Diagnosis loop for hard bugs and performance regressions. Use when 
 
 A discipline for hard bugs. Skip phases only when explicitly justified.
 
+Invocation grants no authority, so reuse an applicable user grant for reproducing the bug in the target environment (including credentials, requests, captures, and load), changing the worktree, instrumenting, testing, fixing, cleaning up, or recording the cause in a commit or PR, and report the proposed operation and target and ask before acting outside that grant.
+
 When exploring the codebase, read `GLOSSARY.md` (if it exists) to get a clear mental model of the relevant modules, and check ADRs in the area you're touching.
 
 ## Redact

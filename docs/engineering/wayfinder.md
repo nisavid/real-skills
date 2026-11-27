@@ -6,7 +6,7 @@ Assessment does not require a map. A bounded request can proceed with a short as
 
 ## When to reach for it
 
-Type `/wayfinder`, or let the agent invoke it on new intake, before work, and when a change or return could alter the route. The effort's planning owner owns the assessment: whoever the project's policy names, or the agent running the skill when it names no one. Invoking the skill does not grant permission to change the tracker or perform the eventual work.
+Type `/wayfinder`, or let the agent invoke it on new intake, before work, and when a change or return could alter the route. The effort's planning owner owns the assessment: whoever the project's policy names, or the agent running the skill when it names no one. Invoking the skill does not grant permission to change the tracker or perform the eventual work. The agent reuses your grant for hosted reads, tracker writes, workers and their inputs, planning files, isolated prototype builds, research or prototype branches and commits, research pushes, and prototype delivery, and returns the draft, artifact, or proposed operation with its target for your approval wherever that grant falls short.
 
 | What you have in front of you | What happens next |
 | --- | --- |
@@ -43,20 +43,27 @@ Native relationships make the route visible in the tracker's own UI. Membership 
 
 ## Decisions, classification, and continuation
 
-Each decision ticket has one applicable Wayfinder type:
+Each decision ticket has one of five Wayfinder types:
 
-| Type | What resolves it |
-| --- | --- |
-| `research` | Facts gathered through [research](https://aihero.dev/skills-research). |
-| `prototype` | A cheap, isolated artifact made through [prototype](https://aihero.dev/skills-prototype), with the human deciding what it establishes. |
-| `grilling` | A live exchange using [grilling](https://aihero.dev/skills-grilling) and [domain-modeling](https://aihero.dev/skills-domain-modeling). |
-| `task` | An observed prerequisite result that a decision needs. Work outside planning scope goes to a separately authorized workflow or the human. |
+| Type | Mode | What resolves it |
+| --- | --- | --- |
+| `research` | Agent | A fact outside the working directory, gathered through [research](https://aihero.dev/skills-research). Charting starts research subagents in parallel on their own `research/<name>` branches. |
+| `prototype` | With the human | A cheap, isolated artifact made through [prototype](https://aihero.dev/skills-prototype) when talking cannot settle a design question. The ticket links the artifact, and the human decides what it establishes. |
+| `grilling` | With the human | A live exchange using [grilling](https://aihero.dev/skills-grilling) and [domain-modeling](https://aihero.dev/skills-domain-modeling) in a fresh session. This is the default for a question conversation can settle. |
+| `task` | Either | An observed prerequisite result that a decision needs. Work outside planning scope goes to a separately authorized workflow or the human. |
+| `probing` | Agent | One bounded observation that answers the ticket's question. If the observation only informs a human choice, the ticket stays `grilling`. |
+
+The charting session claims each eligible, unblocked probing ticket before dispatching a [probing](https://github.com/nisavid/real-skills/blob/main/docs/engineering/probing.md) subagent with a fresh context window. Independent probes can run in parallel after a check for shared resources or interference. The charting session records the delivered observation on the ticket and closes it whether the outcome is confirmed, refuted, or unknown. If the worker returns no result, the session records the failed attempt and leaves the ticket open.
+
+If a permitted measurement needs access, a blocking `task` ticket tracks that access. If the measurement itself needs effects outside planning scope, the blocking task tracks the measurement and goes to a separately authorized workflow. When the task closes, read its resolution. Granted access lets the probe run. A returned measurement resolves the probing ticket directly, without dispatching a probe. Record a refusal as unknown and close the probing ticket. If the prerequisite is still owed, create a replacement blocker. If the map no longer needs the observation, close it as out of scope.
+
+Whenever a session leaves open a probing ticket it claimed, it records any blocker and releases its claim. An unblocked ticket returns to the frontier. A blocked ticket waits until its prerequisite closes.
 
 The type does not replace other applicable issue classifications. GitHub labels may carry independent axes under project policy. A Linear project using native Triage keeps that state instead of duplicating it with a `needs-triage` label. A map can be followed by [triage](https://aihero.dev/skills-triage): knowing the route does not settle an incoming issue's classification or readiness.
 
 After a return, the planning owner checks what the result changes about the parent outcome. A proposed adapter or new dependency is not automatically necessary just because a worker supplied it. If an existing qualified route still meets the outcome, the extra work can remain follow-up.
 
-Each refresh ends with the next eligible step or a hold that names its owner and exact return trigger. Independent branches can proceed while a blocked branch waits. The interactive map modes still resolve at most one non-research ticket per session; they hand the refreshed frontier to the next session.
+Each refresh ends with the next eligible step or a hold that names its owner and exact return trigger. Independent branches can proceed while a blocked branch waits. The interactive map modes still resolve at most one ticket per session apart from research and probing; they hand the refreshed frontier to the next session.
 
 ## Common questions
 
@@ -96,7 +103,7 @@ The skill says only to reconcile invalidated decisions and affected tickets unde
 Yes, where the project's policy permits the relevant independent classifications. That does not require every axis on every issue, and it does not replace a native workflow state such as Linear Triage. If project policy still makes the labels exclusive, its owner must change that policy before the additional labels are applied.
 
 **Where did `decision-mapping` go?**
-It is this skill. v1.1 renamed it to `wayfinder`, and you invoke it as `/wayfinder`. "Decision map" was jargon, and it was also inaccurate, because only one of the four ticket types is a decision by itself. The new name gave the skill one consistent vocabulary (destination, fog of war, frontier, the map) instead of an invented term on top. The unit kept the word "decision": a wayfinder ticket is a **decision ticket**, so that people do not read it as an implementation ticket.
+It is this skill. v1.1 renamed it to `wayfinder`, and you invoke it as `/wayfinder`. "Decision map" was jargon, and it was also inaccurate, because only one of its ticket types is a decision by itself. The new name gave the skill one consistent vocabulary (destination, fog of war, frontier, the map) instead of an invented term on top. The unit kept the word "decision": a wayfinder ticket is a **decision ticket**, so that people do not read it as an implementation ticket.
 
 ## It's working if
 
@@ -111,4 +118,4 @@ It is this skill. v1.1 renamed it to `wayfinder`, and you invoke it as `/wayfind
 
 ## Where it fits
 
-`wayfinder` supplies assessment and route maintenance across an effort's lifecycle. Its full map remains a planning tool for decisions that need that shared view. [triage](https://aihero.dev/skills-triage) establishes an incoming issue's classification and readiness, while [to-spec](https://aihero.dev/skills-to-spec) carries settled map decisions into a buildable specification. [ask-matt](https://aihero.dev/skills-ask-matt) routes between those skills and the rest of the set.
+`wayfinder` supplies assessment and route maintenance across an effort's lifecycle. Its full map remains a planning tool for decisions that need that shared view. [triage](https://aihero.dev/skills-triage) establishes an incoming issue's classification and readiness, while [to-spec](https://aihero.dev/skills-to-spec) carries settled map decisions into a buildable specification. When one bounded observation answers a ticket, Wayfinder runs [probing](https://github.com/nisavid/real-skills/blob/main/docs/engineering/probing.md) in a fresh subagent. [ask-matt](https://aihero.dev/skills-ask-matt) routes between those skills and the rest of the set.
