@@ -12,7 +12,9 @@ set -euo pipefail
 # Each entry is a symlink into this repo, so a `git pull` is all that's needed
 # to keep installed skills up to date.
 
-REPO="$(cd "$(dirname "$0")/.." && pwd)"
+# This fork checks both destinations for conflicts before writing any links.
+
+REPO="$(CDPATH='' cd -P -- "$(dirname "$0")/.." && pwd)"
 DESTS=("$HOME/.claude/skills" "$HOME/.agents/skills")
 
 # Collect the repo's skills once, link into every destination. `deprecated/`
@@ -30,31 +32,83 @@ while IFS= read -r -d '' skill_md; do
   srcs+=("$src")
 done < <(find "$REPO/skills" -name SKILL.md -not -path '*/node_modules/*' -not -path '*/deprecated/*' -not -path '*/misc/*' -print0)
 
+points_into_checkout() {
+  local target part path=""
+  local -a parts
+  # Preserve trailing newlines in the link text.
+  target="$(readlink "$1" && printf '.')" || return 1
+  target="${target%$'\n.'}"
+  if [[ "$target" != /* ]]; then
+    target="$(cd -P -- "$(dirname "$1")" && pwd)/$target" || return 1
+  fi
+
+  # Use the named path, even if it is missing or is itself a symlink.
+  IFS=/ read -r -d '' -a parts < <(printf '%s\0' "$target")
+  for part in "${parts[@]}"; do
+    case "$part" in
+      ""|.) ;;
+      ..) path="${path%/*}" ;;
+      *) path="$path/$part" ;;
+    esac
+  done
+  [[ "$path" == "$REPO" || "$path" == "$REPO/"* ]]
+}
+
+conflicts=0
+report_conflict() {
+  local path="${1//$'\n'/\\n}"
+  printf 'error: %s is %s.\n' "$path" "$2" >&2
+  conflicts=1
+}
+
 for DEST in "${DESTS[@]}"; do
   # If $DEST is a symlink that resolves into this repo, we'd end up writing the
   # per-skill symlinks back into the repo's own skills/ tree. Detect and bail
   # out instead of polluting the working copy.
   if [ -L "$DEST" ]; then
-    resolved="$(readlink -f "$DEST")"
-    case "$resolved" in
-      "$REPO"|"$REPO"/*)
-        echo "error: $DEST is a symlink into this repo ($resolved)." >&2
-        echo "Remove it (rm \"$DEST\") and re-run; the script will recreate it as a real dir." >&2
-        exit 1
-        ;;
-    esac
+    resolved="$(readlink -f "$DEST")" || resolved=""
+    if [[ "$resolved" == "$REPO" || "$resolved" == "$REPO/"* ]] ||
+      points_into_checkout "$DEST"; then
+      report_conflict "$DEST" "a destination symlink into this checkout"
+    fi
   fi
 
+  for name in "${names[@]}"; do
+    target="$DEST/$name"
+    if [ -L "$target" ]; then
+      if ! points_into_checkout "$target"; then
+        report_conflict "$target" "a symlink whose named target is outside this checkout or unreadable"
+      fi
+    elif [ -f "$target" ]; then
+      report_conflict "$target" "a regular file"
+    elif [ -d "$target" ]; then
+      report_conflict "$target" "a directory"
+    elif [ -p "$target" ]; then
+      report_conflict "$target" "a named pipe"
+    elif [ -S "$target" ]; then
+      report_conflict "$target" "a socket"
+    elif [ -b "$target" ]; then
+      report_conflict "$target" "a block device"
+    elif [ -c "$target" ]; then
+      report_conflict "$target" "a character device"
+    elif [ -e "$target" ]; then
+      report_conflict "$target" "another kind of filesystem entry"
+    fi
+  done
+done
+
+if [ "$conflicts" -ne 0 ]; then
+  echo "Nothing was changed." >&2
+  exit 1
+fi
+
+for DEST in "${DESTS[@]}"; do
   mkdir -p "$DEST"
 
   for i in "${!names[@]}"; do
     name="${names[$i]}"
     src="${srcs[$i]}"
     target="$DEST/$name"
-
-    if [ -e "$target" ] && [ ! -L "$target" ]; then
-      rm -rf "$target"
-    fi
 
     ln -sfn "$src" "$target"
     echo "linked $name -> $src ($DEST)"
