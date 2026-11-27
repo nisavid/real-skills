@@ -71,7 +71,8 @@ def safe_path(path):
 def read_source(raw, expected_sha256, revision):
     require(digest(raw) == expected_sha256, "source archive hash mismatch")
     require(re.fullmatch(r"[0-9a-f]{40}", revision), "invalid source revision")
-    expected_root = "mattpocock-skills-" + revision
+    allowed_roots = {"real-skills-" + revision, "mattpocock-skills-" + revision}
+    source_root = None
     source = {}
     types = {}
     seen = set()
@@ -84,7 +85,10 @@ def read_source(raw, expected_sha256, revision):
             require(name not in seen, f"duplicate tar member: {name}")
             seen.add(name)
             parts = name.split("/")
-            require(parts[0] == expected_root, "unexpected source root")
+            require(parts[0] in allowed_roots, "unexpected source root")
+            if source_root is None:
+                source_root = parts[0]
+            require(parts[0] == source_root, "multiple source roots")
             if len(parts) == 1:
                 require(member.isdir(), "source root is not a directory")
                 continue

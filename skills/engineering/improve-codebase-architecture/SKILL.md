@@ -31,6 +31,8 @@ Strength supplies no authority. An out-of-scope Strong idea remains a proposal f
 
 ## Automatic process
 
+Invocation grants no authority. Reuse the owning implementation coordinator's existing grant for worker and reviewer dispatch, edits, and test runs. Make checkpoint commits only under its commit authority. Without commit authority, leave the work uncommitted and report it as unreviewed. Report any uncovered operation and its target and ask before acting.
+
 ### 1. Bind the clean candidate and scope
 
 The owning implementation coordinator runs this process outside the review that produced the clean result. Reviewers return their reports to that owner; they do not start this workflow from inside a review.
@@ -68,6 +70,8 @@ Only after independent clean review, record the completed baseline **before proc
 Return a textual handoff containing the assessment, implemented Strong recommendations, verification results and limits, independent review result, completed baseline or reason none exists, and proposals or choices for other owners. Publication, installation, release, and other external actions retain their existing gates.
 
 ## Interactive process
+
+Invocation grants no authority, so reuse an applicable user grant for sharing repository context with exploration, fact-finding, or design workers, writing and opening the temporary report, loading its CDN scripts, and writing glossary entries or accepted ADRs, and return the findings or drafts and ask before any uncovered operation on its target. The user's own request for an architecture report, whether they invoked this skill themselves or asked in words, is such a grant for writing the temporary report and nothing beyond it; the agent's choice to invoke this skill is not.
 
 ### 1. Explore
 
