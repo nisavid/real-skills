@@ -60,7 +60,15 @@ Before generating the native manifest, checking package drift, changing marketpl
 
 A pull request into a long-lived branch is one of two kinds, and its kind decides how it merges. This fork's long-lived branches are `main` and `unleashed`.
 
-- **Locally developed pull request:** work written for this fork. Squash it. Let the repository default supply the squash commit's message, which is the pull request's title alone, so write the title as the commit subject it becomes. The description stays on the pull request and does not reach the branch.
+- **Locally developed pull request:** work written for this fork. Squash it. Write the pull request title as a commit subject and keep the subject GitHub builds from it. The description stays on the pull request.
+
+  A squash can collect branch trailers that credit the wrong model. Assume nobody else changes or merges the pull request while this procedure runs. For any unhandled state, read back the landed commit's body if merged, report the credits as unverified, stop, and escalate.
+
+  1. On the open pull request, disable auto-merge if set.
+  2. Record the head SHA and base branch name. At that head, use independent records to identify who wrote each commit to be squashed (a model, a person, or automation). A commit's own message and trailers cannot verify its writer. If no writer can be verified, stop and escalate. Write the body file using only `Co-Authored-By` trailers, one per verified writer, including writers missing from the branch trailers.
+  3. Run `gh pr merge <PR-number> --repo nisavid/real-skills --squash --match-head-commit <recorded-head-SHA> --body-file <verified-body-file>`. The command guards only the head SHA.
+  4. Reread the pull request. Verify that it merged at the recorded head into the recorded base branch and that the landed commit's body matches the body file line by line, ignoring trailing whitespace. If any check fails, report the credits as unverified, stop, and escalate. If all match, report the match, cite the evidence for each credit, and name any writer omitted for lack of evidence.
+
 - **Hop:** a pull request that brings the history of one long-lived branch into another: upstream into this fork, `main` into `unleashed`, or a long-lived branch into a branch cut from it. Merge it with a merge commit, so that every commit keeps its identity. Never squash a hop.
 
 Do not use rebase merging for either kind.
