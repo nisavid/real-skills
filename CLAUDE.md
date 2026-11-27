@@ -62,15 +62,15 @@ A pull request into a long-lived branch is one of two kinds, and its kind decide
 
 - **Locally developed pull request:** work written for this fork. Squash it. Write the pull request title as a commit subject and keep the subject GitHub builds from it. The description stays on the pull request.
 
-  A squash can collect branch trailers that credit the wrong model. If a required check or read cannot be completed, stop and escalate.
+  A squash can collect branch trailers that credit the wrong model. Assume nobody else changes or merges the pull request while this procedure runs. For any unhandled state, including a failed read or a merge step 6 did not perform, read back the landed commit's body if merged, report the credits as unverified, stop, and escalate.
 
-  1. Disable any existing auto-merge request. If you cannot disable it, stop and escalate.
-  2. Read the pull request's commits. Record the head SHA, base branch name, base tip SHA, and complete list of commit SHAs to be squashed. Use a source that returns every commit here and in step 5.
+  1. On the open pull request, disable auto-merge if set.
+  2. Record the head SHA, base branch name, base tip SHA, and complete list of commit SHAs to be squashed. Here and in step 5, read the base tip from the live base branch ref and use a source that returns every commit.
   3. Identify each commit's writer from independent records of which model wrote it. A commit's own message and trailers cannot verify its writer. If no writer can be verified, stop and escalate. Write the body file using only `Co-Authored-By` trailers, one per verified writer, including writers missing from the branch trailers.
   4. Wait for all required checks to finish. If any did not pass, stop and escalate. Once all pass, confirm again that no auto-merge request is set. If one is set, restart at step 1.
-  5. Immediately before merging, read the pull request again. If it has already merged, go to step 7. Otherwise compare all four current values with those recorded in step 2. If any value differs, restart at step 1. If all four match, proceed to step 6. The command guards only the head SHA. This recheck is the strongest available because no merge command enforces all four values when the merge lands.
-  6. Run `gh pr merge <PR-number> --repo nisavid/real-skills --squash --match-head-commit <recorded-head-SHA> --body-file <verified-body-file>`. On success or if the pull request has already merged, go to step 7. If it remains unmerged and the command rejects a changed head, restart at step 1. On any other failure, stop and escalate.
-  7. Read back the squash commit's body and compare it with the body file line by line, ignoring trailing whitespace. Report the result, cite the evidence for each credit, and name any writer omitted for lack of evidence. If the lines differ, report the mismatch and hold later squashes.
+  5. Immediately before merging, reread the pull request. Confirm it is open, check auto-merge, and compare all four current values with those recorded in step 2. If any value differs or auto-merge is set, restart at step 1. Otherwise proceed to step 6. The command guards only the head SHA. This recheck is the strongest available because no merge command enforces all four values when the merge lands.
+  6. Run `gh pr merge <PR-number> --repo nisavid/real-skills --squash --match-head-commit <recorded-head-SHA> --body-file <verified-body-file>`. Proceed to step 7 only if the command confirms it performed the merge. Otherwise reread the pull request. Restart at step 1 only if it is still open and the command rejected a changed head.
+  7. Read back the squash commit's body and compare it with the body file line by line, ignoring trailing whitespace. If the lines differ, report the mismatch and the credits as unverified, stop, and escalate. If they match, report the match, cite the evidence for each credit, and name any writer omitted for lack of evidence.
 
 - **Hop:** a pull request that brings the history of one long-lived branch into another: upstream into this fork, `main` into `unleashed`, or a long-lived branch into a branch cut from it. Merge it with a merge commit, so that every commit keeps its identity. Never squash a hop.
 
