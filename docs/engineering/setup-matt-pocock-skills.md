@@ -4,7 +4,7 @@
 
 Those files hold each repo's skill configuration. The skills themselves are identical everywhere. They read `docs/agents/issue-tracker.md` at run time and do what it says. That is why the set is not tied to GitHub, and why you never edit a skill file to point it at another tracker. Invoking it with "link the skills to a custom issue tracker" works with anything you can connect to programmatically, with no changes to the skills.
 
-It is a prompt-driven skill, not a deterministic script. It reads your `git remote`, `CLAUDE.md` and `GLOSSARY.md`, proposes what it found, and confirms the setup choices with you.
+It is a prompt-driven skill, not a deterministic script. It uses your existing permission for hosted lookups, Git initialization, remote setup, and label creation, asking before any lookup or change outside your grant. It reads your `git remote`, `CLAUDE.md` and `GLOSSARY.md`, proposes what it found, and confirms the setup choices with you.
 
 ## When to reach for it
 

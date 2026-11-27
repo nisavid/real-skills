@@ -154,3 +154,62 @@ def test_build_refuses_missing_or_null_icon_with_stale_native_metadata(case, dia
     source = output.getvalue()
     with pytest.raises(ValueError, match=diagnostic):
         build(source, hashlib.sha256(source).hexdigest(), REVISION, "1.3.1", "1.3.2+from.1.3.1")
+
+
+MISSING = object()
+
+
+def source_with_native_interface(interface, icon):
+    output = io.BytesIO()
+    target = "mattpocock-skills-" + REVISION + "/.codex-plugin/plugin.json"
+    with tarfile.open(fileobj=io.BytesIO(source_archive(icon=icon)), mode="r:gz") as original:
+        with tarfile.open(fileobj=output, mode="w:gz") as replacement:
+            for member in original:
+                member = copy.copy(member)
+                if member.isfile():
+                    data = original.extractfile(member).read()
+                    if member.name == target:
+                        manifest = json.loads(data)
+                        if interface is MISSING:
+                            del manifest["interface"]
+                        else:
+                            manifest["interface"] = interface
+                        data = json.dumps(manifest).encode()
+                    member.size = len(data)
+                    replacement.addfile(member, io.BytesIO(data))
+                else:
+                    replacement.addfile(member)
+    return output.getvalue()
+
+
+@pytest.mark.parametrize("icon", [False, True], ids=["without_icon", "with_icon"])
+@pytest.mark.parametrize(
+    "interface",
+    [
+        pytest.param(MISSING, id="missing"),
+        pytest.param(None, id="null"),
+        pytest.param([], id="empty_array"),
+        pytest.param(["logo"], id="array"),
+        pytest.param("", id="empty_string"),
+        pytest.param("Fixture Skills", id="string"),
+        pytest.param(0, id="zero"),
+        pytest.param(1, id="number"),
+        pytest.param(1.5, id="float"),
+        pytest.param(False, id="false"),
+        pytest.param(True, id="true"),
+    ],
+)
+def test_build_refuses_missing_or_non_object_native_interface(interface, icon):
+    from release_builder import build
+
+    source = source_with_native_interface(interface, icon)
+    with pytest.raises(ValueError, match="missing or non-object native interface"):
+        build(source, hashlib.sha256(source).hexdigest(), REVISION, "1.3.1", "1.3.2+from.1.3.1")
+
+
+def test_build_checks_icon_references_of_empty_object_native_interface():
+    from release_builder import build
+
+    source = source_with_native_interface({}, icon=True)
+    with pytest.raises(ValueError, match="native icon references disagree"):
+        build(source, hashlib.sha256(source).hexdigest(), REVISION, "1.3.1", "1.3.2+from.1.3.1")

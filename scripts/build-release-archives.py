@@ -71,7 +71,8 @@ def safe_path(path):
 def read_source(raw, expected_sha256, revision):
     require(digest(raw) == expected_sha256, "source archive hash mismatch")
     require(re.fullmatch(r"[0-9a-f]{40}", revision), "invalid source revision")
-    expected_root = "mattpocock-skills-" + revision
+    allowed_roots = {"real-skills-" + revision, "mattpocock-skills-" + revision}
+    source_root = None
     source = {}
     types = {}
     seen = set()
@@ -84,7 +85,10 @@ def read_source(raw, expected_sha256, revision):
             require(name not in seen, f"duplicate tar member: {name}")
             seen.add(name)
             parts = name.split("/")
-            require(parts[0] == expected_root, "unexpected source root")
+            require(parts[0] in allowed_roots, "unexpected source root")
+            if source_root is None:
+                source_root = parts[0]
+            require(parts[0] == source_root, "multiple source roots")
             if len(parts) == 1:
                 require(member.isdir(), "source root is not a directory")
                 continue
@@ -232,8 +236,10 @@ def build(raw, expected_sha256, revision, base, release):
     claude = unique_json(source[".claude-plugin/plugin.json"][0])
     native = unique_json(source[".codex-plugin/plugin.json"][0])
     package = unique_json(source["package.json"][0])
+    plugin_name = claude.get("name")
     require(
-        claude.get("name") == native.get("name") == "real-skills-leashed",
+        plugin_name == native.get("name") == package.get("name")
+        and plugin_name in ("real-skills-leashed", "real-skills-unleashed"),
         "source plugin name mismatch",
     )
     source_version = package["version"]
@@ -313,6 +319,8 @@ def build(raw, expected_sha256, revision, base, release):
         "repository", "license", "keywords", "skills", "icon",
     }
     require(set(claude) <= allowed, "new manifest fields need projection review")
+    require(isinstance(native.get("interface"), dict),
+            "missing or non-object native interface")
     icon_path = claude.get("icon")
     if "icon" not in claude:
         require("logo" not in native["interface"] and "composerIcon" not in native["interface"],
@@ -420,7 +428,7 @@ def build(raw, expected_sha256, revision, base, release):
         require(archive_bytes == encode_zip(files), "nondeterministic rebuild")
         actual = verify_zip(archive_bytes, files)
         links = verify_links(actual)
-        filename = f"real-skills-leashed-{release}-{format_name}.zip"
+        filename = f"{plugin_name}-{release}-{format_name}.zip"
         outputs[filename] = archive_bytes
         report["archives"][filename] = {
             "sha256": digest(archive_bytes),
