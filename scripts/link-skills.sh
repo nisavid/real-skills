@@ -12,9 +12,12 @@ set -euo pipefail
 # Each entry is a symlink into this repo, so a `git pull` is all that's needed
 # to keep installed skills up to date.
 
-# This fork checks both destinations for conflicts before writing any links.
+# This fork differs from upstream. It checks both destinations before writing
+# and refuses to delete or repoint conflicting entries. On any conflict, it
+# changes nothing and exits with status 1.
 
-REPO="$(CDPATH='' cd -P -- "$(dirname "$0")/.." && pwd)"
+REPO="$(cd "$(dirname "$0")/.." && pwd)"
+PHYSICAL_REPO="$(cd -P "$REPO" && pwd)"
 DESTS=("$HOME/.claude/skills" "$HOME/.agents/skills")
 
 # Collect the repo's skills once, link into every destination. `deprecated/`
@@ -36,8 +39,8 @@ points_into_checkout() {
   local target part path=""
   local -a parts
   # Preserve trailing newlines in the link text.
-  target="$(readlink "$1" && printf '.')" || return 1
-  target="${target%$'\n.'}"
+  target="$(readlink -n "$1" && printf '.')" || return 1
+  target="${target%.}"
   if [[ "$target" != /* ]]; then
     target="$(cd -P -- "$(dirname "$1")" && pwd)/$target" || return 1
   fi
@@ -62,15 +65,26 @@ report_conflict() {
 }
 
 for DEST in "${DESTS[@]}"; do
+  invalid_directory="not a writable, searchable directory"
   # If $DEST is a symlink that resolves into this repo, we'd end up writing the
   # per-skill symlinks back into the repo's own skills/ tree. Detect and bail
   # out instead of polluting the working copy.
   if [ -L "$DEST" ]; then
-    resolved="$(readlink -f "$DEST")" || resolved=""
-    if [[ "$resolved" == "$REPO" || "$resolved" == "$REPO/"* ]] ||
-      points_into_checkout "$DEST"; then
-      report_conflict "$DEST" "a destination symlink into this checkout"
+    if ! resolved="$(readlink -f "$DEST" 2>/dev/null)"; then
+      report_conflict "$DEST" "a destination symlink that cannot be resolved"
+      continue
     fi
+    if [[ "$resolved" == "$PHYSICAL_REPO" || "$resolved" == "$PHYSICAL_REPO/"* ]]; then
+      report_conflict "$DEST" "a destination symlink into this checkout"
+      continue
+    fi
+    invalid_directory="a destination symlink that does not lead to a writable, searchable directory"
+  elif [ ! -e "$DEST" ]; then
+    continue
+  fi
+  if [ ! -d "$DEST" ] || [ ! -w "$DEST" ] || [ ! -x "$DEST" ]; then
+    report_conflict "$DEST" "$invalid_directory"
+    continue
   fi
 
   for name in "${names[@]}"; do
@@ -83,14 +97,6 @@ for DEST in "${DESTS[@]}"; do
       report_conflict "$target" "a regular file"
     elif [ -d "$target" ]; then
       report_conflict "$target" "a directory"
-    elif [ -p "$target" ]; then
-      report_conflict "$target" "a named pipe"
-    elif [ -S "$target" ]; then
-      report_conflict "$target" "a socket"
-    elif [ -b "$target" ]; then
-      report_conflict "$target" "a block device"
-    elif [ -c "$target" ]; then
-      report_conflict "$target" "a character device"
     elif [ -e "$target" ]; then
       report_conflict "$target" "another kind of filesystem entry"
     fi

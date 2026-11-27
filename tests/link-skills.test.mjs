@@ -10,16 +10,21 @@ import { basename, dirname, isAbsolute, join, relative, sep } from "node:path";
 import test from "node:test";
 
 // Review all destination construction and filesystem writes before updating this digest.
-const linkerDigest = "1fad28e25715f0018603663b1d2160b92a85a70b9285e9778cd003c58fa9dfab";
+const linkerDigest = "8076cf2acfd7a9adc40e7df13f04f42a27e9330d12f4339ce8a3dd8f4586e2cf";
 
-function resolveDestination(path) {
+function resolveDestination(path, symlinksRemaining = 40) {
   try {
-    return realpathSync(path);
+    return realpathSync.native(path);
   } catch (error) {
     if (error.code !== "ENOENT") throw error;
-    assert.equal(lstatSync(path, { throwIfNoEntry: false }), undefined,
-      `Cannot resolve destination path: ${path}`);
-    return join(resolveDestination(dirname(path)), basename(path));
+    const parent = resolveDestination(dirname(path), symlinksRemaining);
+    const entry = join(parent, basename(path));
+    if (!lstatSync(entry, { throwIfNoEntry: false })?.isSymbolicLink()) return entry;
+
+    assert.ok(symlinksRemaining > 0, `Too many symlinks in destination: ${path}`);
+    const target = readlinkSync(entry);
+    const namedPath = isAbsolute(target) ? target : `${parent}${sep}${target}`;
+    return resolveDestination(namedPath, symlinksRemaining - 1);
   }
 }
 
@@ -59,11 +64,12 @@ function fixture(t, launch = spawnSync) {
 
   return {
     root, home, checkout, script, alpha, beta, claude, agents, skill,
-    run(env = { HOME: home, PATH: process.env.PATH }) {
+    run({ env = { HOME: home, PATH: process.env.PATH }, entrypoint = script } = {}) {
       checkDestinations(env);
-      const digest = createHash("sha256").update(readFileSync(script)).digest("hex");
+      assert.equal(realpathSync(entrypoint), script);
+      const digest = createHash("sha256").update(readFileSync(entrypoint)).digest("hex");
       assert.equal(digest, linkerDigest, "Refusing to launch unverified linker source");
-      const result = launch("bash", [script], {
+      const result = launch("bash", [entrypoint], {
         cwd: checkout, env, encoding: "utf8",
       });
       checkDestinations(env);
@@ -73,20 +79,21 @@ function fixture(t, launch = spawnSync) {
   };
 }
 
-test("the launcher refuses a copied script with a hardcoded destination", (t) => {
+test("the launcher refuses any byte change to the copied script", (t) => {
   const f = fixture(t, () => assert.fail("The script must never start"));
   const source = readFileSync(f.script, "utf8");
-  const changed = source.replace("$HOME/.agents/skills", join(f.root, "outside"));
-  assert.notEqual(changed, source);
-  writeFileSync(f.script, changed);
-
-  assert.throws(() => f.run(), /Refusing to launch unverified linker source/);
+  const hardcoded = source.replace("$HOME/.agents/skills", join(f.root, "outside"));
+  assert.notEqual(hardcoded, source);
+  for (const changed of [hardcoded, source + "\n"]) {
+    writeFileSync(f.script, changed);
+    assert.throws(() => f.run(), /Refusing to launch unverified linker source/);
+  }
 });
 
 test("the launcher refuses an unset or empty HOME", (t) => {
   const f = fixture(t, () => assert.fail("The script must never start"));
-  assert.throws(() => f.run({}), /requires its fresh temporary HOME/);
-  assert.throws(() => f.run({ HOME: "" }), /requires its fresh temporary HOME/);
+  assert.throws(() => f.run({ env: {} }), /requires its fresh temporary HOME/);
+  assert.throws(() => f.run({ env: { HOME: "" } }), /requires its fresh temporary HOME/);
 });
 
 test("the launcher refuses a destination behind an escaping parent symlink", (t) => {
@@ -94,6 +101,14 @@ test("the launcher refuses a destination behind an escaping parent symlink", (t)
   const outside = join(f.root, "outside");
   mkdirSync(outside);
   symlinkSync(outside, dirname(f.claude));
+
+  assert.throws(() => f.run(), /Destination resolves outside temporary HOME/);
+});
+
+test("the launcher refuses a dangling destination that names a path outside HOME", (t) => {
+  const f = fixture(t, () => assert.fail("The script must never start"));
+  mkdirSync(dirname(f.agents));
+  symlinkSync(relative(dirname(f.agents), join(f.root, "outside/missing")), f.agents);
 
   assert.throws(() => f.run(), /Destination resolves outside temporary HOME/);
 });
@@ -185,7 +200,7 @@ test("an existing entry of another filesystem kind is preserved and reported", (
   assert.equal(result.status, 1, result.stderr);
   assert.deepEqual(snapshot(f.home), before);
   assert.ok(result.stderr.includes(conflict), result.stderr);
-  assert.match(result.stderr, /named pipe/);
+  assert.match(result.stderr, /another kind of filesystem entry/);
 });
 
 test("absent entries and checkout links, including a dangling relative link, are linked", (t) => {
@@ -204,6 +219,37 @@ test("absent entries and checkout links, including a dangling relative link, are
     assert.deepEqual(readdirSync(dest).sort(), ["alpha", "beta"]);
     assert.equal(readlinkSync(join(dest, "alpha")), f.alpha);
     assert.equal(readlinkSync(join(dest, "beta")), f.beta);
+  }
+
+  const second = f.run();
+
+  assert.equal(second.status, 0, second.stderr);
+  for (const dest of [f.claude, f.agents]) {
+    assert.equal(realpathSync(join(dest, "alpha")), f.alpha);
+    assert.equal(realpathSync(join(dest, "beta")), f.beta);
+  }
+});
+
+test("links from an upstream run through a symlinked checkout path are refreshed", (t) => {
+  const f = fixture(t);
+  const alias = join(f.home, "checkout-alias");
+  symlinkSync(f.checkout, alias);
+  const alpha = join(alias, relative(f.checkout, f.alpha));
+  const beta = join(alias, relative(f.checkout, f.beta));
+  for (const dest of [f.claude, f.agents]) {
+    mkdirSync(dest, { recursive: true });
+    symlinkSync(beta, join(dest, "alpha"));
+    symlinkSync(alpha, join(dest, "beta"));
+  }
+
+  const result = f.run({ entrypoint: join(alias, "scripts/link-skills.sh") });
+
+  assert.equal(result.status, 0, result.stderr);
+  for (const dest of [f.claude, f.agents]) {
+    assert.equal(readlinkSync(join(dest, "alpha")), alpha);
+    assert.equal(readlinkSync(join(dest, "beta")), beta);
+    assert.equal(realpathSync(join(dest, "alpha")), f.alpha);
+    assert.equal(realpathSync(join(dest, "beta")), f.beta);
   }
 });
 
@@ -240,29 +286,33 @@ test("a skill link naming an external alias to the checkout is a conflict", (t) 
   assert.ok(result.stderr.includes(conflict), result.stderr);
 });
 
-test("relative skill links start from the directory reached by a destination symlink", (t) => {
+test("relative skill links start from a destination symlink's directory outside the checkout", (t) => {
   const f = fixture(t);
   const actual = join(f.home, "custom/nested/skills");
+  const alias = join(f.checkout, "destination-alias");
   mkdirSync(actual, { recursive: true });
   mkdirSync(dirname(f.claude), { recursive: true });
-  symlinkSync(actual, f.claude);
+  symlinkSync(actual, alias);
+  symlinkSync(alias, f.claude);
   symlinkSync(relative(actual, f.beta), join(actual, "alpha"));
 
   const result = f.run();
 
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(readlinkSync(f.claude), actual);
+  assert.equal(readlinkSync(f.claude), alias);
   assert.equal(readlinkSync(join(actual, "alpha")), f.alpha);
 });
 
 test("a destination symlink into the checkout stops all writes", (t) => {
   const f = fixture(t);
+  const alias = join(f.home, "checkout-alias");
+  symlinkSync(f.checkout, alias);
   mkdirSync(dirname(f.agents), { recursive: true });
   symlinkSync(join(f.checkout, "skills"), f.agents);
   const before = snapshot(f.home);
   const checkoutBefore = snapshot(f.checkout);
 
-  const result = f.run();
+  const result = f.run({ entrypoint: join(alias, "scripts/link-skills.sh") });
 
   assert.equal(result.status, 1, result.stderr);
   assert.deepEqual(snapshot(f.home), before);
@@ -271,4 +321,56 @@ test("a destination symlink into the checkout stops all writes", (t) => {
   assert.match(result.stderr, /destination symlink into this checkout/);
   assert.match(result.stderr, /nothing was changed/i);
   assert.equal(result.stderr.trim().split("\n").length, 2, result.stderr);
+});
+
+test("a dangling destination cannot become a link into the checkout during the run", async (t) => {
+  for (const parentExists of [true, false]) {
+    await t.test(parentExists ? "target parent exists" : "target parent is missing", (t) => {
+      const f = fixture(t);
+      if (parentExists) mkdirSync(f.claude, { recursive: true });
+      mkdirSync(dirname(f.agents));
+      symlinkSync(join(f.claude, "alpha"), f.agents);
+      writeFileSync(join(f.alpha, "beta"), "keep this checkout file\n");
+      const before = snapshot(f.home);
+      const checkoutBefore = snapshot(f.checkout);
+
+      const result = f.run();
+
+      assert.equal(result.status, 1, result.stderr);
+      assert.deepEqual(snapshot(f.home), before);
+      assert.deepEqual(snapshot(f.checkout), checkoutBefore);
+      assert.ok(result.stderr.includes(f.agents), result.stderr);
+      assert.match(result.stderr, /destination symlink/);
+      assert.match(result.stderr, /nothing was changed/i);
+    });
+  }
+});
+
+test("a destination that is a regular file stops all writes, including the absent destination", (t) => {
+  const f = fixture(t);
+  mkdirSync(dirname(f.agents));
+  writeFileSync(f.agents, "keep this file\n");
+  const before = snapshot(f.home);
+
+  const result = f.run();
+
+  assert.equal(result.status, 1, result.stderr);
+  assert.deepEqual(snapshot(f.home), before);
+  assert.ok(result.stderr.includes(f.agents), result.stderr);
+  assert.match(result.stderr, /writable, searchable directory/);
+  assert.match(result.stderr, /nothing was changed/i);
+});
+
+test("a trailing newline stays part of a skill link's named target", (t) => {
+  const f = fixture(t);
+  mkdirSync(f.agents, { recursive: true });
+  const conflict = join(f.agents, "alpha");
+  symlinkSync(`${f.checkout}\n`, conflict);
+  const before = snapshot(f.home);
+
+  const result = f.run();
+
+  assert.equal(result.status, 1, result.stderr);
+  assert.deepEqual(snapshot(f.home), before);
+  assert.ok(result.stderr.includes(conflict), result.stderr);
 });
