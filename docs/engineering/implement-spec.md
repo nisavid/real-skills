@@ -61,7 +61,7 @@ Worktrees don't remove collisions; they postpone them to merge time. A blocking 
 
 **Blocked tickets never start, even after their blocker has merged.**
 
-This is a known problem on GitHub. The tracker's blocked-by count only drops when a blocker *closes*, and tickets typically close when the PR merges, which is the end of the run. The tracker is the right source for the starting graph but a stale one mid-run. After each merge, the orchestrator starts an eligible ticket whose last non-child code dependency has landed on the integration branch, even if that dependency is still open on the tracker. Before starting any ticket, it checks that all its children are closed on the tracker. It records a ticket with open children as blocked, lists those children, and rechecks only when it observes one of those children close on the tracker. Review and PR readiness proceed without waiting for that ticket. The run reports it as pending and leaves it out of the PR's closing references.
+This is a known problem on GitHub. The tracker's blocked-by count only drops when a blocker *closes*, and tickets typically close when the PR merges, which is the end of the run. The tracker is the right source for the starting graph but a stale one mid-run. After each merge, the orchestrator starts any ticket whose last blocker landed on the integration branch, even if the tracker still shows the blocker as open.
 
 **Does this replace Sandcastle or an AFK script?**
 
