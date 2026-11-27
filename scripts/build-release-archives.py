@@ -214,17 +214,23 @@ def verify_zip(raw, files):
     return actual
 
 
+NUMERIC = r"(?:0|[1-9][0-9]*)"
+CORE = rf"{NUMERIC}\.{NUMERIC}\.{NUMERIC}"
+LINEAGE = rf"(?:\+from\.(?:rsl\.(?P<parent>{CORE})\.from\.)?(?P<upstream>{CORE}))?"
+SNAPSHOT_VERSION = re.compile(rf"(?P<core>{CORE})-0\.snapshot\.(?P<sequence>[1-9][0-9]*){LINEAGE}")
+NAMED_RELEASE_VERSION = re.compile(rf"(?P<core>{CORE}){LINEAGE}")
+
+
 def build(raw, expected_sha256, revision, base, release):
     """Return two release ZIPs and their verification report as data.
 
     raw is one immutable source tarball; expected_sha256 and revision bind
     the caller-selected input. No filesystem writes or network access occur.
     """
-    numeric = r"(?:0|[1-9][0-9]*)"
-    base_match = re.fullmatch(rf"({numeric})\.({numeric})\.({numeric})", base)
+    base_match = re.fullmatch(rf"({NUMERIC})\.({NUMERIC})\.({NUMERIC})", base)
     require(base_match, "invalid base version")
     release_match = re.fullmatch(
-        rf"({numeric})\.({numeric})\.({numeric})\+from\.{re.escape(base)}", release
+        rf"({NUMERIC})\.({NUMERIC})\.({NUMERIC})\+from\.{re.escape(base)}", release
     )
     require(release_match, "invalid release version")
     require(
@@ -232,6 +238,138 @@ def build(raw, expected_sha256, revision, base, release):
         and int(release_match.group(3)) > int(base_match.group(3)),
         "release must retain upstream major and minor and advance its patch",
     )
+    return _build(raw, expected_sha256, revision, base, release)
+
+
+def build_snapshot(raw, expected_sha256, revision, base, version, *,
+                   issued_versions, previous_release, channels, source_review, release_line):
+    """Return two snapshot ZIPs and a draft issuance record as data.
+
+    Supply the authoritative issued versions by plugin name, including
+    withdrawn snapshots, and the preceding named package version (None only
+    if there was no named release). Channels name delivery surfaces, and
+    source_review identifies the source review or is None when there is none.
+    Supply the release-line observation from Git before preparing the draft
+    record. This function reserves no version, writes no files, and exposes
+    no artifact. It stamps the requested version into the generated archives
+    and retains the agreed original source version in provenance.
+    """
+    require(re.fullmatch(CORE, base), "invalid base version")
+    match = SNAPSHOT_VERSION.fullmatch(version)
+    require(match, "invalid snapshot version")
+    if previous_release is not None:
+        previous = (NAMED_RELEASE_VERSION.fullmatch(previous_release)
+                    if isinstance(previous_release, str) else None)
+        require(previous, "invalid preceding named release version")
+        require(version_core(previous["core"]) < version_core(match["core"]),
+                "snapshot target must advance beyond the preceding named release")
+    require(isinstance(channels, (list, tuple)) and channels
+            and all(isinstance(channel, str) and channel.strip() for channel in channels),
+            "snapshot requires named delivery channels")
+    require(source_review is None or (isinstance(source_review, str) and source_review.strip()),
+            "snapshot source review must name the review or be None")
+    source_standing = describe_release_line(release_line, revision)
+    archives, report = _build(raw, expected_sha256, revision, base, version,
+                              snapshot=(match, issued_versions))
+    record = report["snapshot_record"]
+    record.update({
+        "status": "draft",
+        "archive_sha256": {name: entry["sha256"] for name, entry in report["archives"].items()},
+        "channels": list(channels),
+        "source_review": source_review,
+        "previous_release": previous_release,
+        "release_line": source_standing,
+    })
+    if source_standing["standing"] == "off-release-line":
+        record["required_retained_ref"] = f"refs/heads/retained/delivered/{record['identifier']}"
+    return archives, report
+
+
+def describe_release_line(observation, source_revision):
+    """Interpret a Git check for the packaged source and a fetched release-line tip.
+
+    The caller supplies the two ancestry operands as source_revision and
+    revision, respectively, on the observation.
+    """
+    require(isinstance(observation, dict), "snapshot requires a Git release-line observation")
+    ref = observation.get("ref")
+    require(isinstance(ref, str) and ref.startswith("refs/heads/") and len(ref) > len("refs/heads/"),
+            "snapshot requires a full release-line branch ref")
+    origin = observation.get("origin_url")
+    canonical = isinstance(origin, str) and origin.removesuffix(".git") in (
+        "https://github.com/nisavid/real-skills",
+        "git@github.com:nisavid/real-skills",
+        "ssh://git@github.com/nisavid/real-skills",
+    )
+    revision = observation.get("revision")
+    full_revision = isinstance(revision, str) and re.fullmatch(r"[0-9a-f]{40}", revision)
+    observed_source = observation.get("source_revision")
+    full_source = isinstance(observed_source, str) and re.fullmatch(r"[0-9a-f]{40}", observed_source)
+    fetch_status = observation.get("fetch_exit_status")
+    ancestry_status = observation.get("merge_base_exit_status")
+    if not canonical:
+        failure = "origin is not the canonical repository"
+    elif observation.get("shallow") is not False:
+        failure = "checkout is shallow or its history depth is unknown"
+    elif type(fetch_status) is not int or fetch_status != 0:
+        failure = "canonical release-line fetch did not succeed"
+    elif not full_revision:
+        failure = "full fetched release-line revision is unavailable"
+    elif not full_source or observed_source != source_revision:
+        failure = "Git ancestry check is not bound to the packaged source revision"
+    elif type(ancestry_status) is not int or ancestry_status not in (0, 1):
+        failure = "Git ancestry result did not establish source standing"
+    else:
+        failure = None
+
+    standing = "not-established"
+    if failure is None:
+        standing = "on-release-line" if ancestry_status == 0 else "off-release-line"
+    return {
+        "ref": ref,
+        "revision": revision if full_revision else None,
+        "source_revision": observed_source if full_source else None,
+        "fetch_exit_status": fetch_status if type(fetch_status) is int else None,
+        "merge_base_exit_status": ancestry_status if type(ancestry_status) is int else None,
+        "standing": standing,
+        "reason": failure,
+    }
+
+
+def version_core(version):
+    return tuple(map(int, version.split(".")))
+
+
+def check_snapshot_lineage(snapshot, base, plugin_name):
+    target = version_core(snapshot["core"])
+    upstream = version_core(base)
+    if snapshot["upstream"] is None:
+        require(target == upstream, "snapshot without lineage must target the upstream version")
+        return
+
+    require(snapshot["upstream"] == base and target[:2] == upstream[:2] and target > upstream,
+            "snapshot lineage must retain the upstream major and minor and advance its patch")
+    if snapshot["parent"] is not None:
+        parent = version_core(snapshot["parent"])
+        require(plugin_name == "real-skills-unleashed" and upstream <= parent < target,
+                "snapshot must name a Leashed parent between its upstream and Unleashed target")
+
+
+def check_snapshot_sequence(snapshot, issued_versions, plugin_name):
+    require(isinstance(issued_versions, dict) and plugin_name in issued_versions,
+            "snapshot issuance history is required for this edition")
+    previous = issued_versions[plugin_name]
+    require(isinstance(previous, (list, tuple)), "invalid snapshot issuance history")
+    sequence = int(snapshot["sequence"])
+    for version in previous:
+        prior = SNAPSHOT_VERSION.fullmatch(version) if isinstance(version, str) else None
+        require(prior, "invalid version in snapshot issuance history")
+        if prior["core"] == snapshot["core"]:
+            require(sequence > int(prior["sequence"]),
+                    "snapshot sequence must advance beyond every issued sequence for this target")
+
+
+def _build(raw, expected_sha256, revision, base, release, *, snapshot=None):
     source, types = read_source(raw, expected_sha256, revision)
     claude = unique_json(source[".claude-plugin/plugin.json"][0])
     native = unique_json(source[".codex-plugin/plugin.json"][0])
@@ -242,13 +380,21 @@ def build(raw, expected_sha256, revision, base, release):
         and plugin_name in ("real-skills-leashed", "real-skills-unleashed"),
         "source plugin name mismatch",
     )
+    if snapshot is not None:
+        version_match, issued_versions = snapshot
+        check_snapshot_lineage(version_match, base, plugin_name)
+        check_snapshot_sequence(version_match, issued_versions, plugin_name)
     source_version = package["version"]
     require(
         isinstance(source_version, str)
-        and source_version == release
         and claude["version"] == native["version"] == source_version,
         "source version mismatch",
     )
+    if snapshot is None:
+        require(source_version == release, "source version mismatch")
+    else:
+        require(NAMED_RELEASE_VERSION.fullmatch(source_version)
+                or SNAPSHOT_VERSION.fullmatch(source_version), "invalid source version for snapshot")
 
     roots = claude["skills"]
     require(isinstance(roots, list) and roots, "missing promoted selection")
@@ -359,6 +505,14 @@ def build(raw, expected_sha256, revision, base, release):
             "No installation, schema service, harness execution, or workflow execution performed",
         ],
     }
+    if snapshot is not None:
+        member = "rsl" if plugin_name == "real-skills-leashed" else "rsu"
+        intended_version = version_match["core"] + release[version_match.end("sequence"):]
+        report["snapshot_record"] = {
+            "identifier": f"{member}-{release}",
+            "intended_release": f"{member}-{intended_version}",
+            "source_revision": revision,
+        }
 
     for format_name, manifest_path, manifest in (
         ("agent-plugins", "plugin.json", portable),

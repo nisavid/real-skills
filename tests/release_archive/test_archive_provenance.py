@@ -76,6 +76,14 @@ def test_does_not_overwrite_incomplete_run(candidate, tmp_path):
     assert not (output / "receipt.json").exists()
 
 
+def test_release_only_provenance_refuses_snapshot_before_producing_output(candidate, tmp_path):
+    output = tmp_path / "snapshot"
+    result = invoke(candidate, output, "--release", "1.3.5-0.snapshot.1+from.1.3.2")
+    assert result.returncode != 0
+    assert "invalid base or release version" in result.stderr
+    assert not output.exists()
+
+
 def test_unchanged_archive_passes_direct_verification(candidate, completed):
     assert verify(candidate, completed / f"real-skills-leashed-1.3.4+from.1.3.2-claude.zip").returncode == 0
 
