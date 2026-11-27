@@ -7,6 +7,8 @@
 | Interactive | A self-contained HTML report, followed by [grilling](https://www.aihero.dev/ai-coding-dictionary/grilling) on the candidate you choose. Code changes happen later through the normal build flow. |
 | Automatic | A textual assessment, implemented in-scope Strong recommendations, verification, and independent review of the final candidate together with the assessment. It opens no HTML or browser and asks no routine selection questions. |
 
+Asking for the interactive report, including by invoking the skill yourself, covers saving the local HTML file. The standard report loads CDN scripts when opened, so unless you have allowed that, the agent gives you the file's path and asks before opening it. It also asks before any other action outside your grant.
+
 Both modes compare a proposed deepening with the smallest adequate alternative, including deletion or inlining. A Strong recommendation needs a demonstrated present design problem and a concrete improvement; a possible future benefit is Speculative.
 
 ## When to reach for it
@@ -69,7 +71,7 @@ Automatic mode assesses the clean candidate and implements every eligible Strong
 
 The refactor preserves affected passing consumer assertions and invariants. Any implementation or correction that needs RED and GREEN uses [tdd](https://aihero.dev/skills-tdd), including quick cleanup after each stage. Changed code or relevant evidence inputs require fresh verification and review.
 
-An implemented recommendation is not yet a completed refactor. The final candidate and the assessment receive independent review together. If the selected reviewer reads Git HEAD, the owning implementation coordinator checkpoints the task-owned refactor first and does the same for later corrections. A clean result must cover that final checkpoint; local committing grants no publication authority. Even an assessment that finds no eligible Strong work needs a clean independent review before it establishes a completed baseline.
+An implemented recommendation is not yet a completed refactor. The final candidate and the assessment receive independent review together. When the selected reviewer reads Git HEAD and the governing workflow authorizes the commit, the owning implementation coordinator ensures the task-owned refactor and each later correction are checkpointed before review. Without commit authority, the coordinator leaves the work uncommitted and reports it as unreviewed. A clean result must cover that final checkpoint; local committing grants no publication authority. Even an assessment that finds no eligible Strong work needs a clean independent review before it establishes a completed baseline.
 
 That baseline records the covered scope, final candidate, assessment, verification inputs and results, and independent review. The owner records it before handling the refactor's own clean-review event, so that event finds an unchanged, already assessed scope and skips another run. Missing or uncertain evidence cannot justify a skip. Changed assessment inputs or relevant dependencies also invalidate the affected evidence, even when the code is unchanged. A new nontrivial implementation or fix invalidates a skip based on the old baseline.
 

@@ -4,7 +4,7 @@
     "name": "Ivan D Vasin",
     "url": "https://github.com/nisavid"
   },
-  "description": "A lightly revised and repackaged fork of Matt Pocock's Skills for Real Engineers.",
+  "description": "A revised and repackaged fork of Matt Pocock's Skills for Real Engineers, in two editions: Leashed keeps upstream's invocation rules, and Unleashed lets agents, not only users, invoke every skill.",
   "plugins": [
     {
       "name": "real-skills-leashed",
@@ -30,7 +30,7 @@
         "url": "https://github.com/nisavid/real-skills",
         "ref": "d58bd4e5bb0a1c9d693709d4c0d79cbced247a24"
       },
-      "description": "A lightly revised and repackaged fork of Matt Pocock's Skills for Real Engineers.",
+      "description": "A revised and repackaged fork of Matt Pocock's Skills for Real Engineers that lets agents, not only users, invoke every skill.",
       "category": "engineering",
       "keywords": [
         "engineering",
