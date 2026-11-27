@@ -15,6 +15,8 @@ This is a prompt-driven skill, not a deterministic script. Explore, present what
 
 ## Process
 
+Since invocation grants no authority, reuse an applicable user grant for Git initialization, remote setup, hosted lookups, or label creation, report the target and ask before any uncovered operation, and include that rule in generated tracker instructions so later workflows use their own grants for hosted items, labels, relationships, and local ticket or map files.
+
 ### 1. Explore
 
 Look at the current repo to understand its starting state. Read whatever exists; don't assume:

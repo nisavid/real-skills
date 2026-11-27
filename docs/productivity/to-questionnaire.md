@@ -1,6 +1,6 @@
 ## What it does
 
-`to-questionnaire` turns a decision you can't settle on your own into a **questionnaire**: a Markdown document you hand to the one person who holds what you're missing, for them to fill in async or for the two of you to work through in a meeting.
+`to-questionnaire` turns a decision you can't settle on your own into a **questionnaire**: a Markdown document you hand to the one person who holds what you're missing, for them to fill in async or for the two of you to work through in a meeting. When you ask for a questionnaire, the skill saves it in the current directory. When the agent reaches for the skill on its own, it returns the draft and asks before writing there.
 
 It grills you about the **send**, never the subject. An interview about the topic is pointless, because not knowing the topic is why you're writing to someone else. So it asks the two things you can always answer (who this is going to, and what you need back from them) and aims every question in the document at the **gap** between the two.
 

@@ -50,6 +50,8 @@ State transitions: an incoming issue for which triage applies and which has no m
 
 ## Invocation
 
+Invocation grants no authority, so reuse an applicable user grant for tracker reads, source retrieval, sandbox setup, execution and cleanup, delegated verification or fact-finding, and edits to the issue, PR, glossary, ADRs, or rejection record, and report any uncovered operation and target with the recommendation or draft and ask before acting.
+
 The maintainer may invoke `/triage` and describe what they want in natural language. The agent may also invoke it when triage is needed and governing instructions permit. Interpret the request and act. Examples:
 
 - "Show me anything that needs my attention"
@@ -81,7 +83,7 @@ Show counts and a one-line summary per item. Let the maintainer pick.
 
 4. **Grill (if needed).** If the request needs fleshing out, call the Skill tool twice, for "grilling" and "domain-modeling", and grill it into shape a round of questions at a time, sharpening domain terms and updating `GLOSSARY.md`/ADRs inline as decisions land.
 
-5. **Apply the outcome:**
+5. **Apply the outcome.** A request to verify an item grants no authority to post a comment, change its labels, close it, or edit a rejection record, so reuse the grant above for each proposed change or return the recommendation and drafts and ask before applying it.
    - `ready-for-agent`: post an agent brief comment ([AGENT-BRIEF.md](AGENT-BRIEF.md)).
    - `ready-for-human`: same structure as an agent brief, but note why it can't be delegated (judgment calls, external access, design decisions, manual testing).
    - `needs-info`: post triage notes (template below).

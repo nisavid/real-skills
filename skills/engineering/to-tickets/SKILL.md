@@ -7,6 +7,8 @@ description: "Break a plan, spec, or the current conversation into a set of trac
 
 Break a plan, spec, or conversation into a set of **tickets**: tracer-bullet vertical slices, each declaring the tickets that **block** it.
 
+Invocation grants no authority to fetch a hosted spec or its comments, so reuse an applicable user grant for the reference and its network or account access, working from the conversation and asking before fetching anything outside that grant.
+
 The issue tracker and triage label vocabulary should have been provided to you. If not, call the Skill tool with "setup-matt-pocock-skills" when governing instructions permit; otherwise tell the user to run `/setup-matt-pocock-skills`.
 
 ## Process
@@ -56,7 +58,11 @@ Iterate until the user approves the breakdown.
 
 ### 5. Publish the tickets to the configured tracker
 
-Publish the approved tickets. Before writing to the tracker, call the Skill tool with "issue-composition" and follow it. Before publishing the first ticket, check every ticket's initial values against project policy under that contract. **How** depends on the tracker `/setup-matt-pocock-skills` configured; the tickets are the same either way, only the shape of the blocking edges changes:
+Before publishing the approved breakdown, check that the active request and governing instructions authorize the tracker writes below for the selected target, reusing any applicable user grant. If authority is absent, return the ticket drafts and proposed target and ask for authority before writing.
+
+Before writing to the tracker, call the Skill tool with "issue-composition" and follow it. Before publishing the first ticket, check every ticket's initial values against project policy under that contract.
+
+Publish the approved tickets. **How** depends on the tracker `/setup-matt-pocock-skills` configured; the tickets are the same either way, only the shape of the blocking edges changes:
 
 - **Local files** → write one file per ticket under `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01` in dependency order (blockers first). Each file's "Blocked by" lists the numbers/titles it depends on. Record each ticket's initial triage state on the line the project's tracker instructions name for it (`Triage:` in the setup template). Use the per-ticket file template below: one ticket per file, never a single combined file.
 - **A real issue tracker (GitHub, Linear, …)** → publish one issue per ticket in dependency order (blockers first) so each ticket's blocking edges can reference real identifiers. Use the platform's native blocking relationship where it has one; otherwise set each ticket's "Blocked by" to the blocking issues. If the source was an existing issue, make each ticket its sub-issue (tracker doc's operation). Initialize each ticket's triage state as `ready-for-agent` unless instructed otherwise; the tickets are agent-grabbable by construction.
