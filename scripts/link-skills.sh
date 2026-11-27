@@ -35,6 +35,7 @@ while IFS= read -r -d '' skill_md; do
   srcs+=("$src")
 done < <(find "$REPO/skills" -name SKILL.md -not -path '*/node_modules/*' -not -path '*/deprecated/*' -not -path '*/misc/*' -print0)
 
+# Judge link text lexically against REPO (upstream's link path) and destinations physically against PHYSICAL_REPO.
 points_into_checkout() {
   local target part path=""
   local -a parts
@@ -42,7 +43,7 @@ points_into_checkout() {
   target="$(readlink -n "$1" && printf '.')" || return 1
   target="${target%.}"
   if [[ "$target" != /* ]]; then
-    target="$(cd -P -- "$(dirname "$1")" && pwd)/$target" || return 1
+    target="${1%/*}/$target"
   fi
 
   # Use the named path, even if it is missing or is itself a symlink.
@@ -64,29 +65,28 @@ report_conflict() {
   conflicts=1
 }
 
+resolved_dests=()
 for DEST in "${DESTS[@]}"; do
-  invalid_directory="not a writable, searchable directory"
-  # If $DEST is a symlink that resolves into this repo, we'd end up writing the
-  # per-skill symlinks back into the repo's own skills/ tree. Detect and bail
-  # out instead of polluting the working copy.
-  if [ -L "$DEST" ]; then
-    if ! resolved="$(readlink -f "$DEST" 2>/dev/null)"; then
-      report_conflict "$DEST" "a destination symlink that cannot be resolved"
-      continue
-    fi
-    if [[ "$resolved" == "$PHYSICAL_REPO" || "$resolved" == "$PHYSICAL_REPO/"* ]]; then
-      report_conflict "$DEST" "a destination symlink into this checkout"
-      continue
-    fi
-    invalid_directory="a destination symlink that does not lead to a writable, searchable directory"
-  elif [ ! -e "$DEST" ]; then
+  ancestor="$DEST"
+  suffix=""
+  while [ ! -e "$ancestor" ] && [ ! -L "$ancestor" ]; do
+    suffix="/${ancestor##*/}$suffix"
+    ancestor="$(dirname "$ancestor")"
+  done
+
+  if ! ancestor="$(cd -P -- "$ancestor" 2>/dev/null && pwd)" || [ ! -x "$ancestor" ]; then
+    report_conflict "$DEST" "not a writable, searchable directory outside this checkout"
     continue
   fi
-  if [ ! -d "$DEST" ] || [ ! -w "$DEST" ] || [ ! -x "$DEST" ]; then
-    report_conflict "$DEST" "$invalid_directory"
-    continue
+  if [[ ! -w "$ancestor" || "$ancestor" == "$PHYSICAL_REPO" || "$ancestor" == "$PHYSICAL_REPO/"* ]]; then
+    report_conflict "$DEST" "not a writable, searchable directory outside this checkout"
   fi
 
+  resolved="${ancestor%/}$suffix"
+  resolved_dests+=("${resolved:-/}")
+done
+
+for DEST in ${resolved_dests[@]+"${resolved_dests[@]}"}; do
   for name in "${names[@]}"; do
     target="$DEST/$name"
     if [ -L "$target" ]; then
@@ -99,6 +99,13 @@ for DEST in "${DESTS[@]}"; do
       report_conflict "$target" "a directory"
     elif [ -e "$target" ]; then
       report_conflict "$target" "another kind of filesystem entry"
+    else
+      for destination in "${resolved_dests[@]}"; do
+        if [[ "$destination" == "$target" || "$destination" == "$target/"* ]]; then
+          report_conflict "$target" "needed as a destination directory"
+          break
+        fi
+      done
     fi
   done
 done
@@ -108,7 +115,7 @@ if [ "$conflicts" -ne 0 ]; then
   exit 1
 fi
 
-for DEST in "${DESTS[@]}"; do
+for DEST in "${resolved_dests[@]}"; do
   mkdir -p "$DEST"
 
   for i in "${!names[@]}"; do

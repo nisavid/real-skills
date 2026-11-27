@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
-  copyFileSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync,
+  chmodSync, copyFileSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync,
   readlinkSync, realpathSync, rmSync, symlinkSync, writeFileSync,
 } from "node:fs";
 import { tmpdir, userInfo } from "node:os";
@@ -10,16 +10,21 @@ import { basename, dirname, isAbsolute, join, relative, sep } from "node:path";
 import test from "node:test";
 
 // Review all destination construction and filesystem writes before updating this digest.
-const linkerDigest = "8076cf2acfd7a9adc40e7df13f04f42a27e9330d12f4339ce8a3dd8f4586e2cf";
+const linkerDigest = "a4d07258d5ec72bbf52c41508a40151e12406528212bf2f2d645aa0ec27924e6";
 
 function resolveDestination(path, symlinksRemaining = 40) {
   try {
     return realpathSync.native(path);
   } catch (error) {
-    if (error.code !== "ENOENT") throw error;
+    if (error.code !== "ENOENT" && error.code !== "ENOTDIR") throw error;
     const parent = resolveDestination(dirname(path), symlinksRemaining);
     const entry = join(parent, basename(path));
-    if (!lstatSync(entry, { throwIfNoEntry: false })?.isSymbolicLink()) return entry;
+    try {
+      if (!lstatSync(entry, { throwIfNoEntry: false })?.isSymbolicLink()) return entry;
+    } catch (error) {
+      if (error.code === "ENOTDIR") return entry;
+      throw error;
+    }
 
     assert.ok(symlinksRemaining > 0, `Too many symlinks in destination: ${path}`);
     const target = readlinkSync(entry);
@@ -303,6 +308,29 @@ test("relative skill links start from a destination symlink's directory outside 
   assert.equal(readlinkSync(join(actual, "alpha")), f.alpha);
 });
 
+test("refreshing a live destination chain keeps the second install in the directory checked", (t) => {
+  const f = fixture(t);
+  const checked = join(f.home, "other-skills");
+  mkdirSync(checked);
+  const alias = join(f.checkout, "destination-alias");
+  symlinkSync(checked, alias);
+  mkdirSync(f.claude, { recursive: true });
+  symlinkSync(alias, join(f.claude, "alpha"));
+  mkdirSync(dirname(f.agents));
+  symlinkSync(join(f.claude, "alpha"), f.agents);
+  writeFileSync(join(f.alpha, "beta"), "keep this checkout file\n");
+  const checkoutBefore = snapshot(f.checkout);
+
+  const result = f.run();
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(snapshot(f.checkout), checkoutBefore);
+  assert.equal(realpathSync(join(f.claude, "alpha")), f.alpha);
+  assert.deepEqual(readdirSync(checked).sort(), ["alpha", "beta"]);
+  assert.equal(realpathSync(join(checked, "alpha")), f.alpha);
+  assert.equal(realpathSync(join(checked, "beta")), f.beta);
+});
+
 test("a destination symlink into the checkout stops all writes", (t) => {
   const f = fixture(t);
   const alias = join(f.home, "checkout-alias");
@@ -318,7 +346,7 @@ test("a destination symlink into the checkout stops all writes", (t) => {
   assert.deepEqual(snapshot(f.home), before);
   assert.deepEqual(snapshot(f.checkout), checkoutBefore);
   assert.ok(result.stderr.includes(f.agents), result.stderr);
-  assert.match(result.stderr, /destination symlink into this checkout/);
+  assert.match(result.stderr, /writable, searchable directory outside this checkout/);
   assert.match(result.stderr, /nothing was changed/i);
   assert.equal(result.stderr.trim().split("\n").length, 2, result.stderr);
 });
@@ -340,7 +368,7 @@ test("a dangling destination cannot become a link into the checkout during the r
       assert.deepEqual(snapshot(f.home), before);
       assert.deepEqual(snapshot(f.checkout), checkoutBefore);
       assert.ok(result.stderr.includes(f.agents), result.stderr);
-      assert.match(result.stderr, /destination symlink/);
+      assert.match(result.stderr, /writable, searchable directory outside this checkout/);
       assert.match(result.stderr, /nothing was changed/i);
     });
   }
@@ -358,6 +386,75 @@ test("a destination that is a regular file stops all writes, including the absen
   assert.deepEqual(snapshot(f.home), before);
   assert.ok(result.stderr.includes(f.agents), result.stderr);
   assert.match(result.stderr, /writable, searchable directory/);
+  assert.match(result.stderr, /nothing was changed/i);
+});
+
+test("a dangling destination parent stops all writes", (t) => {
+  const f = fixture(t);
+  symlinkSync(join(f.claude, "alpha"), dirname(f.agents));
+  const before = snapshot(f.home);
+  const checkoutBefore = snapshot(f.checkout);
+
+  const result = f.run();
+
+  assert.equal(result.status, 1, result.stderr);
+  assert.deepEqual(snapshot(f.home), before);
+  assert.deepEqual(snapshot(f.checkout), checkoutBefore);
+  assert.ok(result.stderr.includes(f.agents), result.stderr);
+  assert.match(result.stderr, /nothing was changed/i);
+});
+
+test("a regular file at the destination parent stops all writes", (t) => {
+  const f = fixture(t);
+  writeFileSync(dirname(f.agents), "keep this file\n");
+  const before = snapshot(f.home);
+
+  const result = f.run();
+
+  assert.equal(result.status, 1, result.stderr);
+  assert.deepEqual(snapshot(f.home), before);
+  assert.ok(result.stderr.includes(f.agents), result.stderr);
+  assert.match(result.stderr, /nothing was changed/i);
+});
+
+test("a searchable read-only destination still reports each conflicting skill", {
+  skip: process.getuid() === 0 && "requires a non-root user",
+}, (t) => {
+  const f = fixture(t);
+  mkdirSync(f.agents, { recursive: true });
+  const file = join(f.agents, "alpha");
+  const directory = join(f.agents, "beta");
+  writeFileSync(file, "keep this file\n");
+  mkdirSync(directory);
+  chmodSync(f.agents, 0o555);
+  try {
+    const before = snapshot(f.home);
+    const result = f.run();
+
+    assert.equal(result.status, 1, result.stderr);
+    assert.deepEqual(snapshot(f.home), before);
+    const lines = result.stderr.trim().split("\n");
+    for (const [path, kind] of [[f.agents, "writable, searchable directory"], [file, "regular file"], [directory, "directory"]]) {
+      assert.ok(lines.some((line) => line.includes(path) && line.includes(kind)), result.stderr);
+    }
+    assert.match(result.stderr, /nothing was changed/i);
+  } finally {
+    chmodSync(f.agents, 0o755);
+  }
+});
+
+test("a new skill link cannot occupy a path needed for a missing destination", (t) => {
+  const f = fixture(t);
+  f.skill("engineering/skills");
+  mkdirSync(f.claude, { recursive: true });
+  symlinkSync(f.claude, dirname(f.agents));
+  const before = snapshot(f.home);
+
+  const result = f.run();
+
+  assert.equal(result.status, 1, result.stderr);
+  assert.deepEqual(snapshot(f.home), before);
+  assert.ok(result.stderr.includes(join(f.claude, "skills")), result.stderr);
   assert.match(result.stderr, /nothing was changed/i);
 });
 
