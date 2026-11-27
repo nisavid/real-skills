@@ -1,6 +1,6 @@
 ## What it does
 
-`triage` works through the issues on your project's tracker. It moves each one through a small state machine of **triage roles** (a category role and a state role). Each issue ends as an agent-ready brief, a specific question for the reporter, or a closed issue with a recorded reason.
+`triage` works through the issues on your project's tracker. It reuses the permission you gave for the issue or PR and asks before taking any uncovered action, returning its recommendation or draft. In a completed triage, it moves the item through a small state machine of **triage roles** (a category role and a state role). Each issue ends as an agent-ready brief, a specific question for the reporter, or a closed issue with a recorded reason.
 
 It is only for issues **you didn't create**. That means raw bug reports, incoming feature requests, or an external pull request that arrived unannounced: work that came into the tracker from outside, in whatever shape the reporter left it. [Tickets](https://www.aihero.dev/ai-coding-dictionary/ticket) from [to-tickets](https://aihero.dev/skills-to-tickets) are already agent-ready, so if you run `triage` over them, you waste the work. The rule is simple: `/triage` is only for incoming issues, not for issues you created yourself.
 
@@ -30,7 +30,7 @@ Executing a PR or a reporter's reproduction requires a disposable sandbox with n
 
 The attention query finds incoming work with no applicable triage state independently of its other labels. A Wayfinder-labelled incoming request remains discoverable; a planning-only map is not automatically triage work. The buckets are read at the tracker that holds the triage state, under your mapping, and adding another classification never resets a later triage state.
 
-Every triaged item ends with exactly one category role and one state role: its work kind and its triage state. Triage owns those two classifications and nothing else. Before it writes, it loads [issue-composition](https://aihero.dev/skills-issue-composition), the shared contract that keeps Wayfinder's map and decision-type labels, claims, and blockers intact while triage changes its own labels one at a time. A bug can also be a map where your policy allows it; if your policy forbids a combination, triage writes nothing and reports the conflict. A planning-only issue need not carry irrelevant triage roles; a map does not make implementation work agent-ready. Where Linear owns intake, its native Triage status is the triage state, and no skill adds a `needs-triage` label to duplicate it; a `needs-triage` label projected from another tracker that is the authority is left alone. There are two categories: `bug` (something is broken) and `enhancement` (new feature or improvement). There are five states:
+Every triaged item ends with exactly one category role and one state role: its work kind and its triage state. Triage owns those two classifications and nothing else. Before it writes, it loads [issue-composition](https://github.com/nisavid/real-skills/blob/main/docs/engineering/issue-composition.md), the shared contract that keeps Wayfinder's map and decision-type labels, claims, and blockers intact while triage changes its own labels one at a time. A bug can also be a map where your policy allows it; if your policy forbids a combination, triage writes nothing and reports the conflict. A planning-only issue need not carry irrelevant triage roles; a map does not make implementation work agent-ready. Where Linear owns intake, its native Triage status is the triage state, and no skill adds a `needs-triage` label to duplicate it; a `needs-triage` label projected from another tracker that is the authority is left alone. There are two categories: `bug` (something is broken) and `enhancement` (new feature or improvement). There are five states:
 
 | State | Means |
 | --- | --- |
@@ -54,12 +54,12 @@ That is the whole vocabulary. The rule of exactly one state role per item keeps 
 
 ## Verify before you brief
 
-Before any [grilling](https://www.aihero.dev/ai-coding-dictionary/grilling), `triage` reviews the claim statically. When suitable isolation is available, it reproduces a bug or checks out the exact reviewed PR revision and runs reviewed tests inside that boundary. Git hooks, checkout filters, and automatic dependency install scripts stay disabled. Then it reports one of four results:
+Before any [grilling](https://www.aihero.dev/ai-coding-dictionary/grilling), `triage` reviews the claim statically. When your request covers execution and suitable isolation is available, it reproduces a bug or checks out the exact reviewed PR revision and runs reviewed tests inside that boundary. Git hooks, checkout filters, and automatic dependency install scripts stay disabled. Then it reports one of four results:
 
 - Confirmed, with the code path.
 - Failed to reproduce.
 - Not enough detail to try. This is the strongest `needs-info` signal there is.
-- Not run because suitable isolation is unavailable. This does not mean the claim failed.
+- Not run because execution is outside the request or suitable isolation is unavailable. This does not mean the claim failed.
 
 The notes and agent brief distinguish static conclusions from executed results and carry the exact revisions, commands, isolation, and skipped checks. The same boundary follows delegated diagnosis and implementation work. A temporary worktree alone does not protect maintainer credentials, files, or network access.
 

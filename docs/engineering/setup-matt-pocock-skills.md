@@ -4,7 +4,7 @@
 
 Those files hold each repo's skill configuration. The skills themselves are identical everywhere. They read `docs/agents/issue-tracker.md` at run time and do what it says. That is why the set is not tied to GitHub, and why you never edit a skill file to point it at another tracker. Invoking it with "link the skills to a custom issue tracker" works with anything you can connect to programmatically, with no changes to the skills.
 
-It is a prompt-driven skill, not a deterministic script. It reads your `git remote`, `CLAUDE.md` and `GLOSSARY.md`, proposes what it found, and confirms the setup choices with you.
+It is a prompt-driven skill, not a deterministic script. It uses your existing permission for hosted lookups, Git initialization, remote setup, and label creation, asking before any lookup or change outside your grant. It reads your `git remote`, `CLAUDE.md` and `GLOSSARY.md`, proposes what it found, and confirms the setup choices with you.
 
 ## When to reach for it
 
@@ -53,7 +53,7 @@ If a legacy context map exists, setup can offer a migration of the map and its m
 
 The GitHub and GitLab templates keep PR/MR discovery off by default. Enabling discovery does not authorize execution: `triage` requires disposable isolation before checking out or running contributed code, and records checks as not run when isolation is unavailable. Existing tracker configs can carry the same reminder when you refresh them.
 
-Whatever tracker you choose, `docs/agents/issue-tracker.md` ends with a **tracker policy** section. It is where your project, not a skill, says which tracker is the **authority** for each fact (work kind, triage state, map structure, decision type, parent, blockers, provenance, claim, closure, lifecycle status), which combinations of classifications you forbid, and who owns that policy. [issue-composition](https://aihero.dev/skills-issue-composition), the contract the tracker-writing skills share, reads it. If you keep GitHub issues and mirror them into Linear, this is where you say that GitHub decides the labels and blockers while Linear owns the statuses GitHub has no field for. The triage label mapping has a matching column for any native status a triage state maps to, such as Linear's Triage.
+Whatever tracker you choose, `docs/agents/issue-tracker.md` ends with a **tracker policy** section. It is where your project, not a skill, says which tracker is the **authority** for each fact (work kind, triage state, map structure, decision type, parent, blockers, provenance, claim, closure, lifecycle status), which combinations of classifications you forbid, and who owns that policy. [issue-composition](https://github.com/nisavid/real-skills/blob/main/docs/engineering/issue-composition.md), the contract the tracker-writing skills share, reads it. If you keep GitHub issues and mirror them into Linear, this is where you say that GitHub decides the labels and blockers while Linear owns the statuses GitHub has no field for. The triage label mapping has a matching column for any native status a triage state maps to, such as Linear's Triage.
 
 "Other" is a full option too. It is how Jira, Linear, Azure DevOps and Beads all work. You describe the workflow, the skill records your prose in `docs/agents/issue-tracker.md`, and the downstream skills follow the prose. Users have already built this: a Jira-over-[MCP](https://www.aihero.dev/ai-coding-dictionary/mcp) variant, a Gitea CLI shaped like `gh`, a hand-built local dashboard.
 

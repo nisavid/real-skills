@@ -2,7 +2,7 @@
 
 `prototype` writes **throwaway code that answers a question**: does this state model feel right, or what should this screen look like. The question comes first and decides what you build. A prototype that answers the wrong question is wasted, however good it looks.
 
-Throwaway is a constraint on how the code is *written*, not a promise to destroy it. No tests, no error handling beyond what makes it run, no abstractions, no persistence, because none of that helps you learn the one thing you're trying to learn. Two things survive. The answer goes into the real code, and the prototype goes onto a branch out of main as evidence for the answer.
+Throwaway is a constraint on how the code is *written*, not a promise to destroy it. No tests, no error handling beyond what makes it run, no abstractions, no persistence, because none of that helps you learn the one thing you're trying to learn. Asking for a prototype, including by typing `/prototype`, covers writing the throwaway demo and opening a local HTML demo for you, while the agent still asks before any other step you haven't authorized, such as changing product code or committing the prototype.
 
 ## When to reach for it
 
@@ -62,6 +62,6 @@ It can be, if you prototype questions you could have answered by talking, or let
 
 `prototype` is a **reach-for-it-anytime standalone**: you use it to settle one design question, then go back to your work. Another skill also runs it.
 
-The skill that runs it most is [wayfinder](https://aihero.dev/skills-wayfinder). A wayfinder map is made of **decision tickets**, and `prototype` is one of the four types a ticket can be: the one used when the blocking question is "how should this look" or "how should it behave", which no amount of discussion resolves. When a discussion is vague, wayfinder makes something concrete to react to, and this skill builds that thing. The answer resolves a prototype ticket, and the map links to the prototype as an asset.
+The skill that runs it most is [wayfinder](https://aihero.dev/skills-wayfinder). A wayfinder map is made of **decision tickets**, and `prototype` is one of the types a ticket can be: the one used when the blocking question is "how should this look" or "how should it behave", which no amount of discussion resolves. When a discussion is vague, wayfinder makes something concrete to react to, and this skill builds that thing. The answer resolves a prototype ticket, and the map links to the prototype as an asset.
 
 The other neighbours are upstream and downstream of that. [grill-me](https://aihero.dev/skills-grill-me) and [grill-with-docs](https://aihero.dev/skills-grill-with-docs) answer grillable questions; the ungrillable ones come here instead, and the one-line answer goes back into the interview. Downstream, a validated state model or UI direction becomes settled input for [to-spec](https://aihero.dev/skills-to-spec), which can inline the decision-rich snippet the prototype produced rather than describing it in prose. For anything else, [ask-matt](https://aihero.dev/skills-ask-matt) routes you over the whole set.

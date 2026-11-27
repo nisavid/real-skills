@@ -20,7 +20,7 @@ Tickets that `to-tickets` produced are agent-ready by construction. Don't run [t
 
 ## Prerequisites
 
-`to-tickets` publishes into a tracker, so [setup-matt-pocock-skills](https://aihero.dev/skills-setup-matt-pocock-skills) must have configured one for this repo, along with the triage-label vocabulary. It sets each ticket's starting triage state, parent, and blockers under [issue-composition](https://aihero.dev/skills-issue-composition), the contract the tracker-writing skills share, so a combination your project's policy forbids stops the publish with a reported conflict instead of an exception. Either kind works: a real tracker like GitHub or Linear, or local markdown files under `.scratch/`, which work with no extra setup.
+`to-tickets` publishes into a tracker, so [setup-matt-pocock-skills](https://aihero.dev/skills-setup-matt-pocock-skills) must have configured one for this repo, along with the triage-label vocabulary. It sets each ticket's starting triage state, parent, and blockers under [issue-composition](https://github.com/nisavid/real-skills/blob/main/docs/engineering/issue-composition.md), the contract the tracker-writing skills share, so a combination your project's policy forbids stops the publish with a reported conflict instead of an exception. Either kind works: a real tracker like GitHub or Linear, or local markdown files under `.scratch/`, which work with no extra setup.
 
 ## Tracer bullets, not layers
 
@@ -28,7 +28,7 @@ A **horizontal** slice ships one layer of the change. Nothing works until every 
 
 This is the rule people break most often. One team ran a 26-ticket stack sliced by layer (corpus, producer, aggregator, selector) and got roughly twenty agent runs per closed ticket, about three quarters of them rework. Their own post-mortem traced every failure class back to the horizontal slicing rather than to the implementations.
 
-Two things happen before anything is published. `to-tickets` looks for prefactoring (the principle "make the change easy, then make the easy change") and orders that work first. Then it presents the breakdown as a numbered list and quizzes you on it: is the granularity right, are the blocking edges real, should anything merge or split. Nothing reaches the tracker until you approve, and that quiz is the place to push back.
+`to-tickets` looks for prefactoring (the principle "make the change easy, then make the easy change") and orders that work first. Then it presents the breakdown as a numbered list and quizzes you on it: is the granularity right, are the blocking edges real, should anything merge or split. Your approval settles the breakdown. If the agent lacks authority to fetch the hosted spec or its comments, it works from the conversation and asks before fetching, and if it lacks authority for the writes to the configured tracker, it returns the ticket drafts and proposed target and asks before publishing.
 
 ## Blocking edges
 
@@ -41,7 +41,7 @@ The edges are the point of the artifact. They work in two ways, depending on the
 
 The edges live in the ticket either way. The tracker only decides whether anything can act on them in parallel. `to-tickets` produces the artifact; running it (one session at a time, or a fleet) is your job, not the skill's.
 
-`to-tickets` never closes the source issue. The one change it may make there is to release a claim it holds on it as soon as the first ticket exists beneath it, before it publishes the next, because under [issue-composition](https://aihero.dev/skills-issue-composition) an issue with open children holds no claim.
+`to-tickets` never closes the source issue. The one change it may make there is to release a claim it holds on it as soon as the first ticket exists beneath it, before it publishes the next, because under [issue-composition](https://github.com/nisavid/real-skills/blob/main/docs/engineering/issue-composition.md) an issue with open children holds no claim.
 
 ## The wide-refactor exception
 
@@ -73,7 +73,7 @@ This is the same kind of problem, [reported in issue #513](https://github.com/ma
 They did, and that was a bug. A single shared file also caused race conditions when parallel agents wrote to it. Local mode now writes one file per ticket under `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, in dependency order, matching the layout the local tracker template already described. The `NN` prefix is a real ticket ID, so `/implement 03` works instead of retyping a long title.
 
 **It kept truncating when it tried to read my spec.**
-A very large spec can outgrow what a tracker issue serves back cleanly. There is no local copy to fall back on, so the agent spends [tool calls](https://www.aihero.dev/ai-coding-dictionary/tool-call) fetching chunks again and never reaches the end. Don't [clear](https://www.aihero.dev/ai-coding-dictionary/clearing) or [compact](https://www.aihero.dev/ai-coding-dictionary/compaction) between `/to-spec` and `/to-tickets`. Run them in the same context window and the agent never has to fetch the spec back.
+A very large spec can outgrow what a tracker issue serves back cleanly. There is no local copy to fall back on, so an agent authorized to fetch it can spend [tool calls](https://www.aihero.dev/ai-coding-dictionary/tool-call) fetching chunks again and never reach the end. Don't [clear](https://www.aihero.dev/ai-coding-dictionary/clearing) or [compact](https://www.aihero.dev/ai-coding-dictionary/compaction) between `/to-spec` and `/to-tickets`. Run them in the same context window and the agent never has to fetch the spec back.
 
 **The acceptance criteria graded nothing: some passed before any work was done.**
 The template asks for criteria and says nothing about whether they can fail, so this happens. Three shapes recur: a criterion already true at the base commit, a criterion that only work in another ticket can satisfy, and one that restates the request rather than deriving from the artifact. Vertical slicing prevents most of it, because a slice that delivers new behaviour fails at the base commit by construction. The check is still worth doing by hand. For each criterion, name the observation that would show it false, and confirm it fails at the commit the implementer starts from.

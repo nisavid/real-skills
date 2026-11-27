@@ -7,6 +7,8 @@ description: Build and sharpen a project's domain model. Use when discussing cod
 
 Actively build and sharpen the project's domain model as you design. This is the *active* discipline: challenging terms, inventing edge-case scenarios, and writing the glossary and decisions down the moment they crystallise. (Merely *reading* `GLOSSARY.md` for vocabulary is not this skill: that's a one-line habit any skill can do. This skill is for when you're changing the model, not just consuming it.)
 
+Since invocation grants no authority, reuse an applicable user grant to create or edit a glossary entry or accepted ADR at its validated path, and if the grant does not cover that file and change, return the proposed entry or ADR draft and its path and ask before writing. The user's own request for a glossary entry or an accepted ADR, whether they invoked this skill themselves or asked in words, is such a grant for that edit at its validated path and nothing beyond it; the agent's choice to invoke this skill is not.
+
 ## File structure
 
 Most repos have a single context:

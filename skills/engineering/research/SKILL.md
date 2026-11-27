@@ -3,6 +3,8 @@ name: research
 description: Investigate a question against high-trust primary sources and capture the findings as a Markdown file in the repo. Use when the user wants a topic researched, docs or API facts gathered, or reading legwork delegated to a background agent.
 ---
 
+Since invocation grants no authority, reuse an applicable user grant for the background agent and its brief, source lookups and any credentials they use, and the note's repository path, and if a step or target is outside that grant, return the available findings, identify what is pending, and ask before proceeding. The user's own request for a research note, whether they invoked this skill themselves or asked in words, is such a grant for that Markdown file in the repository and nothing beyond it; the agent's choice to invoke this skill is not.
+
 Spin up a **background agent** to do the research, so you keep working while it reads. Start it with a fresh context window.
 
 Its job:

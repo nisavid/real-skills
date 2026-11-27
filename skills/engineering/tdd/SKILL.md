@@ -9,6 +9,8 @@ TDD is the red → quick refactor → green → quick refactor loop. This skill 
 
 Apply the governing model eligibility rules before local work or delegation, and reassess them when the scope changes materially.
 
+Invocation grants no authority, so reuse the user's grant for test and implementation edits in the selected checkout and test runs against the selected environment, including database or filesystem writes, and if an operation or target is outside that grant, return the proposed slice and ask before acting.
+
 When exploring the codebase, read `GLOSSARY.md` (if it exists) so test names and interface vocabulary match the project's domain language, and respect ADRs in the area you're touching.
 
 ## What a good test is

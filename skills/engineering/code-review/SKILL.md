@@ -3,6 +3,8 @@ name: code-review
 description: "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes: Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/spec asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\"."
 ---
 
+Since invocation grants no authority, reuse an applicable user grant to fetch the referenced tracker item or share the diff, standards, and spec with the selected reviewers, and if a lookup or dispatch is outside that grant, report the pending operation and target and ask before proceeding.
+
 Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
 
 - **Standards**: does the code conform to this repo's documented coding standards?
@@ -93,7 +95,7 @@ End with a one-line summary: total findings per axis, and the worst issue _withi
 
 The review coordinator returns findings; the owning implementation coordinator handles authorized corrections. Keep the two axis reports separate while resolving their findings through the governing review and adjudication policy. A missing Spec review limits the claim; it does not establish spec compliance. This skill does not replace required repository review or authorize edits in a read-only review.
 
-For every correction, the owning implementation coordinator calls the Skill tool with "tdd" where possible, at pre-agreed seams, including its quick refactor after each RED and each GREEN. The owning implementation coordinator checkpoints the task-owned corrections through the governing Git workflow before a HEAD-based re-review, so that review includes the corrected candidate. Re-review that candidate independently under the governing policy; keep review before push. A changed candidate or relevant evidence dependency makes affected passes stale.
+For every correction, the fixer selected by the owning workflow (the owning implementation coordinator by default) calls the Skill tool with "tdd" where possible, at pre-agreed seams, including its quick refactor after each RED and each GREEN. The fixer checkpoints its task-owned corrections through the governing Git workflow before a HEAD-based re-review, so that review includes the corrected candidate. Re-review that candidate independently under the governing policy; keep review before push. A changed candidate or relevant evidence dependency makes affected passes stale.
 
 After **every completed clean code review**, hand the reviewed candidate, covered scope, assessment inputs, and review result to the owning implementation coordinator, which calls the Skill tool with "improve-codebase-architecture" in automatic mode; that skill owns the completed-baseline exception, baseline recording, and event reconciliation. When no implementation coordinator owns the reviewed work, return the clean result to the requester instead. Review coordinators return the event; leaf reviewers never initiate refactoring, and no review recursively runs the deep-refactor workflow inside itself.
 
