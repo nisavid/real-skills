@@ -4,6 +4,8 @@ description: "Compact the current conversation into a handoff document for anoth
 argument-hint: "What will the next session be used for?"
 ---
 
+Invocation grants no authority to save the redacted handoff, so reuse an applicable user grant covering its proposed temporary path, or return the draft and ask before writing there. The user's own request for a handoff, whether they invoked this skill themselves or asked in words, is such a grant for that file and nothing beyond it; the agent's choice to invoke this skill is not.
+
 Write a handoff document summarising the current conversation so a fresh agent can continue the work. Save to the temporary directory of the user's OS (`$TMPDIR`, else `/tmp`; `%TEMP%` on Windows) - not the current workspace.
 
 Include a "suggested skills" section in the document, naming which skills the next agent should call the Skill tool for.

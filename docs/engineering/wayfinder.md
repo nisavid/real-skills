@@ -6,7 +6,7 @@ Assessment does not require a map. A bounded request can proceed with a short as
 
 ## When to reach for it
 
-Type `/wayfinder`, or let the agent invoke it on new intake, before work, and when a change or return could alter the route. Sage owns the assessment, directly or through a Sage child using the same effective model and reasoning selection. Invoking the skill does not grant permission to change the tracker or perform the eventual work.
+Type `/wayfinder`, or let the agent invoke it on new intake, before work, and when a change or return could alter the route. Sage owns the assessment, directly or through a Sage child using the same effective model and reasoning selection. Invoking the skill does not grant permission to change the tracker or perform the eventual work. The agent reuses your grant for hosted reads, tracker writes, workers and their inputs, planning files, isolated prototype builds, research or prototype branches and commits, research pushes, and prototype delivery, and returns the draft, artifact, or proposed operation with its target for your approval wherever that grant falls short.
 
 | What you have in front of you | What happens next |
 | --- | --- |
