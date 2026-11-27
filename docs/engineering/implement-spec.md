@@ -4,6 +4,8 @@
 
 It reads the tickets as a **task graph**, not a list. Blocking edges decide what can start, so at any moment there is a **frontier** of tickets whose blockers have all landed, and every ticket on the frontier runs at once. That is the difference from working the tickets one by one. The graph's shape sets the pace, not the tickets' order on the tracker.
 
+Once every ticket has merged, the integration branch tip contains the candidate for the HEAD-based review. Before re-review, each correction or refactor must be committed on the fixer's own branch under your grant and land through the merger. This includes automatic refactoring and corrections from its review. The completed refactor baseline names the independently reviewed final revision and assessment. Local checkpoints do not authorize publication.
+
 ## When to reach for it
 
 Type `/implement-spec`, or the agent can invoke it when the task fits. Pushing, opening or readying a PR, and closing tickets require authority for the operation and target; without it, the agent stops at the integration branch and reports the pending operations.
@@ -23,13 +25,15 @@ Type `/implement-spec`, or the agent can invoke it when the task fits. Pushing, 
 
 ## The integration branch
 
-The integration branch holds the tickets and review fixes that have merged. The orchestrator points each implementer, including the review fixer, to your request so it can check its authority to commit to its own branch. The run keeps and reports every worktree with uncommitted or unmerged work. Each implementer:
+The integration branch holds the tickets and review fixes that have merged. The orchestrator points each implementer and each fixer the governing review policy selects to your request so it can check its authority to commit to its own branch. The run keeps and reports every worktree with uncommitted or unmerged work. Each implementer:
 
-1. confirms its worktree is based on the integration branch before it starts,
+1. confirms its worktree is based on the integration branch before it starts and resets onto it if needed,
 2. builds its ticket with [tdd](https://aihero.dev/skills-tdd), red-green one slice at a time,
 3. after committing, merges the integration branch tip into its own branch before reporting done, so landing it is a fast-forward.
 
-The tracker, and your authority for remote and tracker operations, decide whether a pull request exists at all. If your tracker closes work through PRs, or you ask for one, the skill opens a draft PR after the first merge and marks it ready once all tickets and review fixes have landed. Otherwise the run stops on the integration branch with each fully merged ticket resolved and any unmerged work reported the way your tracker closes work, which works fully offline against a local markdown tracker. Without authority to push, open or ready the PR, or close tickets, the run stops on the integration branch and lists the pending operations.
+Each fixer follows steps 1 and 3.
+
+The tracker, and your authority for remote and tracker operations, decide whether a pull request exists at all. If your tracker closes work through PRs, or you ask for one, the skill opens a draft PR after the first merge. Once all tickets and review fixes have landed, it pushes the independently reviewed final checkpoint to the PR branch and confirms the remote branch head is that checkpoint before marking it ready. Without a draft PR, the run stops on the integration branch with each fully merged ticket resolved and any unmerged work reported the way your tracker closes work, which works fully offline against a local markdown tracker. Without authority to push, open or ready the PR, or close tickets, the run stops on the integration branch and lists the pending operations.
 
 Implementers talk to the orchestrator through [context pointers](https://www.aihero.dev/ai-coding-dictionary/context-pointer) (the spec, the ticket, shared exploration notes, earlier commits) rather than pasted summaries. This keeps each subagent's prompt small and leaves room in the orchestrator's window for the graph.
 
@@ -45,7 +49,7 @@ No, not any more. One user who liked the in-progress version had exactly this co
 
 **Its review and fix loop ran for hours, or kept "fixing" tickets that hadn't been built yet.**
 
-Both happen when `code-review` runs anywhere other than the one point the skill gives it. It compares the code against the whole spec, so it only makes sense once every ticket has landed. If it runs mid-run, every unbuilt ticket reads as a failure. The agent then builds that ticket, and that triggers another review. At the end, the skill runs `code-review` once and sends every finding to one fix subagent, but it doesn't yet say when to stop after that fix. One user reported a five-ticket feature where "the review and fix loop took roughly four hours". If you see a second broad review start, tell it to run focused checks for the fixed findings and stop. Expect that first review to find real problems. The run's output is a draft that the review completes, not something to ship on its own.
+A review of the whole spec before all its tickets land can mistake unbuilt work for a defect. Review the integrated result once its tickets are implemented, then resolve valid findings under the governing review policy. Corrections retain quick cleanup after each RED and each GREEN. Every completed clean code review sends the owning implementation coordinator to automatic [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture): assess the assigned surface, implement eligible Strong recommendations, and independently review the final candidate together with its assessment. That skill's verified completed-baseline exception prevents repeating unchanged work. Leaf reviewers do not start this follow-up, and elapsed rounds do not establish completion.
 
 **Does it drive tdd like implement does?**
 

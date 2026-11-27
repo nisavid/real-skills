@@ -76,7 +76,7 @@ Explain what changes in the work that asked the question:
 
 - **Discovery:** replace the named assumption with the supported fact and its limits; keep unanswered questions explicit.
 - **Design:** identify which option or contract the evidence supports or rules out. Preserve recorded human decisions and bring any newly consequential choice back to its owner. If the domain model needs active revision, call the Skill tool with "domain-modeling" within that authority.
-- **TDD:** supply the established behavior and evidence to the owning `tdd` work. Follow its public-boundary selection and red-before-green requirements. A probe's output is not automatically a regression test or an independently justified expected value.
+- **TDD:** supply the established behavior and evidence to the owning `tdd` work. Preserve its agreed seam (the public boundary selected for testing) and its red-before-green requirements. A probe's output is not automatically a regression test or an independently justified expected value.
 
 Link the result where the consumer will find it before dependent work. Reuse it only after checking the relevant evidence dependencies against the current task. Changed behavior, version, configuration, inputs, or a changed question can invalidate the affected conclusion; elapsed time alone neither proves freshness nor requires rerunning an unchanged observation.
 

@@ -4,6 +4,8 @@
 
 The skill never merges or re-ranks the two axes. The report ends with a worst issue *per axis* and declines to name a single winner across them. A change can pass one axis and fail the other. Code that follows every convention but implements the wrong thing passes Standards and fails Spec. Code that does exactly what the [ticket](https://www.aihero.dev/ai-coding-dictionary/ticket) asked but breaks the repo's conventions does the reverse. A blended verdict lets the passing axis hide the failing one.
 
+A completed clean review also triggers automatic deep refactoring through the owning implementation coordinator, when one owns the reviewed work. The reviewers return evidence; that owner handles the follow-up within the assigned scope. A read-only review does not grant permission to edit.
+
 ## When to reach for it
 
 Type its plugin-qualified name, such as `/real-skills-leashed:code-review`, or the agent reaches for it automatically when you ask to review a branch, a PR, work in progress, or anything "since X". The bare `/code-review` can reach a different, built-in review instead (see the name clash below).
@@ -45,6 +47,14 @@ This design exists to avoid a generic review skill that does not know your stand
 
 The **smell baseline** sits under the repo's standards. It is twelve code smells from chapter 3 of Fowler's _Refactoring_: Mysterious Name, Duplicated Code, Feature Envy, Data Clumps, Primitive Obsession, Repeated Switches, Shotgun Surgery, Divergent Change, Speculative Generality, Message Chains, Middle Man, Refused Bequest. Each is a labelled heuristic ("possible Feature Envy"), never a hard violation. Each states what the smell is and how to fix it, so a finding comes with a fix attached rather than only a complaint. Both axes skip anything your linter already enforces.
 
+## Corrections and the clean-review follow-up
+
+Review corrections use [tdd](https://aihero.dev/skills-tdd) where possible, at pre-agreed seams, including its quick refactor after each RED and each GREEN; either stage can conclude that nothing warrants cleanup.
+
+After every clean code review, the owning implementation coordinator invokes [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) in automatic mode. It assesses the clean candidate, implements all eligible in-scope Strong recommendations, verifies the result, and obtains independent review of the final candidate together with the assessment. Strong means a demonstrated present design problem with a concrete improvement, supported by a comparison with the smallest adequate alternative. Wider changes and reserved decisions go back to their actual owners. When no implementation coordinator owns the reviewed work, as in a review you run on your own, the clean result comes back to you instead of starting that follow-up.
+
+The completed baseline and its single skip exception belong to [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture), which also defines what invalidates a baseline.
+
 ## Common questions
 
 **It collides with Claude Code's own `/code-review`. What do I do?**
@@ -80,11 +90,13 @@ Not without checking. Sub-agent output is a hypothesis, not evidence. One team r
 
 **Why does it find new problems every single time I run it?**
 
-Each fix adds new code to review, and the judgement-call half of the Standards axis gives different results from run to run. One reader described the loop: "/code-review and /improve-code-architecture always find new stuff every time. I implement fixes, rerun these skills, and again and again." There is no convergence guarantee. Treat a pass as a list of leads. Act on the ones with a cited rule behind them, then stop. Do not run it in a loop until it comes back clean, because it never will.
+Each fix adds code to review, and smell findings remain judgement calls. Check them against the cited evidence and resolve them under the repo's review policy. A loop that repeats the same cause needs that cause reported; a round count does not make an unresolved result clean.
+
+The automatic deep refactor does not repeat unchanged work; [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) defines its completed-baseline exception.
 
 **Does it review my uncommitted work?**
 
-No. It diffs `<fixed-point>...HEAD`. The three-dot form measures from the merge-base and excludes staged and working-tree changes. That is why `implement` commits before it calls this skill, and why it reports the work as not reviewed when it has no authority to commit. On your own, commit first, then review, then amend or add a fixup.
+No. It diffs `<fixed-point>...HEAD`. The three-dot form measures from the merge-base and excludes staged and working-tree changes. That is why `implement` commits before it calls this skill, and why it reports the work as not reviewed when it has no authority to commit. On your own, commit first, then review, then amend or add a fixup if needed. Each later correction or refactor needs its own checkpoint and fresh affected review; review remains before push.
 
 ## It's working if
 
@@ -94,15 +106,18 @@ No. It diffs `<fixed-point>...HEAD`. The three-dot form measures from the merge-
 - Every Standards finding names either a rule in one of your repo's files or one of the twelve smells, with the hunk quoted; every Spec finding quotes a line of the spec.
 - The closing summary gives a worst issue per axis and declines to pick an overall winner.
 - With no spec available, the Spec block says so instead of listing requirements it inferred from the code.
+- Review corrections show quick cleanup after each RED and GREEN, or explain why none was warranted.
+- When an implementation coordinator owns the reviewed work, a clean review leads to an automatic deep-refactor result or a verified unchanged completed baseline, with implemented work distinguished from independently reviewed work; a review you run on your own returns the clean result to you.
+- Leaf reviewers return their reports without launching refactors or further reviews.
 
 ## Where it fits
 
 `code-review` is the review step near the tail of the build chain: `grill-with-docs → to-spec → to-tickets → implement → code-review → retro`. It also stands alone on any branch or PR you point it at.
 
-- [implement](https://aihero.dev/skills-implement) is the closest neighbour. It drives the build, commits, and calls this skill as its closing review of that work. [implement-spec](https://aihero.dev/skills-implement-spec) does the same once, over the whole integration branch.
+- [implement](https://aihero.dev/skills-implement) is the closest neighbour. It drives the build, checkpoints the intended candidate, and calls this skill for independent review of that checkpoint. [implement-spec](https://aihero.dev/skills-implement-spec) does the same once, over the whole integration branch.
 - [retro](https://aihero.dev/skills-retro) comes after it and tunes it. When a session shows the review missing a class of mistake, `retro` proposes the check or the `CODING_STANDARDS.md` rule the Standards axis then reads.
 - [pr](https://aihero.dev/skills-pr) writes the pull request body once the reviewed work goes up.
 - [to-spec](https://aihero.dev/skills-to-spec) and [to-tickets](https://aihero.dev/skills-to-tickets) produce the document the Spec axis checks against, so a vague spec makes that axis vague.
-- [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) is the whole-codebase counterpart, because this skill only looks at one diff.
+- [improve-codebase-architecture](https://aihero.dev/skills-improve-codebase-architecture) runs the automatic deep-refactor follow-up on the assigned scope after a clean review of work that an implementation coordinator owns. Its interactive mode remains available for a wider architectural survey.
 
 [ask-matt](https://aihero.dev/skills-ask-matt) routes across the whole set when you are unsure which skill the situation wants.
