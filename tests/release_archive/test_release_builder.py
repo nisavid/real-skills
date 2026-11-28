@@ -222,3 +222,108 @@ def test_build_packages_icon_bytes_and_references_for_both_providers():
             else:
                 interface = manifest["extensions"]["com.openai"]["interface"]
                 assert interface["logo"] == interface["composerIcon"] == "./assets/wayfinder.svg"
+
+
+def test_distinct_icon_placements_and_credit_are_packaged():
+    from release_builder import build
+    import copy
+
+    output = io.BytesIO()
+    root = "mattpocock-skills-" + REVISION
+    with tarfile.open(fileobj=io.BytesIO(source_archive(icon=True)), mode="r:gz") as original:
+        with tarfile.open(fileobj=output, mode="w:gz") as replacement:
+            for item in original:
+                item = copy.copy(item)
+                data = original.extractfile(item).read() if item.isfile() else None
+                if item.name == root + "/.codex-plugin/plugin.json":
+                    manifest = json.loads(data)
+                    manifest["interface"]["composerIcon"] = "./assets/wake.svg"
+                    data = json.dumps(manifest).encode()
+                    item.size = len(data)
+                replacement.addfile(item, io.BytesIO(data) if data is not None else None)
+            for name, data in {"wake.svg": b"<svg/>", "icon-placements.json": b'{"composerIcon":"./assets/wake.svg"}', "ICON-CREDITS.md": b"Credit"}.items():
+                entry = tarfile.TarInfo(root + "/assets/" + name)
+                entry.mode = 0o644
+                entry.size = len(data)
+                replacement.addfile(entry, io.BytesIO(data))
+    source = output.getvalue()
+    archives, _ = build(source, hashlib.sha256(source).hexdigest(), REVISION, "1.3.1", "1.3.2+from.1.3.1")
+    for fmt in ("agent-plugins", "claude"):
+        with zipfile.ZipFile(io.BytesIO(archives[f"real-skills-leashed-1.3.2+from.1.3.1-{fmt}.zip"])) as archive:
+            assert archive.read("assets/ICON-CREDITS.md") == b"Credit"
+            if fmt == "agent-plugins":
+                assert archive.read("assets/wake.svg") == b"<svg/>"
+                interface = json.loads(archive.read("plugin.json"))["extensions"]["com.openai"]["interface"]
+                assert interface["composerIcon"] == "./assets/wake.svg"
+
+
+def test_duplicate_placement_keys_are_rejected():
+    import pytest
+    from release_builder import build
+    import copy
+
+    output = io.BytesIO()
+    root = "mattpocock-skills-" + REVISION
+    with tarfile.open(fileobj=io.BytesIO(source_archive(icon=True)), mode="r:gz") as original:
+        with tarfile.open(fileobj=output, mode="w:gz") as replacement:
+            for item in original:
+                item = copy.copy(item)
+                data = original.extractfile(item).read() if item.isfile() else None
+                replacement.addfile(item, io.BytesIO(data) if data is not None else None)
+            for name, data in {"icon-placements.json": b'{"composerIcon":"./assets/wayfinder.svg","composerIcon":"./assets/wayfinder.svg"}', "ICON-CREDITS.md": b"Credit"}.items():
+                entry = tarfile.TarInfo(root + "/assets/" + name)
+                entry.mode = 0o644
+                entry.size = len(data)
+                replacement.addfile(entry, io.BytesIO(data))
+    source = output.getvalue()
+    with pytest.raises(ValueError, match="duplicate JSON key"):
+        build(source, hashlib.sha256(source).hexdigest(), REVISION, "1.3.1", "1.3.2+from.1.3.1")
+
+
+def test_nonregular_placement_sidecar_cannot_fall_back_to_legacy():
+    import copy
+    import pytest
+    from release_builder import build
+    source = source_archive(icon=True)
+    output = io.BytesIO()
+    with tarfile.open(fileobj=io.BytesIO(source), mode="r:gz") as original:
+        with tarfile.open(fileobj=output, mode="w:gz") as replacement:
+            for item in original:
+                item = copy.copy(item)
+                data = original.extractfile(item).read() if item.isfile() else None
+                replacement.addfile(item, io.BytesIO(data) if data is not None else None)
+            entry = tarfile.TarInfo("mattpocock-skills-" + REVISION + "/assets/icon-placements.json")
+            entry.type = tarfile.SYMTYPE
+            entry.linkname = "wayfinder.svg"
+            replacement.addfile(entry)
+    source = output.getvalue()
+    with pytest.raises(ValueError):
+        build(source, hashlib.sha256(source).hexdigest(), REVISION, "1.3.1", "1.3.2+from.1.3.1")
+
+
+def test_placement_sidecar_without_base_icon_is_rejected():
+    import copy
+    import pytest
+    from release_builder import build
+
+    original_bytes = source_archive()
+    output = io.BytesIO()
+    with tarfile.open(fileobj=io.BytesIO(original_bytes), mode="r:gz") as original:
+        with tarfile.open(fileobj=output, mode="w:gz") as replacement:
+            for item in original:
+                item = copy.copy(item)
+                data = original.extractfile(item).read() if item.isfile() else None
+                replacement.addfile(item, io.BytesIO(data) if data is not None else None)
+            root = "mattpocock-skills-" + REVISION
+            folder = tarfile.TarInfo(root + "/assets")
+            folder.type = tarfile.DIRTYPE
+            folder.mode = 0o755
+            replacement.addfile(folder)
+            data = b'{"composerIcon":"./assets/wake.svg"}'
+            entry = tarfile.TarInfo(root + "/assets/icon-placements.json")
+            entry.size = len(data)
+            entry.mode = 0o644
+            replacement.addfile(entry, io.BytesIO(data))
+    source = output.getvalue()
+    with pytest.raises(ValueError, match="icon placements require an icon"):
+        build(source, hashlib.sha256(source).hexdigest(), REVISION, "1.3.1", "1.3.2+from.1.3.1")

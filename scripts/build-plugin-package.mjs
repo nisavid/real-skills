@@ -32,6 +32,17 @@ if (manifest.icon !== undefined) {
   if (typeof manifest.icon !== "string" || !/^\.\/assets\/[a-zA-Z0-9_-]+\.(?:svg|png|jpg|jpeg|webp)$/.test(manifest.icon)) throw new Error("Invalid plugin icon path.");
   requirePath(manifest.icon.slice(2), false);
 }
+let composerIcon = manifest.icon;
+if (requirePath("assets/icon-placements.json", false, true)) {
+  const rawPlacements = readFileSync(join(repo, "assets/icon-placements.json"), "utf8");
+  const singleEntry = /^\s*\{\s*("(?:[^"\\\x00-\x1f]|\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4}))*")\s*:\s*("(?:[^"\\\x00-\x1f]|\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4}))*")\s*\}\s*$/.exec(rawPlacements);
+  if (!singleEntry || JSON.parse(singleEntry[1]) !== "composerIcon") throw new Error("Invalid icon placements.");
+  const placements = JSON.parse(rawPlacements);
+  if (!manifest.icon || !placements || typeof placements !== "object" || Array.isArray(placements) || Object.keys(placements).length !== 1 || typeof placements.composerIcon !== "string" || !/^\.\/assets\/[a-zA-Z0-9_-]+\.(?:svg|png|jpg|jpeg|webp)$/.test(placements.composerIcon)) throw new Error("Invalid icon placements.");
+  requirePath(placements.composerIcon.slice(2), false);
+  requirePath("assets/ICON-CREDITS.md", false);
+  composerIcon = placements.composerIcon;
+}
 const { version } = JSON.parse(readFileSync(join(repo, "package.json")));
 if (manifest.name !== "real-skills-leashed" || manifest.version !== version) throw new Error("Source plugin identity or version does not match package.json.");
 if (!Array.isArray(manifest.skills) || !manifest.skills.length) throw new Error("Source manifest must list promoted skills.");
@@ -91,7 +102,7 @@ const expected = Buffer.from(JSON.stringify({
     developerName: "Ivan D Vasin",
     category: "Developer Tools",
     capabilities: ["Interactive"],
-    ...(manifest.icon ? { logo: manifest.icon, composerIcon: manifest.icon } : {}),
+    ...(manifest.icon ? { logo: manifest.icon, composerIcon } : {}),
   },
 }, null, 2) + "\n");
 const exists = requirePath(outputPath, false, true);

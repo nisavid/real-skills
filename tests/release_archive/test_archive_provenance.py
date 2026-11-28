@@ -264,3 +264,47 @@ def test_portable_support_file_bytes_are_verified(candidate, completed, tmp_path
     result = verify(candidate, mutated, "agent-plugins")
     assert result.returncode != 0
     assert "archive member differs from Git projection" in result.stderr
+
+
+def test_verifier_accepts_distinct_icon_candidate_and_rejects_symlink_sidecar(tmp_path):
+    import gzip
+    import importlib.util
+    import os
+
+    repo = tmp_path / "repo"
+    subprocess.run(["git", "clone", "--shared", str(REPO), str(repo)], check=True, capture_output=True)
+    rev = subprocess.check_output(["git", "-C", str(repo), "rev-parse", "HEAD"], text=True).strip()
+    raw = gzip.compress(subprocess.check_output(["git", "-C", str(repo), "-c", "tar.umask=0022", "archive", "--format=tar", f"--prefix=real-skills-{rev}/", rev]), mtime=0)
+    digest = hashlib.sha256(raw).hexdigest()
+    spec = importlib.util.spec_from_file_location("icon_builder", REPO / "scripts/build-release-archives.py")
+    builder = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(builder)
+    sys.path.insert(0, str(REPO / "scripts"))
+    try:
+        from verify_release_archive import verify_archive
+        archives, _ = builder.build(raw, digest, rev, "1.3.2", "1.3.4+from.1.3.2")
+        for fmt in ("agent-plugins", "claude"):
+            name = f"real-skills-leashed-1.3.4+from.1.3.2-{fmt}.zip"
+            archive = tmp_path / name
+            archive.write_bytes(archives[name])
+            verify_archive(str(repo), rev, digest, "1.3.2", "1.3.4+from.1.3.2", fmt, archive)
+        sidecar = repo / "assets/icon-placements.json"
+        sidecar.unlink()
+        os.symlink('{"composerIcon":"./assets/windflower-wake.svg"}', sidecar)
+        subprocess.run(["git", "-C", str(repo), "add", "assets/icon-placements.json"], check=True)
+        tree = subprocess.check_output(["git", "-C", str(repo), "write-tree"], text=True).strip()
+        with pytest.raises(ValueError, match="invalid icon placements"):
+            verify_archive(str(repo), tree, digest, "1.3.2", "1.3.4+from.1.3.2", "agent-plugins", archive)
+        subprocess.run(["git", "-C", str(repo), "reset", "--hard", rev], check=True, capture_output=True)
+        sidecar.write_text('{"composerIcon":"./assets/windflower-nocturne.svg"}')
+        subprocess.run(["git", "-C", str(repo), "add", "assets/icon-placements.json"], check=True)
+        tree = subprocess.check_output(["git", "-C", str(repo), "write-tree"], text=True).strip()
+        with pytest.raises(ValueError, match="source icon references disagree"):
+            verify_archive(str(repo), tree, digest, "1.3.2", "1.3.4+from.1.3.2", "agent-plugins", archive)
+        subprocess.run(["git", "-C", str(repo), "reset", "--hard", rev], check=True, capture_output=True)
+        subprocess.run(["git", "-C", str(repo), "rm", "assets/ICON-CREDITS.md"], check=True, capture_output=True)
+        tree = subprocess.check_output(["git", "-C", str(repo), "write-tree"], text=True).strip()
+        with pytest.raises(ValueError, match="missing license or icon"):
+            verify_archive(str(repo), tree, digest, "1.3.2", "1.3.4+from.1.3.2", "agent-plugins", archive)
+    finally:
+        sys.path.pop(0)

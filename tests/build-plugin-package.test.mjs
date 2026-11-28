@@ -308,7 +308,55 @@ test("native manifests identify the fork repository and credit the original auth
 test("native manifests retain the Wayfinder icon", () => {
   const claude = JSON.parse(readFileSync(join(repo, ".claude-plugin/plugin.json")));
   const codex = JSON.parse(readFileSync(join(repo, ".codex-plugin/plugin.json")));
-  assert.equal(claude.icon, "./assets/wayfinder.svg");
-  assert.equal(codex.interface.logo, "./assets/wayfinder.svg");
-  assert.equal(codex.interface.composerIcon, "./assets/wayfinder.svg");
+  assert.equal(claude.icon, "./assets/windflower-nocturne.svg");
+  assert.equal(codex.interface.logo, "./assets/windflower-nocturne.svg");
+  assert.equal(codex.interface.composerIcon, "./assets/windflower-wake.svg");
+});
+
+
+test("build uses selected composer artwork independently of listing artwork", (t) => {
+  const f = fixture(t);
+  f.manifest.icon = "./assets/nocturne.svg";
+  f.put(".claude-plugin/plugin.json", JSON.stringify(f.manifest));
+  f.put("assets/nocturne.svg", "<svg/>");
+  f.put("assets/wake.svg", "<svg/>");
+  f.put("assets/icon-placements.json", JSON.stringify({composerIcon: "./assets/wake.svg"}));
+  f.put("assets/ICON-CREDITS.md", "Credit");
+  const result = f.run();
+  assert.equal(result.status, 0, result.stderr);
+  const native = JSON.parse(readFileSync(join(f.root, ".codex-plugin/plugin.json")));
+  assert.equal(native.interface.logo, "./assets/nocturne.svg");
+  assert.equal(native.interface.composerIcon, "./assets/wake.svg");
+});
+
+test("build rejects selected artwork without its credit", (t) => {
+  const f = fixture(t);
+  f.manifest.icon = "./assets/nocturne.svg";
+  f.put(".claude-plugin/plugin.json", JSON.stringify(f.manifest));
+  f.put("assets/nocturne.svg", "<svg/>");
+  f.put("assets/wake.svg", "<svg/>");
+  f.put("assets/icon-placements.json", JSON.stringify({composerIcon: "./assets/wake.svg"}));
+  assert.notEqual(f.run().status, 0);
+});
+
+test("build rejects duplicate placement keys, including escaped equivalents", (t) => {
+  const f = fixture(t);
+  f.manifest.icon = "./assets/nocturne.svg";
+  f.put(".claude-plugin/plugin.json", JSON.stringify(f.manifest));
+  f.put("assets/nocturne.svg", "<svg/>");
+  f.put("assets/wake.svg", "<svg/>");
+  f.put("assets/ICON-CREDITS.md", "Credit");
+  f.put("assets/icon-placements.json", String.raw`{"composerIcon":"./assets/wake.svg","composer\u0049con":"./assets/wake.svg"}`);
+  assert.notEqual(f.run().status, 0);
+});
+
+test("build rejects invalid or missing selected composer artwork", async (t) => {
+  for (const value of ["./assets/../LICENSE", "./assets/missing.svg", null]) await t.test(String(value), (t) => {
+    const f = fixture(t);
+    f.manifest.icon = "./assets/nocturne.svg";
+    f.put(".claude-plugin/plugin.json", JSON.stringify(f.manifest));
+    f.put("assets/nocturne.svg", "<svg/>");
+    f.put("assets/icon-placements.json", JSON.stringify({composerIcon: value}));
+    assert.notEqual(f.run().status, 0);
+  });
 });

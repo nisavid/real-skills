@@ -319,6 +319,7 @@ def build(raw, expected_sha256, revision, base, release):
     require(set(claude) <= allowed, "new manifest fields need projection review")
     icon_path = claude.get("icon")
     if "icon" not in claude:
+        require("assets/icon-placements.json" not in types, "icon placements require an icon")
         require("logo" not in native["interface"] and "composerIcon" not in native["interface"],
                 "native icon references disagree")
     else:
@@ -329,8 +330,18 @@ def build(raw, expected_sha256, revision, base, release):
         require(types.get("assets") == tarfile.DIRTYPE, "invalid icon directory")
         require(types.get(asset) in (tarfile.REGTYPE, tarfile.AREGTYPE) and asset in source,
                 "missing or nonregular icon")
+        composer = icon_path
+        if "assets/icon-placements.json" in types:
+            require(types.get("assets/icon-placements.json") in (tarfile.REGTYPE, tarfile.AREGTYPE) and "assets/icon-placements.json" in source, "invalid icon placements")
+            placements = unique_json(source["assets/icon-placements.json"][0])
+            require(isinstance(placements, dict) and set(placements) == {"composerIcon"}, "invalid icon placements")
+            composer = placements["composerIcon"]
+            require(types.get("assets/ICON-CREDITS.md") in (tarfile.REGTYPE, tarfile.AREGTYPE) and "assets/ICON-CREDITS.md" in source, "missing artwork credit")
         require(native["interface"].get("logo") == icon_path
-                and native["interface"].get("composerIcon") == icon_path,
+                and native["interface"].get("composerIcon") == composer
+                and isinstance(composer, str)
+                and re.fullmatch(r"\./assets/[a-zA-Z0-9_-]+\.(?:svg|png|jpg|jpeg|webp)", composer)
+                and composer[2:] in source and types.get(composer[2:]) in (tarfile.REGTYPE, tarfile.AREGTYPE),
                 "native icon references disagree")
     portable = {k: copy.deepcopy(v) for k, v in claude.items() if k not in ("skills", "icon")}
     portable["$schema"] = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
@@ -380,6 +391,14 @@ def build(raw, expected_sha256, revision, base, release):
             require(asset not in files, "destination collision")
             files[asset] = source[asset]
             mapping[asset] = asset
+            if "assets/icon-placements.json" in types:
+                extra = ["assets/ICON-CREDITS.md"]
+                if format_name == "agent-plugins" and composer[2:] != asset:
+                    extra.append(composer[2:])
+                for path in extra:
+                    require(path not in files, "destination collision")
+                    files[path] = source[path]
+                    mapping[path] = path
         files[manifest_path] = (json_bytes(manifest), 0o644)
         provenance = {
             "source_revision": revision,
