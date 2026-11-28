@@ -11,7 +11,7 @@
       "source": {
         "source": "url",
         "url": "https://github.com/nisavid/real-skills",
-        "ref": "stable-vanilla-plus"
+        "ref": "c63cbf7f7ceb578eb3d55950cf6bb18bad7f680b"
       },
       "description": "A lightly revised and repackaged fork of Matt Pocock's Skills for Real Engineers.",
       "category": "engineering",
@@ -28,7 +28,7 @@
       "source": {
         "source": "url",
         "url": "https://github.com/nisavid/real-skills",
-        "ref": "stable"
+        "ref": "6570c605645e2f14e5dcd7ab0ed27054691b77ef"
       },
       "description": "A revised and repackaged fork of Matt Pocock's Skills for Real Engineers that lets agents, not only users, invoke every skill.",
       "category": "engineering",

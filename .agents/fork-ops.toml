@@ -89,6 +89,19 @@ portability_hint = "fork-specific"
 
 [[local_surfaces]]
 kind = "script"
+path = "scripts/link-skills.sh"
+domain = "local skill linking"
+notes = "Retain upstream skill selection and destinations and check both destinations for conflicts before writing links."
+portability_hint = "fork-specific"
+
+[[local_surfaces]]
+kind = "script"
+path = "tests/link-skills.test.mjs"
+domain = "isolated skill-link verification"
+portability_hint = "fork-specific"
+
+[[local_surfaces]]
+kind = "script"
 path = "scripts/reconcile-wayfinder-labels.mjs"
 domain = "conditional label reconciliation"
 portability_hint = "fork-specific"

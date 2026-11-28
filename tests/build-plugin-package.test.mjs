@@ -264,11 +264,68 @@ function sharedCatalog() {
   return {
     name: "real-skills",
     plugins: [
-      { name: "real-skills-leashed", source: { source: "url", url, ref: "stable-vanilla-plus" } },
-      { name: "real-skills-unleashed", source: { source: "url", url, ref: "stable" } },
+      { name: "real-skills-leashed", source: { source: "url", url, ref: "1111111111111111111111111111111111111111" } },
+      { name: "real-skills-unleashed", source: { source: "url", url, ref: "2222222222222222222222222222222222222222" } },
     ],
   };
 }
+
+test("build accepts shared catalogs pinned to distinct full commit IDs", (t) => {
+  const f = fixture(t);
+  const catalog = sharedCatalog();
+  catalog.plugins[0].source.ref = "1111111111111111111111111111111111111111";
+  catalog.plugins[1].source.ref = "2222222222222222222222222222222222222222";
+  for (const path of sharedCatalogPaths) f.put(path, JSON.stringify(catalog));
+
+  const result = f.run();
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test("build accepts shared catalogs pinned to full release tag refs", (t) => {
+  const f = fixture(t);
+  const catalog = sharedCatalog();
+  catalog.plugins[0].source.ref = "refs/tags/v1.3.4+from.1.3.2";
+  catalog.plugins[1].source.ref = "refs/tags/v1.3.5+from.1.3.2";
+  for (const path of sharedCatalogPaths) f.put(path, JSON.stringify(catalog));
+
+  const result = f.run();
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(f.run("--check").status, 0);
+});
+
+test("shared pin agreement is independent of entry order", (t) => {
+  const f = fixture(t);
+  for (const path of sharedCatalogPaths) f.put(path, JSON.stringify(sharedCatalog()));
+  const reordered = sharedCatalog();
+  reordered.plugins.reverse();
+  f.put(".agents/plugins/marketplace.json", JSON.stringify(reordered));
+  assert.equal(f.run().status, 0);
+  assert.equal(f.run("--check").status, 0);
+});
+
+test("build and check reject abbreviated commits and malformed release tag refs without writes", async (t) => {
+  const invalid = [
+    "1234abc", "A".repeat(40), null, 7,
+    "v1.3.4+from.1.3.2", "refs/heads/v1.3.4+from.1.3.2",
+    "refs/tags/stable", "refs/tags/v1.3.4", "refs/tags/v01.3.4+from.1.3.2",
+    "refs/tags/v1.3.4+from.1.3.2/extra", "refs/tags/v1.3.4+from.1.3.2\n",
+  ];
+  for (const ref of invalid) await t.test(JSON.stringify(ref), (t) => {
+    const f = fixture(t);
+    for (const path of sharedCatalogPaths) f.put(path, JSON.stringify(sharedCatalog()));
+    assert.equal(f.run().status, 0);
+    const catalog = sharedCatalog();
+    catalog.plugins[0].source.ref = ref;
+    f.put(".agents/plugins/marketplace.json", JSON.stringify(catalog));
+    const before = snapshot(f.root);
+    for (const args of [[], ["--check"]]) {
+      const result = f.run(...args);
+      assert.notEqual(result.status, 0);
+      assert.match(result.stderr, /Marketplace must select/);
+      assert.deepEqual(snapshot(f.root), before);
+    }
+  });
+});
 
 test("the shared marketplace retains distinct refs and builds each local variant", async (t) => {
   for (const name of ["real-skills-leashed", "real-skills-unleashed"]) {
@@ -288,6 +345,41 @@ test("the shared marketplace retains distinct refs and builds each local variant
   }
 });
 
+test("build and check reject moving shared catalog refs without changing files", async (t) => {
+  for (const args of [[], ["--check"]]) await t.test(args[0] ?? "build", (t) => {
+    const f = fixture(t);
+    for (const path of sharedCatalogPaths) f.put(path, JSON.stringify(sharedCatalog()));
+    assert.equal(f.run().status, 0);
+    const catalog = sharedCatalog();
+    catalog.plugins[0].source.ref = "stable-vanilla-plus";
+    catalog.plugins[1].source.ref = "stable";
+    for (const path of sharedCatalogPaths) f.put(path, JSON.stringify(catalog));
+    const before = snapshot(f.root);
+
+    const result = f.run(...args);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /Marketplace must select/);
+    assert.deepEqual(snapshot(f.root), before);
+  });
+});
+
+test("build and check reject differing pins for the same edition across shared catalogs without changing files", async (t) => {
+  for (const args of [[], ["--check"]]) await t.test(args[0] ?? "build", (t) => {
+    const f = fixture(t);
+    for (const path of sharedCatalogPaths) f.put(path, JSON.stringify(sharedCatalog()));
+    assert.equal(f.run().status, 0);
+    const catalog = sharedCatalog();
+    catalog.plugins[0].source.ref = "3333333333333333333333333333333333333333";
+    f.put(".agents/plugins/marketplace.json", JSON.stringify(catalog));
+    const before = snapshot(f.root);
+
+    const result = f.run(...args);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /Marketplace catalogs disagree/);
+    assert.deepEqual(snapshot(f.root), before);
+  });
+});
+
 test("build and check reject invalid or disagreeing shared catalog sources before writing", async (t) => {
   const cases = {
     "catalogs mix local and shared routing": (catalog) => {
@@ -296,7 +388,7 @@ test("build and check reject invalid or disagreeing shared catalog sources befor
     "different marketplace name": (catalog) => { catalog.name = "other-marketplace"; },
     "missing variant": (catalog) => { catalog.plugins.pop(); },
     "duplicate variant": (catalog) => { catalog.plugins[1] = catalog.plugins[0]; },
-    "same ref for both variants": (catalog) => { catalog.plugins[1].source.ref = "stable-vanilla-plus"; },
+    "same ref for both variants": (catalog) => { catalog.plugins[1].source.ref = catalog.plugins[0].source.ref; },
     "wrong source repository": (catalog) => { catalog.plugins[1].source.url = "https://example.invalid/real-skills"; },
     "additional source selector": (catalog) => { catalog.plugins[1].source.path = "./other-plugin"; },
   };
