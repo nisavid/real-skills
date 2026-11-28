@@ -2,7 +2,7 @@
 
 Skills I use daily for code work.
 
-This fork adds the `probing` skill and its summary and drops "user-invoked" from the upstream `ask-matt` summary because every skill listed here is agent-reachable. The summaries of `improve-codebase-architecture`, `implement`, `wayfinder`, and `tdd` are also this fork's. The remaining summaries are upstream's. Where the `implement-spec` summary closes out with `/code-review`, this fork's skills call this collection's own `code-review` skill. Where it was installed as a plugin, they use the plugin-qualified name the skill was loaded under (`<plugin>:code-review`), because a harness built-in that shares the bare name is a different review.
+This fork adds the `probing` and `issue-composition` skills and their summaries and drops "user-invoked" from the upstream `ask-matt` summary because every skill listed here is agent-reachable. The summaries of `improve-codebase-architecture`, `implement`, `wayfinder`, and `tdd` are also this fork's. The remaining summaries are upstream's. Where the `implement-spec` summary closes out with `/code-review`, this fork's skills call this collection's own `code-review` skill. Where it was installed as a plugin, they use the plugin-qualified name the skill was loaded under (`<plugin>:code-review`), because a harness built-in that shares the bare name is a different review.
 
 ## Skills
 
@@ -26,6 +26,7 @@ You or the agent can invoke these skills when the task fits. Invocation does not
 - **[tdd](./tdd/SKILL.md)**: Build one test-first vertical slice at a time, with a quick refactor after each RED and each GREEN.
 - **[domain-modeling](./domain-modeling/SKILL.md)**: Actively build and sharpen a project's domain model by challenging terms, stress-testing with scenarios, and updating `GLOSSARY.md` and ADRs inline.
 - **[codebase-design](./codebase-design/SKILL.md)**: Shared discipline and vocabulary for designing deep modules: small interfaces, clean seams, testable through the interface.
+- **[issue-composition](./issue-composition/SKILL.md)**: The shared contract for writing issue-tracker state: which workflow owns each classification axis, which tracker is the authority for each fact, and how to change one axis without disturbing the others.
 - **[code-review](./code-review/SKILL.md)**: Two-axis review of the diff since a fixed point: **Standards** (does it follow the repo's coding standards, plus a Fowler smell baseline?) and **Spec** (does it faithfully implement the originating issue/spec?), run as parallel sub-agents.
 - **[pr](./pr/SKILL.md)**: The shape a pull request body should take: a summary as the smallest visual that makes the change clear, before/after evidence that it works, and a merge-danger call (one-way or two-way door, plus blast radius).
 - **[wizard](./wizard/SKILL.md)**: Generate an interactive bash wizard that walks a human through steps only they can perform: provisioning infrastructure, setting up credentials or CI secrets, walking an unfamiliar third-party dashboard, or running a one-off migration or cutover.

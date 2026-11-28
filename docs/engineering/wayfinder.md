@@ -31,7 +31,7 @@ The **map** is an issue labelled `wayfinder:map`, with decision tickets as its c
 
 - **Destination** names what the map is finding its way to.
 - **Notes** carries planning context and relevant skill suggestions, never execution permission.
-- **Decisions so far** links to resolved questions.
+- **Decisions so far** links to resolved questions. The map body has one editor at a time, named by the skill's [map-body rule](https://github.com/nisavid/real-skills/blob/main/skills/engineering/wayfinder/SKILL.md#the-map-body). Everyone else leaves their changes, such as a pointer to a resolved question, as comments on the map for the editor to fold in, so the body can lag behind the closed tickets.
 - **Not yet specified** holds the **fog of war**: in-scope questions that cannot yet be phrased sharply.
 - **Out of scope** records work beyond the destination.
 
@@ -59,7 +59,11 @@ If a permitted measurement needs access, a blocking `task` ticket tracks that ac
 
 Whenever a session leaves open a probing ticket it claimed, it records any blocker and releases its claim. An unblocked ticket returns to the frontier. A blocked ticket waits until its prerequisite closes.
 
-The type does not replace other applicable issue classifications. GitHub labels may carry independent axes under project policy. A Linear project using native Triage keeps that state instead of duplicating it with a `needs-triage` label. A map can be followed by [triage](https://aihero.dev/skills-triage): knowing the route does not settle an incoming issue's classification or readiness.
+That type is the ticket's **decision type**, and whether an issue is a map is its **map structure**. Wayfinder owns those two classifications; [triage](https://aihero.dev/skills-triage) owns work kind and triage state. Before it writes to the tracker, Wayfinder loads [issue-composition](https://github.com/nisavid/real-skills/blob/main/docs/engineering/issue-composition.md), the shared contract that lets those classifications sit on one issue without either skill overwriting the other's. A map can be followed by triage: knowing the route does not settle an incoming issue's classification or readiness.
+
+A decision ticket whose question needs a route of its own is **promoted** to a map in place. It keeps its identity, its place in the larger map, its claim, and its blockers, and it keeps its decision type while it still owns that decision, for example when a person must still choose after its children report. While a decision ticket or map beneath it is open, a promoted ticket is blocked, whatever else the tracker shows. A session that leaves a blocked parent it claimed releases the claim, so the parent returns to the frontier when its last blocking child closes.
+
+An assessment stays fresh until something it depends on changes; age alone does not make it stale, unless time is itself the input, such as an authorization that expires. Before work starts, the check looks at the current blockers too, so a prerequisite added since the assessment is not missed.
 
 After a return, the planning owner checks what the result changes about the parent outcome. A proposed adapter or new dependency is not automatically necessary just because a worker supplied it. If an existing qualified route still meets the outcome, the extra work can remain follow-up.
 
@@ -100,7 +104,7 @@ This is the sharpest open complaint about wayfinder, and nobody has fixed it yet
 The skill says only to reconcile invalidated decisions and affected tickets under project policy while preserving decision history, and the agent's default is unhelpful. It tends to design around the bad decision instead of challenging it, so you must steer it yourself. What works is to tell wayfinder plainly what changed. It then updates the map, revises the affected tickets, and comments on the closed ones. You can recover from scope changes mid-map. But if you *designed* a map to change, that is a sign the scope is wrong.
 
 **Can Wayfinder labels coexist with triage labels?**
-Yes, where the project's policy permits the relevant independent classifications. That does not require every axis on every issue, and it does not replace a native workflow state such as Linear Triage. If project policy still makes the labels exclusive, its owner must change that policy before the additional labels are applied.
+Yes, where the project's policy permits the combination. Each skill writes only its own labels, one at a time, and leaves the other skill's alone. Not every issue needs every classification, and where Linear owns intake, its native Triage status stands in for a `needs-triage` label. If the policy forbids the combination, the skill writes nothing and reports the conflict to whoever owns the policy.
 
 **Where did `decision-mapping` go?**
 It is this skill. v1.1 renamed it to `wayfinder`, and you invoke it as `/wayfinder`. "Decision map" was jargon, and it was also inaccurate, because only one of its ticket types is a decision by itself. The new name gave the skill one consistent vocabulary (destination, fog of war, frontier, the map) instead of an invented term on top. The unit kept the word "decision": a wayfinder ticket is a **decision ticket**, so that people do not read it as an implementation ticket.
@@ -112,7 +116,8 @@ It is this skill. v1.1 renamed it to `wayfinder`, and you invoke it as `/wayfind
 - Before work starts, the next step still fits the current inputs, claims, blockers, and holds.
 - Worker and supplier returns change only the parts of the route their evidence affects.
 - You can identify the next eligible decision, or see who owns the hold and exactly what permits work to resume.
-- Independent classifications coexist where useful, and Linear Triage is not duplicated by a label.
+- Independent classifications coexist where your policy permits them, a Wayfinder write never removes a triage label, and where Linear owns intake, its native Triage is not duplicated by a label.
+- A promoted ticket keeps its number, its claim, and its blockers.
 - Fog becomes precise questions as evidence arrives; unresolved human choices stay open.
 - A cleared map hands off to an authorized workflow, and the next session receives a current frontier.
 

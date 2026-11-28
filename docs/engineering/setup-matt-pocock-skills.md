@@ -1,6 +1,6 @@
 ## What it does
 
-`setup-matt-pocock-skills` answers three questions about one repo: where issues live, what the triage labels are called, and where the domain docs sit. It records the answers as markdown files under `docs/agents/`.
+`setup-matt-pocock-skills` answers four questions about one repo: where issues live, under what tracker policy, what the triage labels are called, and where the domain docs sit. It records the answers as markdown files under `docs/agents/`.
 
 Those files hold each repo's skill configuration. The skills themselves are identical everywhere. They read `docs/agents/issue-tracker.md` at run time and do what it says. That is why the set is not tied to GitHub, and why you never edit a skill file to point it at another tracker. Invoking it with "link the skills to a custom issue tracker" works with anything you can connect to programmatically, with no changes to the skills.
 
@@ -25,14 +25,15 @@ It writes into the repo you run it in:
 
 You commit all of it as markdown. There is no user-level or global mode. The config lives in the repo, so every repo gets its own copy.
 
-## The three decisions
+## The decisions
 
-It starts each section with the recommended answer, and skips any question its exploration already answered. Most runs need only two confirmations.
+It starts each section with the recommended answer, and skips any question its exploration already answered. Most runs need only two confirmations, the issue tracker and the triage labels: the tracker policy and the domain docs come up only in the cases the table names.
 
 | Decision | What it proposes | When it asks |
 | --- | --- | --- |
 | **Issue tracker** | the one matching your `git remote` | always, because this is the one real choice |
-| **Triage labels** | keep the five canonical names (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`) | only if the `triage` skill is installed |
+| **Tracker policy** | defaults that make the chosen tracker the authority for every fact it can represent and forbid no combination | only if you mention a second tracker that mirrors the first, such as a Linear sync |
+| **Triage labels** | keep the canonical names: `bug` and `enhancement` for work kind, and `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix` for triage state, with no native statuses | only if the `triage` skill is installed |
 | **Domain docs** | single-context: one `GLOSSARY.md` plus `docs/adr/` at the root | only if it spots monorepo signals, and then it offers a multi-context `GLOSSARY-MAP.md` |
 
 The tracker options:
@@ -52,6 +53,8 @@ If a legacy context map exists, setup can offer a migration of the map and its m
 
 The GitHub and GitLab templates keep PR/MR discovery off by default. Enabling discovery does not authorize execution: `triage` requires disposable isolation before checking out or running contributed code, and records checks as not run when isolation is unavailable. Existing tracker configs can carry the same reminder when you refresh them.
 
+Whatever tracker you choose, `docs/agents/issue-tracker.md` ends with a **tracker policy** section. It is where your project, not a skill, says which tracker is the **authority** for each fact (work kind, triage state, map structure, decision type, parent, blockers, claim, closure, lifecycle status), which combinations of classifications you forbid, and who owns that policy. [issue-composition](https://github.com/nisavid/real-skills/blob/main/docs/engineering/issue-composition.md), the contract the tracker-writing skills share, reads it. If you keep GitHub issues and mirror them into Linear, this is where you say that GitHub decides the labels and blockers while Linear owns the statuses GitHub has no field for. The triage label mapping has a matching column for any native status a triage state maps to, such as Linear's Triage.
+
 "Other" is a full option too. It is how Jira, Linear, Azure DevOps and Beads all work. You describe the workflow, the skill records your prose in `docs/agents/issue-tracker.md`, and the downstream skills follow the prose. Users have already built this: a Jira-over-[MCP](https://www.aihero.dev/ai-coding-dictionary/mcp) variant, a Gitea CLI shaped like `gh`, a hand-built local dashboard.
 
 ## Common questions
@@ -70,13 +73,13 @@ This is a known gap, and still open. The file-selection rule is "edit `CLAUDE.md
 
 **It didn't create my triage labels.**
 
-When `triage` is installed and you choose GitHub or GitLab, setup records the selected triage-label mapping and creates any configured labels missing from the tracker. If `triage` is not installed, setup skips the mapping and label creation.
+When `triage` is installed and you choose GitHub or GitLab, setup records the selected triage-label mapping, both the category and the state roles, and creates any configured labels missing from the tracker. If `triage` is not installed, setup skips the mapping and label creation.
 
 Wayfinder's `wayfinder:map` and `wayfinder:<type>` labels are separate; setup does not create them. Create those labels before using wayfinder with a tracker that requires labels to exist first.
 
 **Can I configure the other skills' behaviour here ([grilling](https://www.aihero.dev/ai-coding-dictionary/grilling) cadence, question format, tone)?**
 
-No. It configures three things: tracker, labels, doc layout. Users have asked to make it the place for per-user preferences. The answer is that skills stay opinionated and take no per-user config. Preferences belong in your `CLAUDE.md` as plain instructions, which every skill already reads.
+No. It configures four things: tracker, tracker policy, labels, doc layout. Users have asked to make it the place for per-user preferences. The answer is that skills stay opinionated and take no per-user config. Preferences belong in your `CLAUDE.md` as plain instructions, which every skill already reads.
 
 **Can I keep the config in `~/.claude` instead of committing it to every repo?**
 
