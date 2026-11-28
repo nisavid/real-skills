@@ -2,7 +2,7 @@
 
 `ask-matt` is the router over the skills in this repo. You describe the situation you are in (an idea you cannot start, a pile of incoming bug reports, a [session](https://www.aihero.dev/ai-coding-dictionary/session) that has run long), and it names the skill or the sequence of skills that fits, plus where the human decisions in that sequence sit.
 
-It reads the relevant skill before recommending a route. It also sends new intake, meaningful changes, pre-work checks, and worker or supplier returns through [wayfinder](https://aihero.dev/skills-wayfinder) under its Sage ownership rule. An adequate assessment can be reused without creating a map. A named factual uncertainty goes to probing for the smallest adequate evidence; a human preference still goes to the decision owner. Routing grants no new action authority. It is also a hand-written map of the skills in this repo rather than a scan of what you have installed, so it will not route you over your own skills or another author's.
+It reads the relevant skill before recommending a route. It also sends new intake, meaningful changes, pre-work checks, and worker or supplier returns through [wayfinder](https://aihero.dev/skills-wayfinder) under its planning-ownership rule. An adequate assessment can be reused without creating a map. A named factual uncertainty goes to probing for the smallest adequate evidence; a human preference still goes to the decision owner. Routing grants no new action authority. It is also a hand-written map of the skills in this repo rather than a scan of what you have installed, so it will not route you over your own skills or another author's.
 
 ## When to reach for it
 

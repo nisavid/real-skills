@@ -9,7 +9,7 @@ You don't remember every skill, so ask.
 
 Before stating what a skill does or recommending a step be skipped, read that skill's SKILL.md: the summaries here are for orientation only.
 
-At new intake, before starting or resuming work, after meaningful change, and on worker or supplier return, call the Skill tool with "wayfinder" for the current assessment under its Sage ownership rule. Reuse adequate assessments; create a map only where unresolved decisions warrant one. This lifecycle keeps the next eligible action or concrete hold current without turning every bounded request into a map. It does not replace triage, readiness, a claim, or action authority.
+At new intake, before starting or resuming work, after meaningful change, and on worker or supplier return, call the Skill tool with "wayfinder" for the current assessment under its planning-ownership rule. Reuse adequate assessments; create a map only where unresolved decisions warrant one. This lifecycle keeps the next eligible action or concrete hold current without turning every bounded request into a map. It does not replace triage, readiness, a claim, or action authority.
 
 When a factual uncertainty blocks discovery, design, or TDD, call the Skill tool with "probing" for the smallest adequate evidence and return its conclusion to the consuming work. Human preferences belong in `grilling`, and settled contracts need no gratuitous experiment.
 
