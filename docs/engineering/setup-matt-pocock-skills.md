@@ -33,7 +33,7 @@ It starts each section with the recommended answer, and skips any question its e
 | --- | --- | --- |
 | **Issue tracker** | the one matching your `git remote` | always, because this is the one real choice |
 | **Tracker policy** | defaults that make the chosen tracker the authority for every fact it can represent and forbid no combination | only if you mention a second tracker that mirrors the first, such as a Linear sync |
-| **Triage labels** | keep the canonical names: `bug` and `enhancement` for work kind, and `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix` for triage state, with no native statuses | only if the `triage` skill is installed |
+| **Triage labels** | keep the canonical names: `bug` and `enhancement` for work kind, and `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix` for triage state, with no native statuses; when the tracker that is the authority for triage state has native statuses, as Linear does when it owns intake, it also maps them, which can replace a label such as `needs-triage`, and asks which status accepted issues move to | only if the `triage` skill is installed |
 | **Domain docs** | single-context: one `GLOSSARY.md` plus `docs/adr/` at the root | only if it spots monorepo signals, and then it offers a multi-context `GLOSSARY-MAP.md` |
 
 The tracker options:
@@ -43,7 +43,7 @@ The tracker options:
 | **GitHub** | the repo's GitHub Issues | the `gh` CLI |
 | **GitLab** | the repo's GitLab Issues | the `glab` CLI |
 | **Local markdown** | files under `.scratch/<feature>/` in this repo | nothing, not even a remote |
-| **Other** | wherever you say | one paragraph from you describing the workflow |
+| **Other** | wherever you say | one paragraph describing your workflow, including how to claim, release, and reopen issues |
 
 The first three ship as templates in the skill and work out of the box. Local markdown is a full option, not a fallback. The skill supports a solo project with no remote. One caveat: don't use local markdown if you use GitHub. They are alternatives, so pick one.
 
@@ -53,7 +53,7 @@ If a legacy context map exists, setup can offer a migration of the map and its m
 
 The GitHub and GitLab templates keep PR/MR discovery off by default. Enabling discovery does not authorize execution: `triage` requires disposable isolation before checking out or running contributed code, and records checks as not run when isolation is unavailable. Existing tracker configs can carry the same reminder when you refresh them.
 
-Whatever tracker you choose, `docs/agents/issue-tracker.md` ends with a **tracker policy** section. It is where your project, not a skill, says which tracker is the **authority** for each fact (work kind, triage state, map structure, decision type, parent, blockers, claim, closure, lifecycle status), which combinations of classifications you forbid, and who owns that policy. [issue-composition](https://github.com/nisavid/real-skills/blob/main/docs/engineering/issue-composition.md), the contract the tracker-writing skills share, reads it. If you keep GitHub issues and mirror them into Linear, this is where you say that GitHub decides the labels and blockers while Linear owns the statuses GitHub has no field for. The triage label mapping has a matching column for any native status a triage state maps to, such as Linear's Triage.
+Whatever tracker you choose, `docs/agents/issue-tracker.md` ends with a **tracker policy** section. It is where your project, not a skill, says which tracker is the **authority** for each fact (work kind, triage state, map structure, decision type, parent, blockers, provenance, claim, closure, lifecycle status), which combinations of classifications you forbid, and who owns that policy. [issue-composition](https://github.com/nisavid/real-skills/blob/main/docs/engineering/issue-composition.md), the contract the tracker-writing skills share, reads it. If you keep GitHub issues and mirror them into Linear, this is where you say that GitHub decides the labels and blockers while Linear owns the statuses GitHub has no field for. The triage label mapping has a matching column for any native status a triage state maps to, such as Linear's Triage.
 
 "Other" is a full option too. It is how Jira, Linear, Azure DevOps and Beads all work. You describe the workflow, the skill records your prose in `docs/agents/issue-tracker.md`, and the downstream skills follow the prose. Users have already built this: a Jira-over-[MCP](https://www.aihero.dev/ai-coding-dictionary/mcp) variant, a Gitea CLI shaped like `gh`, a hand-built local dashboard.
 

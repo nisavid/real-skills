@@ -39,8 +39,12 @@ How a **Decision ticket**'s question is resolved, such as by research, a prototy
 _Avoid_: next operation, ticket kind
 
 **Promotion**:
-Turning an existing **Decision ticket** into a map in place, so that it keeps its identity, its membership in the larger map, its claim, and its blockers.
+Turning an existing **Decision ticket** into a map in place, so that it keeps its identity, its membership in the larger map, and its blockers.
 _Avoid_: conversion, re-filing
+
+**Provenance**:
+The link from a new **Issue** to the existing Issue it was discovered from, follows, or supersedes. It is recorded once, in the new Issue's body, and is neither parent membership nor a blocker.
+_Avoid_: origin, lineage, related (alone)
 
 **Authority**:
 The **Issue tracker** that a project's policy names as the source of truth for one fact, such as a blocker or a triage state. Skills read and write that fact there.

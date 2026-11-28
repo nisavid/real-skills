@@ -69,7 +69,7 @@ Publish the approved tickets. **How** depends on the tracker `/setup-matt-pocock
 
 Work the **frontier**: any ticket whose blockers are all done. For a purely linear chain that means top to bottom.
 
-Do NOT close or modify any parent issue.
+Do NOT close the parent issue. Change nothing on it, except to release a claim this session holds on it as soon as the first ticket exists beneath it, before publishing the next ticket. Follow the composition contract to release the claim.
 
 <local-ticket-template>
 

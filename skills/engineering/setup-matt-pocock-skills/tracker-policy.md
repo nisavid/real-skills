@@ -12,6 +12,7 @@ This project's tracker policy. Edit it here, not in a skill. What the skills do 
 | Decision type | this tracker | none |
 | Parent membership | this tracker | none |
 | Blockers | this tracker | none |
+| Provenance | this tracker | none |
 | Claim | this tracker | none |
 | Closure | this tracker | none |
 | Lifecycle status | this tracker, if it has the field | none |

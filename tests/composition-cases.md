@@ -1,12 +1,12 @@
 # Composition contract acceptance cases
 
-These ten cases are the maintained acceptance cases for the composition contract that the `issue-composition` skill carries and that `wayfinder`, `triage`, `to-spec`, and `to-tickets` load before they write tracker state. They are instruction-driven: an agent runs a candidate build's skills against a fixed tracker state and a fixed prompt, and the run is judged by the state it leaves behind. Package unit tests and plugin discovery exercise none of this.
+These twelve cases are the maintained acceptance cases for the composition contract that the `issue-composition` skill carries and that `wayfinder`, `triage`, `to-spec`, and `to-tickets` load before they write tracker state. They are instruction-driven: an agent runs a candidate build's skills against a fixed tracker state and a fixed prompt, and the run is judged by the state it leaves behind. Package unit tests and plugin discovery exercise none of this.
 
-The cases were decided in [Define composition acceptance cases and axis ownership](https://github.com/nisavid/real-skills/issues/72#issuecomment-6990630784) (cases 1 to 7) and [Define assessment freshness and concurrent axis updates](https://github.com/nisavid/real-skills/issues/74#issuecomment-6998229070) (cases 8 to 10), and their evidence rules in [Define composition qualification and maintained ownership](https://github.com/nisavid/real-skills/issues/75). Each case below fixes four things, so a reviewed fixture can be built from it: the starting state, the prompt, the fields and relations the run intends to change, and the state that must survive. The starting states and prompts elaborate the decided case statements; a fixture author refines them, and the fixture's reviewer checks them against those decisions. Unless a case says otherwise, the state that must survive is everything the run does not intend to change: the other classification axes, claims, blockers, parent membership, later lifecycle state, holds, and authority.
+The cases were decided in [Define composition acceptance cases and axis ownership](https://github.com/nisavid/real-skills/issues/72#issuecomment-6990630784) (cases 1 to 7) and [Define assessment freshness and concurrent axis updates](https://github.com/nisavid/real-skills/issues/74#issuecomment-6998229070) (cases 8 to 10), with cases 11 and 12 added by [Add provenance lines, the closed-issue rule and parent closure to the composition contract [Unleashed]](https://github.com/nisavid/real-skills/issues/139), and their evidence rules in [Define composition qualification and maintained ownership](https://github.com/nisavid/real-skills/issues/75). Each case below fixes four things, so a reviewed fixture can be built from it: the starting state, the prompt, the fields and relations the run intends to change, and the state that must survive. The starting states and prompts elaborate the decided case statements; a fixture author refines them, and the fixture's reviewer checks them against those decisions. Unless a case says otherwise, the state that must survive is everything the run does not intend to change: the other classification axes, claims, blockers, parent membership, later lifecycle state, holds, and authority.
 
 ## Status
 
-The design is agreed. None of the ten cases has been run on any build. Record a demonstration separately from this agreement, with the evidence below; an agreed case is not a demonstrated one.
+The design is agreed. None of the twelve cases has been run on any build. Record a demonstration separately from this agreement, with the evidence below; an agreed case is not a demonstrated one.
 
 ## Running a case
 
@@ -29,7 +29,7 @@ Each run record carries:
 
 ### Carrying a result to a later build
 
-Rerun any case whose result could change on the later build. That includes a change to a packaged skill or reference, the manifest, provider resolution, the client, the tracker policy, or the sync configuration the case relies on. Identical skill text can still load from the wrong provider. A case carried forward unchanged points to its original build and run. The first acceptance of the contract requires all ten cases, with their variants, to pass on one identified installed build.
+Rerun any case whose result could change on the later build. That includes a change to a packaged skill or reference, the manifest, provider resolution, the client, the tracker policy, or the sync configuration the case relies on. Identical skill text can still load from the wrong provider. A case carried forward unchanged points to its original build and run. The first acceptance of the contract requires all twelve cases, with their variants, to pass on one identified installed build.
 
 ## Cases
 
@@ -49,23 +49,25 @@ Rerun any case whose result could change on the later build. That includes a cha
 
 ### 3. A bug that is also a map
 
-- **Starting state.** On the fixture GitHub repository, whose policy permits a bug to be a map, an Issue triaged as `bug` with a triage state.
+- **Starting state.** On the fixture GitHub repository, whose policy permits a bug to be a map, an Issue triaged as `bug` with a triage state and a claim that the run under test holds.
 - **Prompt.** Chart this bug's route as a Wayfinder map.
-- **Intends to change.** Map structure: the map label and the map body, and any children Wayfinder creates.
-- **Must survive.** The work kind `bug` and the triage state, the Issue's claim, blockers, and parent membership.
+- **Intends to change.** Map structure: the map label and the map body, and any children Wayfinder creates; and the release of the run's claim on the Issue, in the step that creates its first child.
+- **Must survive.** The work kind `bug` and the triage state, blockers, and parent membership.
 
 ### 4. A decision ticket promoted in place to a map
 
-- **Starting state.** A claimed decision ticket with a decision type and one open blocker, a member of a larger map. Its question needs several children, one of them a probing ticket.
+- **Starting state.** A decision ticket whose claim the run under test holds (it is assigned to the dev that run acts for), with a decision type and one open blocker, a member of a larger map. Its question needs several children, one of them a probing ticket.
 - **Prompt.** Promote this ticket to a map and chart its children.
-- **Intends to change.** Map structure on the ticket; the new child tickets; and, where the tracker accepts it, a native blocking edge from the ticket to each child whose result it actually needs.
-- **Must survive.** The ticket's identity, its membership in the larger map, its claim, and its existing blocker. It keeps its decision type while it still owns the decision that type describes; the fixture fixes whether a person must still choose after the children report, and the expected type follows from that.
+- **Intends to change.** Map structure on the ticket; the new child tickets; where the tracker accepts it, a native blocking edge from the ticket to each child whose result it actually needs; and the release of the run's claim on the ticket, in the step that creates its first child.
+- **Must survive.** The ticket's identity, its membership in the larger map, and its existing blocker. It keeps its decision type while it still owns the decision that type describes; the fixture fixes whether a person must still choose after the children report, and the expected type follows from that.
 - **Depends on.** The probing decision type, which comes from [Add probing and the probing decision type to Real Skills [Leashed]](https://github.com/nisavid/real-skills/issues/115). The case cannot run until that type is in the build under test.
 
-Two further forms, observed separately from the promotion. Neither needs the probing type.
+Four further forms, observed separately from the promotion. None needs the probing type.
 
-- **Not offered.** Starting state: a promoted ticket that keeps its decision type, unclaimed, with no blocker of its own and one open child decision ticket; and one independent open sibling in the larger map. Prompt: pick the next eligible ticket from the larger map. Intends to change: the claim on the ticket that is picked, which is not the promoted ticket. Must survive: every field of the promoted ticket.
-- **Not resumed.** Starting state: the same promoted ticket, claimed, with a hand-back that names it as the next action. Prompt: resume the promoted ticket. Intends to change: a record of the failed pre-work check on the ticket, and the release of its claim where the claimant is leaving it. Must survive: the ticket stays open and unresolved.
+- **Not offered.** Starting state: a promoted ticket that keeps its decision type, unclaimed, with no blocker of its own and one open child; and one independent open sibling in the larger map. Variants: the child is a decision ticket; the child is a ticket with no `wayfinder:` label. Prompt: pick the next eligible ticket from the larger map. Intends to change: the claim on the ticket that is picked, which is not the promoted ticket. Must survive: every field of the promoted ticket.
+- **Not resumed.** Starting state: the same promoted ticket, carrying a claim that the run under test holds, left from before the ticket had a child, with a hand-back that names it as the next action. Variants: as in **Not offered**. Prompt: resume the promoted ticket. Intends to change: a record of the failed pre-work check on the ticket, and the release of that claim. Must survive: the ticket stays open and unresolved, and its child is untouched.
+- **Last child closes.** Starting state: a promoted ticket that only coordinates its children, unclaimed, whose own acceptance criteria are met once its one open child, a decision ticket, is resolved; the run under test holds the claim on that child, and no session has dispatched parallel work on the parent's children. Variants: the project names no planning owner; the project names a planning owner, and the run is neither that owner nor the tracker writer it designates. Prompt: resolve the child. Intends to change: the child's resolution and closure, and the child's Decisions-so-far pointer for the parent, as the map-body rule directs. With no named owner, the run is the parent body's editor: it writes that pointer into the parent's body, then closes the parent in the same turn, with its resolution linked from the larger map as the map-body rule directs. With a named owner, the pointer is a comment on the parent, and a hand-back names the parent's reassessment as that owner's next action; nothing else on the parent changes. Must survive: with a named owner, the parent stays open and unclaimed, and its body is unchanged.
+- **Found at refresh.** Starting state: a promoted ticket that only coordinates its children, unclaimed, whose own acceptance criteria are met; its one child has closed and nothing handed the parent back. The run under test is the parent's planning owner. Variants: the child is a decision ticket that another session closed; the child is a ticket with no `wayfinder:` label that a merge closed. Prompt: refresh the larger map. Intends to change: the parent's reassessment and closure, with its resolution linked from the larger map as the map-body rule directs. Where that rule makes the run the parent body's editor, it may also fold an outstanding Decisions-so-far pointer into that body. Must survive: the closed child, and every other child of the larger map.
 
 ### 5. Triage changes only the triage state
 
@@ -114,3 +116,19 @@ Three variants.
 - **New blocker.** Starting state: an assessed ticket and one independent sibling under the same assessment, with a blocker added to the ticket after the assessment. Prompt: resume work from the assessment. Intends to change: a record of the failed pre-work check on the ticket, which holds its dependent action, and work on the independent sibling. Must survive: the new blocker, any claim on the ticket, and every other field.
 - **Unverifiable input.** Starting state: an assessed ticket whose action depends on a material input the run cannot verify, and an independent sibling. Prompt: resume work from the assessment. Intends to change: the dependent action stays pending, with that recorded; work on the independent sibling proceeds. Must survive: the assessment, claims, blockers, and every other field.
 - **Expired authorization.** Starting state: an assessed ticket whose action relied on an authorization that has since expired. Prompt: resume work from the assessment. Intends to change: the pre-work check catches the expiry as a time input and holds the action that depended on it. Must survive: every field; the expired authorization is not treated as current.
+
+### 11. An issue that came from another issue
+
+Three forms.
+
+- **Surfaced by a resolution.** Starting state: a map with one decision ticket, claimed by the run under test, whose answer raises a second question inside the destination, and one independent open sibling. Prompt: resolve the claimed ticket and refresh the map. Intends to change: the resolution of the claimed ticket, and one new child ticket of the map whose body, as created, carries a `Discovered from:` line that names the resolved ticket. Must survive: the resolved ticket's body, the sibling, and the map body, which changes only through its editor.
+- **Created under its origin.** Starting state: as in case 4, except that none of the children the question needs is a probing ticket. Prompt: as in case 4. Intends to change: as in case 4; the new child tickets' bodies carry no provenance line, because membership already records where they came from. Must survive: as in case 4.
+- **A later map.** Starting state: a closed map whose destination was reached, with every child closed, and a request for work beyond that destination. Prompt: chart the new effort. Intends to change: one new map whose body opens with a `Follows:` line that names the closed map. Must survive: the closed map stays closed, and its body, comments, labels, and children are unchanged.
+
+### 12. A closed decision, looked at again
+
+Three forms. In each, the run is not the map body's editor.
+
+- **Superseded.** Starting state: a map with a closed decision ticket whose answer was right when it was recorded and is indexed in Decisions so far, and a later fact, fixed by the fixture, that changes the best answer. Prompt: reconcile the map with the new fact. Intends to change: one new child ticket of the map whose body, as created, carries a `Supersedes:` line that names the closed ticket, and a comment on the map that proposes the change to the index. Must survive: the closed ticket stays closed, with its body, labels, and resolution comment unchanged; and the map body.
+- **Wrongly closed.** Starting state: a promoted ticket, unclaimed, that was closed while one of its own children was still open, in a project whose policy lets the workflow under test close that ticket. Variants: the open child is a decision ticket; the open child is a ticket with no `wayfinder:` label. Prompt: reconcile this ticket with its children. Intends to change: the ticket's closure, reopened with a comment that gives the reason. Must survive: the ticket's labels, membership, and relations, and the open child. The ticket stays unclaimed.
+- **Cannot tell.** Starting state: a closed decision ticket whose resolution comment does not show whether its answer was right when it was recorded, and a request that questions the answer. Prompt: revisit this decision. Intends to change: one new ticket whose body, as created, carries a `Follows:` line that names the closed ticket. Must survive: the closed ticket stays closed and unchanged.
