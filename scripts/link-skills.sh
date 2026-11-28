@@ -12,7 +12,12 @@ set -euo pipefail
 # Each entry is a symlink into this repo, so a `git pull` is all that's needed
 # to keep installed skills up to date.
 
+# This fork differs from upstream. It checks both destinations before writing
+# and refuses to delete or repoint conflicting entries. On any conflict, it
+# changes nothing and exits with status 1.
+
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
+PHYSICAL_REPO="$(cd -P "$REPO" && pwd)"
 DESTS=("$HOME/.claude/skills" "$HOME/.agents/skills")
 
 # Collect the repo's skills once, link into every destination. `deprecated/`
@@ -30,31 +35,102 @@ while IFS= read -r -d '' skill_md; do
   srcs+=("$src")
 done < <(find "$REPO/skills" -name SKILL.md -not -path '*/node_modules/*' -not -path '*/deprecated/*' -not -path '*/misc/*' -print0)
 
-for DEST in "${DESTS[@]}"; do
-  # If $DEST is a symlink that resolves into this repo, we'd end up writing the
-  # per-skill symlinks back into the repo's own skills/ tree. Detect and bail
-  # out instead of polluting the working copy.
-  if [ -L "$DEST" ]; then
-    resolved="$(readlink -f "$DEST")"
-    case "$resolved" in
-      "$REPO"|"$REPO"/*)
-        echo "error: $DEST is a symlink into this repo ($resolved)." >&2
-        echo "Remove it (rm \"$DEST\") and re-run; the script will recreate it as a real dir." >&2
-        exit 1
-        ;;
-    esac
+# Judge link text lexically against REPO or PHYSICAL_REPO and destinations physically against PHYSICAL_REPO.
+points_into_checkout() {
+  local target part path=""
+  local -a parts
+  # Preserve trailing newlines in the link text.
+  target="$(readlink -n "$1" && printf '.')" || return 1
+  target="${target%.}"
+  if [[ "$target" != /* ]]; then
+    target="${1%/*}/$target"
   fi
 
+  # Use the named path, even if it is missing or is itself a symlink.
+  IFS=/ read -r -d '' -a parts < <(printf '%s\0' "$target")
+  for part in "${parts[@]}"; do
+    case "$part" in
+      ""|.) ;;
+      ..) path="${path%/*}" ;;
+      *) path="$path/$part" ;;
+    esac
+  done
+  [[ "$path" == "$REPO" || "$path" == "$REPO/"* ||
+     "$path" == "$PHYSICAL_REPO" || "$path" == "$PHYSICAL_REPO/"* ]]
+}
+
+conflicts=0
+report_conflict() {
+  local path="${1//$'\n'/\\n}"
+  printf 'error: %s is %s.\n' "$path" "$2" >&2
+  conflicts=1
+}
+
+resolved_dests=()
+for DEST in "${DESTS[@]}"; do
+  ancestor="$DEST"
+  suffix=""
+  while [ ! -e "$ancestor" ] && [ ! -L "$ancestor" ]; do
+    suffix="/${ancestor##*/}$suffix"
+    ancestor="$(dirname "$ancestor")"
+  done
+
+  if ! ancestor="$(cd -P -- "$ancestor" 2>/dev/null && pwd)"; then
+    report_conflict "$DEST" "not a writable, searchable directory outside this checkout"
+    continue
+  fi
+
+  resolved="${ancestor%/}$suffix"
+  resolved="${resolved:-/}"
+  for destination in ${resolved_dests[@]+"${resolved_dests[@]}"}; do
+    if [ "$destination" = "$resolved" ]; then
+      continue 2
+    fi
+  done
+
+  if [[ ! -w "$ancestor" || "$ancestor" == "$PHYSICAL_REPO" || "$ancestor" == "$PHYSICAL_REPO/"* ]]; then
+    report_conflict "$DEST" "not a writable, searchable directory outside this checkout"
+  fi
+
+  resolved_dests+=("$resolved")
+done
+
+for DEST in ${resolved_dests[@]+"${resolved_dests[@]}"}; do
+  for name in "${names[@]}"; do
+    target="$DEST/$name"
+    if [ -L "$target" ]; then
+      if ! points_into_checkout "$target"; then
+        report_conflict "$target" "a symlink whose named target is outside this checkout or unreadable"
+      fi
+    elif [ -f "$target" ]; then
+      report_conflict "$target" "a regular file"
+    elif [ -d "$target" ]; then
+      report_conflict "$target" "a directory"
+    elif [ -e "$target" ]; then
+      report_conflict "$target" "another kind of filesystem entry"
+    else
+      for destination in "${resolved_dests[@]}"; do
+        if [[ "$destination" == "$target" || "$destination" == "$target/"* ]]; then
+          report_conflict "$target" "needed as a destination directory"
+          break
+        fi
+      done
+    fi
+  done
+done
+
+if [ "$conflicts" -ne 0 ]; then
+  echo "Nothing was changed." >&2
+  exit 1
+fi
+
+for DEST in "${resolved_dests[@]}"; do
   mkdir -p "$DEST"
 
   for i in "${!names[@]}"; do
     name="${names[$i]}"
     src="${srcs[$i]}"
     target="$DEST/$name"
-
-    if [ -e "$target" ] && [ ! -L "$target" ]; then
-      rm -rf "$target"
-    fi
 
     ln -sfn "$src" "$target"
     echo "linked $name -> $src ($DEST)"
