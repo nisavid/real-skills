@@ -1,18 +1,33 @@
-# mattpocock-skills
+# Real Skills changelog
 
-## Fork changes
+## Fork releases
 
-- [`65b50e0`](https://github.com/nisavid/real-skills/commit/65b50e0bcd27a4d11650846dc5c01b66aae1d1fc) Thanks [@nisavid](https://github.com/nisavid)! - Bound `code-review` to one coordinator and at most one leaf reviewer per axis. Standards and Spec reviewers perform their assigned reviews directly and never delegate, even when no recursion has occurred. An agent from another workflow may still coordinate a review when it is not one of its leaf reviewers. Harness restrictions can enforce this role rule; the skill itself does not set runtime tool permissions.
+[@nisavid](https://github.com/nisavid) authored the Real Skills changes unless an entry credits another contributor.
 
-- [`475c92d`](https://github.com/nisavid/real-skills/commit/475c92d98a0c60640bbaff229c5047c1a4b0c969) Thanks [@nisavid](https://github.com/nisavid)! - Make the optional Claude Code Git guardrail fail closed on invalid input and runtime errors. Recognize prohibited literal Git operations across quoting, whitespace, and global options, and require explicit user review for every other Bash command, including wrappers and indirect Git execution. Document Python 3, failure-blocking hook configuration, and updating installed copies.
+### Unreleased
 
-- [`3a49863`](https://github.com/nisavid/real-skills/commit/3a49863ea79b8b342bbd43b489544b2a0d98ba2d) Thanks [@nisavid](https://github.com/nisavid)! - Require disposable isolation before triage checks out or executes contributed code. Preserve static review when isolation is unavailable, and carry exact verification evidence and skipped checks into handoffs. Clarify the same boundary in tracker templates and human documentation.
+- Add `probing` to answer questions by trying things and observing what happens. Wayfinder gains a ticket type for probes. [#131](https://github.com/nisavid/real-skills/pull/131)
+- Keep skills that call each other within the same active provider during implementation. [#132](https://github.com/nisavid/real-skills/pull/132)
+- Add the Wayfinder package icon and preserve existing Codex manifests if generation fails. [#64](https://github.com/nisavid/real-skills/pull/64), [#77](https://github.com/nisavid/real-skills/pull/77)
+- Check archive provenance in CI and support rebuilding from retained source archives. [#103](https://github.com/nisavid/real-skills/pull/103), [#113](https://github.com/nisavid/real-skills/pull/113)
+- Prepare inspect-only checks for Wayfinder tracker labels. [#70](https://github.com/nisavid/real-skills/issues/70)
+- Fix the nested triage example and a lint warning in the wizard prompt. [#60](https://github.com/nisavid/real-skills/pull/60), [#61](https://github.com/nisavid/real-skills/pull/61)
 
-- [`353ed9a`](https://github.com/nisavid/real-skills/commit/353ed9a8a12cb6bf4e51f909d8f6551c6525ab8a) Thanks [@nisavid](https://github.com/nisavid)! - Remove Wayfinder's Notes-based execution exemption. Keep map artifacts, ticket labels, linked approval claims, and delegated skills within planning scope, and hand off implementation or live-service prerequisites to separately human-authorized work. Preserve decision tracking and isolated research and prototype artifacts.
+### [1.3.4+from.1.3.2](https://github.com/nisavid/real-skills/releases/tag/v1.3.4%2Bfrom.1.3.2)
 
-- [`b3e7846`](https://github.com/nisavid/real-skills/commit/b3e78467a3be94d0de8037b8a60d9bed9fa56bf6) Thanks [@nisavid](https://github.com/nisavid)! - Harden this fork's generated wizard environment-file access. Read and write operations now reject symlinked destinations, parent traversal, non-regular files, and paths outside the launch project directory. Saved-default access errors stop prompts, and failed writes do not report success.
+- Release Real Skills [Leashed] under its own plugin ID, with ChatGPT and Claude archives and installation guides. [#63](https://github.com/nisavid/real-skills/pull/63), [#76](https://github.com/nisavid/real-skills/pull/76)
+- Update to Matt Pocock’s upstream 1.3.2. [#51](https://github.com/nisavid/real-skills/pull/51)
+- Ask before adding environment variables when the project already loads an environment file. [#40](https://github.com/nisavid/real-skills/pull/40)
+- Build reproducible ChatGPT and Claude plugin archives. [#36](https://github.com/nisavid/real-skills/pull/36)
+- Bound review delegation to one coordinator and one reviewer per axis. [#22](https://github.com/nisavid/real-skills/pull/22)
+- Block Git commands when the optional Claude Code guardrail cannot evaluate them. [#17](https://github.com/nisavid/real-skills/pull/17)
+- Require disposable isolation when triage checks out or runs contributed code. [#20](https://github.com/nisavid/real-skills/pull/20)
+- Keep mapped document writes within the project and require human authorization to execute work beyond Wayfinder planning. [#18](https://github.com/nisavid/real-skills/pull/18), [#23](https://github.com/nisavid/real-skills/pull/23)
+- Protect project environment files in generated wizards and confirm the destination before writing. Regenerate existing wizards to get the protections. [#21](https://github.com/nisavid/real-skills/pull/21), [#24](https://github.com/nisavid/real-skills/pull/24)
 
-  The wizard requires Python 3 and replaces valid destinations atomically. New files use mode 0600; existing access permissions are retained. Atomic replacement changes the inode and leaves other hard links unchanged. This fork-specific policy supersedes the symlink write-through behavior described in the earlier wizard-template fixes for [#811](https://github.com/mattpocock/skills/issues/811). Regenerate existing wizards to adopt the hardened library.
+## Upstream history
+
+The entries below come from [Matt Pocock’s Skills for Real Engineers](https://github.com/mattpocock/skills).
 
 ## 1.3.2
 
