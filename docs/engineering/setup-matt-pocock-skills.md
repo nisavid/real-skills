@@ -43,7 +43,7 @@ The tracker options:
 | **GitHub** | the repo's GitHub Issues | the `gh` CLI |
 | **GitLab** | the repo's GitLab Issues | the `glab` CLI |
 | **Local markdown** | files under `.scratch/<feature>/` in this repo | nothing, not even a remote |
-| **Other** | wherever you say | one paragraph from you describing the workflow |
+| **Other** | wherever you say | one paragraph describing your workflow, including how to claim, release, and reopen issues |
 
 The first three ship as templates in the skill and work out of the box. Local markdown is a full option, not a fallback. The skill supports a solo project with no remote. One caveat: don't use local markdown if you use GitHub. They are alternatives, so pick one.
 

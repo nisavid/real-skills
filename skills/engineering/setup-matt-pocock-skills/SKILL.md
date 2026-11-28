@@ -45,7 +45,7 @@ Default posture: these skills were designed for GitHub. If a `git remote` points
 - **GitHub**: issues live in the repo's GitHub Issues (uses the `gh` CLI)
 - **GitLab**: issues live in the repo's GitLab Issues (uses the [`glab`](https://gitlab.com/gitlab-org/cli) CLI)
 - **Local markdown**: issues live as files under `.scratch/<feature>/` in this repo (good for solo projects or repos without a remote)
-- **Other** (Jira, Linear, etc.): ask the user to describe the workflow in one paragraph; the skill will record it as freeform prose
+- **Other** (Jira, Linear, etc.): ask the user to describe the workflow in one paragraph, including how Claim, Release, and Reopen work; the skill will record it as freeform prose
 
 Record the choice in `docs/agents/issue-tracker.md`, ending with the tracker policy section from [tracker-policy.md](./tracker-policy.md) for every choice, including "other". Its defaults make the chosen tracker the authority for every fact it can represent and forbid no combination; write them without asking. Ask only when the user mentions a second tracker that mirrors this one, such as a Linear sync: then record which facts it copies and which, if any, it owns. The user can edit the section later without touching a skill.
 

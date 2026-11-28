@@ -68,6 +68,10 @@ This contract adds no lock, adapter, or service.
 - **Shared facts.** A fact that several operations write is recorded in native relations, labels, or append-only comments; a body that reflects it, such as a map body, changes only through its responsible editor.
 - **Coordination notes.** A coordination note is an append-only comment on an issue that records who is working it and what was checked before work.
 
+## Releasing your own claim
+
+Use the tracker doc's Release operation to release your claim. If it defines no Release operation, reverse its Claim operation for your own claim only, then comment on the ticket explaining why you released it and what work remains.
+
 ## A parent blocked by its own child
 
 A parent is blocked while any child of its own is open, whatever the child's type: it is not picked up, resumed, resolved, or closed. That holds wherever an issue has children, such as a map, a promoted ticket, or a spec with tickets beneath it. The parent and child relationship is the blocker. It needs no edge and no `Blocked by:` line, and any session records it by adding the child.
